@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Info Test</title>
+    <style>
+        .info-container {
+            margin: 20px;
+            font-family: monospace;
+        }
+        .highlight {
+            background-color: #ffe6e6;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .section {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="info-container">
+        <h1>User Info Test</h1>
+        <div class="section">
+            <div class="section-title">Privacy Status:</div>
+            <strong>Incognito Mode: </strong>
+            <span id="incognito-status">Checking...</span>
+        </div>
+        <div class="section">
+            <div class="section-title">System Information:</div>
+            <pre id="result">Loading...</pre>
+        </div>
+    </div>
+
+    <script type="module">
+        import userInfoModule from '/dist/index.js';
+
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2)
+                .replace(/{/g, '{\n  ')
+                .replace(/}/g, '\n}')
+                .replace(/,/g, ',\n  ');
+        }
+
+        async function displayInfo() {
+            try {
+                const info = await userInfoModule.userInfo();
+                
+                // Display incognito status
+                const incognitoEl = document.getElementById('incognito-status');
+                incognitoEl.textContent = info.systemInfo.incognito ? 'Yes' : 'No';
+                incognitoEl.className = info.systemInfo.incognito ? 'highlight' : '';
+                
+                // Display full info
+                document.getElementById('result').textContent = formatJSON(info);
+            } catch (error) {
+                document.getElementById('result').textContent = 
+                    'Error: ' + error.message;
+                document.getElementById('incognito-status').textContent = 
+                    'Error detecting';
+            }
+        }
+
+        displayInfo();
+    </script>
+</body>
+</html> 
