@@ -21,12 +21,11 @@
     "steal-info"
   ],
   "license": "GPL-3.0-only",
-  "devDependencies": {
-    
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/IntegerAlex/user-info-logger"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
   }
-  
 }

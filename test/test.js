@@ -1,5 +1,8 @@
-import userInfo from 'user-info-logger'
+import { userInfo } from '../dist/index.js'
 
-const data = userInfo();
+async function runTest() {
+    const data = await userInfo();
+    console.log(JSON.stringify(data, null, 2));
+}
 
-console.log(data);
+runTest().catch(console.error);
