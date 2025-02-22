@@ -27,41 +27,50 @@ app.post('/v1/runContainer', async (req, res) => {
     projectName,
     repoLink,
     entryPoint,
-    buildCommand,
-    runCommand,
+    buildCommand = 'npm install',
+    runCommand = 'node',
   } = req.body as {
     userName: string;
     projectName: string;
     repoLink: string;
     entryPoint: string;
-    buildCommand: string;
-    runCommand: string;
+    buildCommand?: string;
+    runCommand?: string;
   };
 
-  if (!userName || !projectName || !repoLink || !entryPoint) {
-    return res.status(400).send('Invalid Request');
+  const missingFields = [];
+  if (!userName) missingFields.push('userName');
+  if (!projectName) missingFields.push('projectName');
+  if (!repoLink) missingFields.push('repoLink');
+  if (!entryPoint) missingFields.push('entryPoint');
+
+  if (missingFields.length > 0) {
+    return res.status(400).json({
+      error: 'Missing required fields',
+      fields: missingFields
+    });
   }
 
   try {
-    console.log(`Creating image for project: ${projectName}`);
-    const imageName = await createImage(
-      userName,
-      projectName,
-      repoLink,
-      entryPoint,
-      buildCommand,
-      runCommand
-    );
+    const [imageName, containerId] = await Promise.all([
+      createImage(userName, projectName, repoLink, entryPoint, buildCommand, runCommand),
+      runContainer(userName, projectName)
+    ]);
 
-    console.log(`Running container for image: ${imageName}`);
-    const containerId = await runContainer(userName, projectName);
-
-    console.log(`Container running with ID: ${containerId}`);
-    database.dbRedisSet(userName.toLowerCase(), true);
-    res.json({ containerId: containerId });
+    console.log(`Container ${containerId} running with image: ${imageName}`);
+    
+    await database.dbRedisSet(userName.toLowerCase(), true);
+    res.json({ 
+      containerId,
+      imageName,
+      status: 'deployed'
+    });
   } catch (err) {
-    console.error(`Error: ${err.message}`);
-    res.status(500).send('Error running container');
+    console.error(`Deployment error: ${err.message}`);
+    res.status(500).json({
+      error: 'Deployment failed',
+      message: err.message
+    });
   }
 });
 
@@ -128,6 +137,18 @@ app.get('/v1/repositories', (req, res) => {
       console.error('Error fetching repositories:', error);
       res.status(500).send('Error fetching repositories');
     });
+});
+
+// Add error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+// Add request logging middleware
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
 });
 
 app.listen(8080, () => {

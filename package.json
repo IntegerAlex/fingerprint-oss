@@ -1,14 +1,23 @@
 {
-  "name": "cloudrun",
+  "name": "flexr",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server/setup.js",
   "scripts": {
-    "dev": "node dist/server/setup.js",
-    "build": "tsc"
+    "dev": "nodemon --exec ts-node server/setup.ts",
+    "build": "tsc",
+    "start": "node dist/server/setup.js",
+    "lint": "eslint . --ext .ts",
+    "test": "jest",
+    "db:migrate": "node dist/db/create.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "deployment",
+    "containers",
+    "podman",
+    "nodejs"
+  ],
+  "author": "Akshat Kotpalliwar",
+  "license": "GPL-3.0",
   "description": "",
   "dependencies": {
     "cloudflare": "^3.5.0",
@@ -18,12 +27,23 @@
     "express-openid-connect": "^2.17.1",
     "htmx": "^0.0.2",
     "pg": "^8.12.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "winston": "^3.11.0",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.12",
-    "@types/pg": "^8.11.6"
+    "@types/pg": "^8.11.6",
+    "@types/jest": "^29.5.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0"
   }
 }
