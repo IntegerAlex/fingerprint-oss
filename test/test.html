@@ -22,18 +22,41 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
+        .info-section {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .info-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="info-container">
         <h1>User Info Test</h1>
-        <div class="section">
-            <div class="section-title">Privacy Status:</div>
+        
+        <div class="info-section">
+            <div class="info-title">Privacy Status:</div>
             <strong>Incognito Mode: </strong>
             <span id="incognito-status">Checking...</span>
         </div>
-        <div class="section">
-            <div class="section-title">System Information:</div>
+
+        <div class="info-section">
+            <div class="info-title">IP Information:</div>
+            <pre id="ip-info">Loading...</pre>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">Geolocation:</div>
+            <pre id="geo-info">Loading...</pre>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">System Information:</div>
             <pre id="result">Loading...</pre>
         </div>
     </div>
@@ -57,8 +80,17 @@
                 incognitoEl.textContent = info.systemInfo.incognito ? 'Yes' : 'No';
                 incognitoEl.className = info.systemInfo.incognito ? 'highlight' : '';
                 
-                // Display full info
-                document.getElementById('result').textContent = formatJSON(info);
+                // Display IP info
+                document.getElementById('ip-info').textContent = 
+                    formatJSON(info.ipInfo || { status: 'Not available' });
+
+                // Display geolocation info
+                document.getElementById('geo-info').textContent = 
+                    formatJSON(info.geolocation || { status: 'Not available' });
+                
+                // Display system info
+                document.getElementById('result').textContent = 
+                    formatJSON(info.systemInfo);
             } catch (error) {
                 document.getElementById('result').textContent = 
                     'Error: ' + error.message;

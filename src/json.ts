@@ -1,9 +1,42 @@
 import { SystemInfo } from './types';
+import { IpInfo, GeolocationInfo } from './geo-ip.js';
 
-export function generateJSON(ipInfo: any, geolocationInfo: any, systemInfo: SystemInfo) {
+export function generateJSON(ipInfo: IpInfo | null, geolocationInfo: GeolocationInfo | null, systemInfo: SystemInfo) {
     return {
+        ipInfo: ipInfo ? {
+            ip: ipInfo.ip,
+            location: {
+                city: ipInfo.city,
+                region: ipInfo.region,
+                country: ipInfo.country_name,
+                continent: ipInfo.continent_code,
+                latitude: ipInfo.latitude,
+                longitude: ipInfo.longitude,
+                timezone: ipInfo.timezone
+            },
+            network: {
+                asn: ipInfo.asn,
+                org: ipInfo.org
+            }
+        } : null,
+        geolocation: geolocationInfo ? {
+            city: geolocationInfo.city,
+            region: {
+                code: geolocationInfo.region_code,
+                name: geolocationInfo.region_name
+            },
+            country: {
+                code: geolocationInfo.country_code,
+                name: geolocationInfo.country_name
+            },
+            location: {
+                latitude: geolocationInfo.latitude,
+                longitude: geolocationInfo.longitude,
+                timezone: geolocationInfo.time_zone
+            }
+        } : null,
         systemInfo: {
-            ...systemInfo // Simply spread all properties
+            ...systemInfo
         }
     };
 }

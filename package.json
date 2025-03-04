@@ -1,7 +1,7 @@
 {
-  "name": "user-info-logger",
-  "version": "1.5.0",
-  "description": "The User Info Logger is a javascript util designed to collect various information about the user's device, location, and network.",
+  "name": "fingerprint-oss",
+  "version": "0.0.0",
+  "description": "fingerprint-oss is a javascript util designed to collect various information about the user's device, location, and network.",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node index.ts",
@@ -23,9 +23,9 @@
   "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "https://github.com/IntegerAlex/user-info-logger"
+    "url": "https://github.com/IntegerAlex/fingerprint-oss.git"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "dotenv": "^16.4.7"
   }
 }
