@@ -1,5 +1,6 @@
-import { SystemInfo, WebGLInfo, CanvasInfo, PluginInfo, MathInfo, FontInfo } from './types';
-import { isIncognito } from './incognito';
+import { SystemInfo, WebGLInfo, CanvasInfo, PluginInfo, MathInfo, FontInfo } from './types.js';
+import { isIncognito } from './incognito.js';
+
 export async function getSystemInfo() {
     const browserInfo = {
         // Basic info
@@ -10,7 +11,7 @@ export async function getSystemInfo() {
         doNotTrack: navigator.doNotTrack,
         
         // Screen & Display
-        screenResolution: [window.screen.width, window.screen.height],
+        screenResolution: [window.screen.width, window.screen.height] as [number, number],
         colorDepth: window.screen.colorDepth,
         colorGamut: getColorGamut(),
         

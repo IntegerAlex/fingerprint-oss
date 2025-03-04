@@ -1,4 +1,7 @@
+dist/*
+.env
 node_modules
+package-lock.json
 proxy_server/asn
 proxy_server/city
 proxy_server/country

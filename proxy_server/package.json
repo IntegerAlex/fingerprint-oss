@@ -3,11 +3,9 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-  "build": "npx tsc --skipLibCheck || true",
-  "start": "node dist/index.js"
-}
-
-  ,
+    "build": "npx tsc --skipLibCheck || true",
+    "start": "node dist/index.js"
+  },
   "keywords": [],
   "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",
   "license": "GPL-3.0",
@@ -15,7 +13,7 @@
   "dependencies": {
     "@maxmind/geoip2-node": "^6.0.0",
     "dotenv": "^16.4.7",
-    "hasty-server": "^0.9.3"
+    "hasty-server": "^0.9.4"
   },
   "devDependencies": {
     "@types/node": "^22.13.9",
