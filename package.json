@@ -4,8 +4,10 @@
   "description": "fingerprint-oss is a javascript util designed to collect various information about the user's device, location, and network.",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+	  "simple-test": "node test/simple-server.js",
+    "dev": "node test/dev-server.js",
+    "build": "tsc",
+    "test": "node test/server.js"
   },
   "author": "Akshat Kotpalliwar",
   "keywords": [
@@ -27,5 +29,11 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "express": "^4.18.2",
+    "vite": "^4.3.5",
+    "typescript": "^5.0.4"
   }
 }

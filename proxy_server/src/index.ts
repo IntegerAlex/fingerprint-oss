@@ -10,6 +10,7 @@ const API_KEY = process.env.API_KEY || '123';
 
 
 server.get('/', async(req, res) => {
+	const ip = req.ip;
 	if(req.headers === undefined){
 		console.log('headers undefined');
 		res.status(403).send('Forbidden');
@@ -26,7 +27,7 @@ server.get('/', async(req, res) => {
 		return;
 	}
 	try{
-		const response = await getIpInfo(req.query.ip);
+		const response = await getIpInfo(ip);
 		res.json(response);
 	}
 	catch(e){

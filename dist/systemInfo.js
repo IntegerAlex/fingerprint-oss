@@ -1,74 +1,8 @@
-async function isIncognito() {
-    // Run general checks first
-    const storageAccess = await checkStorageAccess();
-    const quotaLimit = await checkQuotaLimit();
-    if (!storageAccess || quotaLimit) {
-        return true;
-    }
-    // Browser-specific checks
-    try {
-        // Firefox detection
-        if (typeof BroadcastChannel === 'undefined' && navigator.userAgent.includes('Firefox')) {
-            return true;
-        }
-        // Safari detection
-        if (navigator.vendor.includes('Apple') && (await checkSafariPrivate())) {
-            return true;
-        }
-        // Chrome/Chromium detection
-        return await checkChromePrivate();
-    }
-    catch (e) {
-        console.error('Detection error:', e);
-        return false;
-    }
-}
-async function checkStorageAccess() {
-    try {
-        const testKey = `test_${Date.now()}`;
-        localStorage.setItem(testKey, '1');
-        localStorage.removeItem(testKey);
-        return true;
-    }
-    catch {
-        return false;
-    }
-}
-async function checkQuotaLimit() {
-    if (!navigator.storage?.estimate)
-        return false;
-    try {
-        const { quota } = await navigator.storage.estimate();
-        // Consider quota < 120MB as incognito (primarily for Chrome)
-        return quota < 120 * 1024 * 1024;
-    }
-    catch {
-        return false;
-    }
-}
-async function checkChromePrivate() {
-    // Combine FileSystem API check and quota check
-    const fsCheck = await new Promise(resolve => {
-        const fs = window.webkitRequestFileSystem || window.requestFileSystem;
-        if (!fs)
-            return resolve(false);
-        fs(window.TEMPORARY, 100, () => resolve(false), () => resolve(true));
-    }).catch(() => false);
-    return fsCheck || (await checkQuotaLimit());
-}
-async function checkSafariPrivate() {
-    try {
-        const key = 'safari_test';
-        const bigData = new Array(1024 * 1024).join('a'); // ~1MB
-        localStorage.setItem(key, bigData);
-        localStorage.removeItem(key);
-        return false;
-    }
-    catch (e) {
-        return true;
-    }
-}
-export async function getSystemInfo() {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getSystemInfo = void 0;
+const incognito_js_1 = require("./incognito.js");
+async function getSystemInfo() {
     const browserInfo = {
         // Basic info
         userAgent: navigator.userAgent,
@@ -108,10 +42,11 @@ export async function getSystemInfo() {
         mathConstants: getMathFingerprint(),
         fontPreferences: getFontPreferences(),
         // Privacy modes
-        incognito: await isIncognito()
+        incognito: await (0, incognito_js_1.isIncognito)()
     };
     return browserInfo;
 }
+exports.getSystemInfo = getSystemInfo;
 function getColorGamut() {
     if (!window.matchMedia)
         return 'unknown';
