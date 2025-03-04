@@ -1,24 +1,8 @@
 import { SystemInfo } from './types';
-import {  GeolocationInfo } from './geo-ip.js';
+import { GeolocationInfo } from './geo-ip.js';
 
-export function generateJSON(ipInfo: IpInfo | null, geolocationInfo: GeolocationInfo | null, systemInfo: SystemInfo) {
+export function generateJSON(geolocationInfo: GeolocationInfo | null, systemInfo: SystemInfo) {
     return {
-        ipInfo: ipInfo ? {
-            ip: ipInfo.ip,
-            location: {
-                city: ipInfo.city,
-                region: ipInfo.region,
-                country: ipInfo.country_name,
-                continent: ipInfo.continent_code,
-                latitude: ipInfo.latitude,
-                longitude: ipInfo.longitude,
-                timezone: ipInfo.timezone
-            },
-            network: {
-                asn: ipInfo.asn,
-                org: ipInfo.org
-            }
-        } : null,
         geolocation: geolocationInfo ? {
             city: geolocationInfo.city,
             region: {

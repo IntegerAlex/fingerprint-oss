@@ -1,19 +1,24 @@
 {
   "name": "proxy_server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "build": "npx tsc --skipLibCheck || true",
+  "start": "node dist/index.js"
+}
+
+  ,
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",
+  "license": "GPL-3.0",
   "description": "",
   "dependencies": {
     "@maxmind/geoip2-node": "^6.0.0",
-    "hasty-server": "^0.9.0"
+    "dotenv": "^16.4.7",
+    "hasty-server": "^0.9.3"
   },
   "devDependencies": {
-    "@types/node": "^22.13.9"
+    "@types/node": "^22.13.9",
+    "typescript": "^5.8.2"
   }
 }

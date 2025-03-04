@@ -1,4 +1,3 @@
-
 export async function isIncognito(): Promise<boolean> {
     // Run general checks first
     const storageAccess = await checkStorageAccess();
@@ -44,8 +43,7 @@ async function checkQuotaLimit(): Promise<boolean> {
     
     try {
         const { quota } = await navigator.storage.estimate();
-        // Consider quota < 120MB as incognito (primarily for Chrome)
-        return quota! < 120 * 1024 * 1024;
+        return typeof quota === 'number' && quota < 120 * 1024 * 1024;
     } catch {
         return false;
     }
