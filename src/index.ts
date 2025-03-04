@@ -1,13 +1,12 @@
 import {generateJSON} from './json.js'
-import {fetchIPInfo, fetchGeolocationInfo} from './geo-ip.js'
+import { fetchGeolocationInfo} from './geo-ip.js'
 import {getSystemInfo} from './systemInfo.js'
 
 export async function userInfo() {
     try {
-        const ipInfo = await fetchIPInfo();
-        const geolocationInfo = await fetchGeolocationInfo(ipInfo.ip);
+        const geolocationInfo = await fetchGeolocationInfo();
         const systemInfo = await getSystemInfo();
-        const json = generateJSON(ipInfo, geolocationInfo, systemInfo);
+        const json = generateJSON( geolocationInfo, systemInfo);
         return json;
     } catch (error) {
         console.error('Error gathering user info:', error);

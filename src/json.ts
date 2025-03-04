@@ -1,5 +1,5 @@
 import { SystemInfo } from './types';
-import { IpInfo, GeolocationInfo } from './geo-ip.js';
+import {  GeolocationInfo } from './geo-ip.js';
 
 export function generateJSON(ipInfo: IpInfo | null, geolocationInfo: GeolocationInfo | null, systemInfo: SystemInfo) {
     return {
