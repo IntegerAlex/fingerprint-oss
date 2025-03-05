@@ -15,16 +15,14 @@ export function generateJSON(geolocationInfo: GeolocationInfo | null, systemInfo
                 longitude: 0,
                 timeZone: ''
             },
-            traits: geolocationInfo.traits || {
-                isAnonymous: false,
-                isAnonymousProxy: false,
-                isAnonymousVpn: false,
-                network: ''
+            traits: {
+                isAnonymous: geolocationInfo.traits?.isAnonymous || false,
+                isAnonymousProxy: geolocationInfo.traits?.isAnonymousProxy || false,
+                isAnonymousVpn: geolocationInfo.traits?.isAnonymousVpn || false,
+                network: geolocationInfo.traits?.network || ''
             }
         } : null,
-        systemInfo: {
-            ...systemInfo
-        }
+        systemInfo
     };
 }
 

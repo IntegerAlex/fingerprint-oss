@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Browser Fingerprint Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            max-width: 800px;
+            margin: 20px auto;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .error {
+            color: #dc3545;
+            border-left: 4px solid #dc3545;
+            padding-left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Browser Fingerprint Test</h1>
+    <pre id="result">Running test...</pre>
+
+    <script type="module">
+        // Using relative path since this file is in test/
+        import { userInfo } from '../src/index.ts';
+    </script>
+</body>
+</html> 

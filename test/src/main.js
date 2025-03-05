@@ -1,11 +1,19 @@
 import './style.css'
-import {userInfo} from 'fingerprint-oss'
+import { userInfo } from '../../dist/index.js';
 
-const info = await userInfo()
-console.log(info)
-document.querySelector('#app').innerHTML = `
-  <div>
-  </div>
-`
+document.addEventListener('DOMContentLoaded', () => {
+    const resultElement = document.getElementById('result');
 
-setupCounter(document.querySelector('#counter'))
+    async function runTest() {
+        try {
+            const result = await userInfo();
+            const formattedResult = JSON.stringify(result, null, 2);
+            resultElement.textContent = formattedResult;
+        } catch (error) {
+            resultElement.classList.add('error');
+            resultElement.textContent = `Error: ${error.message}`;
+        }
+    }
+
+    runTest();
+}); 

@@ -1,9 +1,5 @@
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const PROXY_API_KEY = process.env.PROXY_API_KEY || '';
-const GEOIP_URL = process.env.GEOIP_URL || '';
+const PROXY_API_KEY = 'tester';
+const GEOIP_URL = 'http://localhost:8080/';
 
 // Warn if required environment variables are missing
 if (!PROXY_API_KEY || !GEOIP_URL) {
@@ -59,8 +55,41 @@ export interface GeolocationInfo {
     };
 }
 
-// Function to get geolocation information
+// For testing purposes, return mock data if env vars aren't set
 export async function fetchGeolocationInfo(): Promise<GeolocationInfo | null> {
+    if (!PROXY_API_KEY || !GEOIP_URL) {
+        console.log('Using mock geolocation data for testing');
+        return {
+            ipAddress: '192.168.1.1',
+            country: { isoCode: 'US', name: 'United States' },
+            registeredCountry: { isoCode: 'US', name: 'United States', isInEuropeanUnion: false },
+            city: { name: 'New York', geonameId: 123456 },
+            continent: { code: 'NA', name: 'North America' },
+            subdivisions: [{ isoCode: 'NY', name: 'New York' }],
+            location: {
+                accuracyRadius: 100,
+                latitude: 40.7128,
+                longitude: -74.0060,
+                timeZone: 'America/New_York'
+            },
+            postal: { code: '10001' },
+            traits: {
+                isAnonymous: false,
+                isAnonymousProxy: false,
+                isAnonymousVpn: false,
+                isAnycast: false,
+                isHostingProvider: false,
+                isLegitimateProxy: false,
+                isPublicProxy: false,
+                isResidentialProxy: false,
+                isSatelliteProvider: false,
+                isTorExitNode: false,
+                ipAddress: '192.168.1.1',
+                network: '192.168.1.0/24'
+            }
+        };
+    }
+
     try {
         const response = await fetch(GEOIP_URL, {
             method: 'GET',

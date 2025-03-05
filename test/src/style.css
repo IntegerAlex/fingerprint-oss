@@ -28,6 +28,9 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 1200px;
+  padding: 20px;
 }
 
 h1 {
@@ -93,4 +96,20 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+pre {
+  background: #f4f4f4;
+  padding: 15px;
+  border-radius: 5px;
+  max-width: 800px;
+  margin: 20px auto;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.error {
+  color: #dc3545;
+  border-left: 4px solid #dc3545;
+  padding-left: 15px;
 }
