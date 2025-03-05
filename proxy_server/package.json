@@ -13,7 +13,7 @@
   "dependencies": {
     "@maxmind/geoip2-node": "^6.0.0",
     "dotenv": "^16.4.7",
-    "hasty-server": "^0.9.4"
+    "hasty-server": "^0.9.52"
   },
   "devDependencies": {
     "@types/node": "^22.13.9",

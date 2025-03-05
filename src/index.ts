@@ -6,14 +6,15 @@ import { getSystemInfo } from './systemInfo'
  * Collects user information including system data and optional geolocation
  * @returns Promise that resolves to an object containing system information and geolocation data
  */
-export async function userInfo() {
+export default async function userInfo() {
 	const systemInfo = await getSystemInfo();
 	const geolocationInfo = await fetchGeolocationInfo();
 	const json = generateJSON(geolocationInfo, systemInfo);
 	return json;
 }
 
-// Export as default and named export for flexibility
-export default { userInfo };
+// Also export as named export for convenience
+export { userInfo };
+
 
 

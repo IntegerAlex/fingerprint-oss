@@ -12,6 +12,6 @@
     "vite": "^6.2.0"
   },
   "dependencies": {
-    "fingerprint-oss": "^0.0.1"
+    "fingerprint-oss": "^0.0.2"
   }
 }

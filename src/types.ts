@@ -30,8 +30,8 @@ export interface SystemInfo {
     colorDepth: number;
     colorGamut: string;
     hardwareConcurrency: number;
-    deviceMemory: number;
-    audio: number;
+    deviceMemory: number | undefined;
+    audio: number | null;
     localStorage: boolean;
     sessionStorage: boolean;
     indexedDB: boolean;
@@ -39,7 +39,11 @@ export interface SystemInfo {
     canvas: CanvasInfo;
     plugins: PluginInfo[];
     timezone: string;
-    touchSupport: TouchSupportInfo;
+    touchSupport: {
+        maxTouchPoints: number;
+        touchEvent: boolean;
+        touchStart: boolean;
+    };
     vendor: string;
     vendorFlavors: string[];
     mathConstants: MathInfo;
@@ -61,12 +65,28 @@ export interface CanvasInfo {
 export interface PluginInfo {
     name: string;
     description: string;
-    mimeTypes: MimeTypeInfo[];
+    mimeTypes: Array<{
+        type: string;
+        suffixes: string;
+    }>;
 }
 
-export interface MimeTypeInfo {
-    type: string;
-    suffixes: string;
+export interface MathInfo {
+    acos: number;
+    acosh: number;
+    asinh: number;
+    atanh: number;
+    expm1: number;
+    sinh: number;
+    cosh: number;
+    tanh: number;
+}
+
+export interface FontInfo {
+    fonts: Array<{
+        name: string;
+        width: number;
+    }>;
 }
 
 // ... Add other interfaces for each feature ...
