@@ -10,6 +10,14 @@
 </head>
 <body>
     <div class="container">
+        <!-- IP Address Banner -->
+        <div class="ip-banner">
+            <div class="ip-content">
+                <span class="ip-label">Your IP Address:</span>
+                <span id="client-ip">Loading...</span>
+            </div>
+        </div>
+        
         <header>
             <div class="github-header">
                 <a href="https://github.com/IntegerAlex/fingerprint-oss" class="github-button" target="_blank">
@@ -77,6 +85,17 @@ const data = userInfo();</code></pre>
                 button.innerHTML = '<i class="far fa-copy"></i>';
             }, 2000);
         }
+        
+        // Fetch and display the client's IP address
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('client-ip').textContent = data.ip;
+            })
+            .catch(error => {
+                document.getElementById('client-ip').textContent = 'Error fetching IP';
+                console.error('Error fetching IP:', error);
+            });
     </script>
     <script type="module" src="./src/main.js"></script>
 </body>

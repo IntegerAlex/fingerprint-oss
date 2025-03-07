@@ -298,12 +298,47 @@ footer {
   justify-content: center;
 }
 
+/* IP Address Banner */
+.ip-banner {
+  background-color: var(--accent-color);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-md);
+  text-align: center;
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-md);
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.ip-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.ip-label {
+  font-weight: bold;
+}
+
+#client-ip {
+  font-family: 'Fira Code', 'Roboto Mono', monospace;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
 /* ==============================
  * 4. RESPONSIVE STYLES
  * ============================== */
 @media (max-width: 768px) {
   .container {
     padding: var(--spacing-sm);
+  }
+
+  .ip-banner {
+    padding: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
   }
 
   h1 {
