@@ -15,8 +15,8 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
 
 ## DEMO 
 
-    - [LIVE]()
-    - [DEMO REPO](https://github.com/IntegerAlex/fingerprint-oss-demo)
+- [LIVE](https://fingerprint-oss-demo.vercel.app/)
+- [DEMO REPO](https://github.com/IntegerAlex/fingerprint-oss-demo)
 
 ## Features
 
