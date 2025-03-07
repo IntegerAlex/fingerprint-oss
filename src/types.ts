@@ -1,23 +1,49 @@
 // Add WebKit FileSystem types
 declare global {
+ interface Navigator {
+        brave?: {
+            isBrave: () => Promise<boolean>;
+        };
+        userAgentData?: {
+            brands: Array<{
+                brand: string;
+                version: string;
+            }>;
+        };
+    }
+
     interface Window {
         webkitRequestFileSystem?: any;
         TEMPORARY?: number;
         TouchEvent?: any;
         AudioContext?: any;
         webkitAudioContext?: any;
+        brave?: {
+            isBrave: () => Promise<boolean>;
+        };
     }
 
     interface Plugin {
-        name: string;
-        description: string;
+        readonly name: string;
+        readonly description: string;
         mimeTypes?: any;
     }
-
     interface MimeType {
-        type: string;
-        suffixes: string;
+        readonly type: string;
+        readonly suffixes: string;
     }
+
+}
+
+export interface BraveInfo {
+    userAgentData: {
+        brands: Array<{
+            brand: string;
+            version: string;
+        }>;
+    };
+    userAgent: string;
+    brands: string[];
 }
 
 export interface SystemInfo {
@@ -103,20 +129,3 @@ export interface TouchSupportInfo {
     touchStart: boolean;
 }
 
-export interface MathInfo {
-    acos: number;
-    acosh: number;
-    asinh: number;
-    atanh: number;
-    expm1: number;
-    sinh: number;
-    cosh: number;
-    tanh: number;
-}
-
-export interface FontInfo {
-    fonts: Array<{
-        name: string;
-        width: number;
-    }>;
-} 

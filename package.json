@@ -1,6 +1,6 @@
 {
   "name": "fingerprint-oss",
-  "version": "0.2.2-alpha",
+  "version": "0.2.2-beta",
   "description": "fingerprint-oss is a javascript util designed to collect various information about the user's device, location, and network.",
   "main": "dist/index.js",
   "scripts": {

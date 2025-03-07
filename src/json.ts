@@ -1,6 +1,5 @@
 import { SystemInfo } from './types.js';
 import { GeolocationInfo } from './geo-ip.js';
-
 /**
  * Interpret a confidence score and return a human-readable description
  * @param score Confidence score between 0.1 and 0.9
