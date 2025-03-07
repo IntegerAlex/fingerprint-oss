@@ -1,3 +1,5 @@
+import { BraveInfo } from './types';
+
 /**
  * Detects Brave browser 
  * @returns {Promise<boolean>} true if Brave browser is detected, false otherwise
@@ -19,13 +21,14 @@ async function isBraveBrowser(): Promise<boolean> {
  * Detects Brave browser using `navigator.userAgentData`
  * @returns {Promise<boolean>} true if Brave browser is detected, false otherwise
  */
+
 async function isBraveBrowserUAData(): Promise<boolean> {
-  if (navigator.userAgentData && navigator.userAgentData.brands) {
-    return navigator.userAgentData.brands.some((brand) =>
-      brand.brand.toLowerCase().includes('brave')
-    );
-  }
-  return false;
+    if (navigator.userAgentData && navigator.userAgentData.brands) {
+        return navigator.userAgentData.brands.some((brand: { brand: string }) =>
+            brand.brand.toLowerCase().includes('brave')
+        );
+    }
+    return false;
 }
 
 /**
@@ -41,8 +44,7 @@ async function isBraveBrowserUAData(): Promise<boolean> {
     }
     return result;
 }
-
-function detectAdBlock() {
+function detectAdBlock(): Promise<boolean> {
     return new Promise((resolve) => {
         const script = document.createElement('script');
         script.src = './dfp_async.js'; // Must exist on your server

@@ -1,4 +1,4 @@
-import { SystemInfo, WebGLInfo, CanvasInfo, PluginInfo, MathInfo, FontInfo } from './types.js';
+import { SystemInfo} from './types.js';
 import { isIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
