@@ -1,6 +1,7 @@
 import { generateJSON } from './json'
 import { fetchGeolocationInfo } from './geo-ip'
 import { getSystemInfo } from './systemInfo'
+import { getMockSystemInfo } from './mock'
 
 /**
  * Calculate a combined confidence score based on all collected data
@@ -253,25 +254,33 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
 		score -= 0.15;
 	}
 	
-	// Ensure the score stays within 0.1-0.9 range
+	// Normalize final score to be between 0.1 and 0.9
 	return Math.max(0.1, Math.min(0.9, score));
 }
 
 /**
- * Collects user information including system data and optional geolocation
- * @returns Promise that resolves to an object containing system information and geolocation data
+ * Main function to gather and process all user information
+ * @returns JSON object with system info, geolocation, and confidence scores
  */
 export default async function userInfo() {
-	const systemInfo = await getSystemInfo();
-	const geolocationInfo = await fetchGeolocationInfo();
-	
-	// Calculate combined confidence score
-	const combinedConfidence = calculateCombinedConfidence(systemInfo, geolocationInfo);
-	
-	// Pass the combinedConfidence to generateJSON
-	const json = generateJSON(geolocationInfo, systemInfo, combinedConfidence);
-	
-	return json;
+	try {
+		// Gather system information
+		const systemInfo = await getSystemInfo();
+		
+		// Get geolocation data in parallel
+		const geoInfo = await fetchGeolocationInfo();
+		
+		// Calculate final combined confidence score
+		const combinedConfidenceScore = calculateCombinedConfidence(systemInfo, geoInfo);
+		
+		// Generate JSON with all collected data
+		console.log(`\u00A9 2025 Fingerprint-oss`)
+		return generateJSON(geoInfo, systemInfo, combinedConfidenceScore);
+	} catch (error) {
+		console.error('Error collecting user information:', error);
+		// In case of error, generate a partial JSON with error information
+		return generateJSON(null, getMockSystemInfo(), 0.1);
+	}
 }
 
 // Also export as named export for convenience

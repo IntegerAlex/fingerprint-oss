@@ -1,3 +1,9 @@
+
+/**
+ * Detects if the current browser is running in incognito mode.
+ * 
+ * @returns A promise that resolves to `true` if the browser is in incognito mode, `false` otherwise.
+ */
 export async function isIncognito(): Promise<boolean> {
     // Run general checks first
     const storageAccess = await checkStorageAccess();
@@ -27,6 +33,11 @@ export async function isIncognito(): Promise<boolean> {
     }
 }
 
+/**
+ * Checks if the browser has access to localStorage.
+ * 
+ * @returns A promise that resolves to `true` if the browser has access to localStorage, `false` otherwise.
+ */
 async function checkStorageAccess(): Promise<boolean> {
     try {
         const testKey = `test_${Date.now()}`;
@@ -38,6 +49,11 @@ async function checkStorageAccess(): Promise<boolean> {
     }
 }
 
+/**
+ * Checks if the browser has a quota limit on localStorage.
+ * 
+ * @returns A promise that resolves to `true` if the browser has a quota limit, `false` otherwise.
+ */
 async function checkQuotaLimit(): Promise<boolean> {
     if (!navigator.storage?.estimate) return false;
     
@@ -49,6 +65,11 @@ async function checkQuotaLimit(): Promise<boolean> {
     }
 }
 
+/**
+ * Checks if the browser is running in Chrome incognito mode.
+ * 
+ * @returns A promise that resolves to `true` if the browser is in incognito mode, `false` otherwise.
+ */
 async function checkChromePrivate(): Promise<boolean> {
     // Combine FileSystem API check and quota check
     const fsCheck = await new Promise<boolean>(resolve => {
@@ -64,6 +85,11 @@ async function checkChromePrivate(): Promise<boolean> {
     return fsCheck || (await checkQuotaLimit());
 }
 
+/**
+ * Checks if the browser is running in Safari private browsing mode.
+ * 
+ * @returns A promise that resolves to `true` if the browser is in private mode, `false` otherwise.
+ */
 async function checkSafariPrivate(): Promise<boolean> {
     try {
         const key = 'safari_test';

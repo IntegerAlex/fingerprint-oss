@@ -54,8 +54,11 @@ export interface GeolocationInfo {
         network: string;
     };
 }
-
-// For testing purposes, return mock data if env vars aren't set
+/**
+ * Fetch geolocation information for the current user's IP address.
+ * @param none
+ * @returns Geolocation information or null if an error occurred.
+ */
 export async function fetchGeolocationInfo(): Promise<GeolocationInfo | null> {
     if (!PROXY_API_KEY || !GEOIP_URL) {
         console.log('Using mock geolocation data for testing');

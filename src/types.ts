@@ -9,14 +9,13 @@ declare global {
     }
 
     interface Plugin {
-        name: string;
-        description: string;
+        readonly name: string;
+        readonly description: string;
         mimeTypes?: any;
     }
-
     interface MimeType {
-        type: string;
-        suffixes: string;
+        readonly type: string;
+        readonly suffixes: string;
     }
 }
 
@@ -101,22 +100,4 @@ export interface TouchSupportInfo {
     maxTouchPoints: number;
     touchEvent: boolean;
     touchStart: boolean;
-}
-
-export interface MathInfo {
-    acos: number;
-    acosh: number;
-    asinh: number;
-    atanh: number;
-    expm1: number;
-    sinh: number;
-    cosh: number;
-    tanh: number;
-}
-
-export interface FontInfo {
-    fonts: Array<{
-        name: string;
-        width: number;
-    }>;
 } 
