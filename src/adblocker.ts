@@ -1,8 +1,12 @@
 import { BraveInfo } from './types';
 
 /**
- * Detects Brave browser 
- * @returns {Promise<boolean>} true if Brave browser is detected, false otherwise
+ * Determines whether the current browser is Brave.
+ *
+ * The function first attempts to detect Brave by calling the `navigator.brave.isBrave()` method (if available).
+ * If this method call fails or is unavailable, it falls back to checking the user agent string for the substring "brave".
+ *
+ * @returns A promise that resolves to true if Brave is detected, or false otherwise.
  */
 async function isBraveBrowser(): Promise<boolean> {
   if (navigator.brave && typeof navigator.brave.isBrave === 'function') {
@@ -18,8 +22,11 @@ async function isBraveBrowser(): Promise<boolean> {
 }
 
 /**
- * Detects Brave browser using `navigator.userAgentData`
- * @returns {Promise<boolean>} true if Brave browser is detected, false otherwise
+ * Determines if the current browser is Brave by examining the `navigator.userAgentData` API.
+ *
+ * This function checks if `navigator.userAgentData` and its `brands` array are available. It returns true if any brand's name includes "brave" (case-insensitive), and false otherwise.
+ *
+ * @returns A promise that resolves to true if the Brave browser is detected, or false otherwise.
  */
 
 async function isBraveBrowserUAData(): Promise<boolean> {
@@ -32,8 +39,12 @@ async function isBraveBrowserUAData(): Promise<boolean> {
 }
 
 /**
- * Detects uBlock Origin or some other ad blocker
- * @returns {Promise<boolean>} true if uBlock Origin is detected, false otherwise
+ * Determines if an ad blocker (e.g., uBlock Origin or similar) is active.
+ *
+ * The function attempts to detect an ad blocker by invoking a helper that loads an external script. If an error occurs during detection,
+ * the error is logged and the function returns false.
+ *
+ * @returns A promise that resolves to a boolean indicating whether an ad blocker is active.
  */
  async function isUBlockActive(): Promise<boolean> {
     let result = false;
@@ -44,6 +55,13 @@ async function isBraveBrowserUAData(): Promise<boolean> {
     }
     return result;
 }
+/**
+ * Detects whether an ad blocker is active.
+ *
+ * This function injects a script element that loads './dfp_async.js' from your server. The script is expected to add an element with the ID "GTvbiUxNuhSd" to the document. If this element is present after the script loads, it indicates that an ad blocker is not active and the promise resolves to false. If the element is absent or the script fails to load, the promise resolves to true, indicating that an ad blocker is active.
+ *
+ * @returns A promise that resolves to true if an ad blocker is detected; otherwise, false.
+ */
 function detectAdBlock(): Promise<boolean> {
     return new Promise((resolve) => {
         const script = document.createElement('script');
@@ -56,8 +74,13 @@ function detectAdBlock(): Promise<boolean> {
 
 // Usage example
 /**
- * Detects Brave browser and uBlock Origin (or some ad blocker)
- * @returns {Promise<{ isBrave: boolean, isUBlock: boolean }>}
+ * Orchestrates detection of the Brave browser and ad blocker activity.
+ *
+ * This asynchronous function concurrently performs two checks to verify if the browser is Brave—one using the `navigator.brave` API and another using `navigator.userAgentData`—and also checks whether an ad blocker, such as uBlock Origin, is active.
+ *
+ * @returns A promise that resolves to an object with two boolean properties:
+ * - `isBrave`: true if the browser is identified as Brave.
+ * - `isUBlock`: true if an ad blocker is detected.
  */
 export async function detectAdBlockers(): Promise<{ isBrave: boolean, isUBlock: boolean }> {
   // 1. Detect Brave

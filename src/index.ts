@@ -4,10 +4,15 @@ import { getSystemInfo } from './systemInfo'
 import { getMockSystemInfo } from './mock'
 
 /**
- * Calculate a combined confidence score based on all collected data
- * @param systemInfo System information including bot detection
- * @param geoInfo Geolocation information
- * @returns Combined confidence score between 0.1 and 0.9
+ * Computes a weighted confidence score using system and geolocation data.
+ *
+ * This function evaluates factors such as the base system confidence, bot detection signals, geolocation verifications
+ * (including timezone, proxy, and language consistency), and device coherence validations. The final score is normalized
+ * to ensure it falls between 0.1 and 0.9.
+ *
+ * @param systemInfo - An object containing system details, including a base confidence score and bot detection metrics.
+ * @param geoInfo - An object providing geolocation details used for verifying user data consistency.
+ * @returns A normalized confidence score between 0.1 and 0.9.
  */
 function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
 	// Start with neutral base score
@@ -259,8 +264,14 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
 }
 
 /**
- * Main function to gather and process all user information
- * @returns JSON object with system info, geolocation, and confidence scores
+ * Asynchronously gathers system and geolocation information, computes a combined confidence score,
+ * and returns a JSON object with the aggregated data.
+ *
+ * The function retrieves system data and geolocation details, calculates a combined confidence score based
+ * on these inputs, and constructs a JSON object with the results. If any error occurs during the data collection,
+ * it logs the error and returns a fallback JSON object containing mock system information and a default score of 0.1.
+ *
+ * @returns A JSON object containing geolocation information, system information, and the confidence score.
  */
 export default async function userInfo() {
 	try {

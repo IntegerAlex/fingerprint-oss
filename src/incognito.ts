@@ -1,4 +1,3 @@
-
 /**
  * Detects if the current browser is running in incognito mode.
  * 
@@ -50,9 +49,13 @@ async function checkStorageAccess(): Promise<boolean> {
 }
 
 /**
- * Checks if the browser has a quota limit on localStorage.
- * 
- * @returns A promise that resolves to `true` if the browser has a quota limit, `false` otherwise.
+ * Determines whether the browser's local storage quota is restricted by verifying if it is below 120 MB.
+ *
+ * This function uses the {@link navigator.storage.estimate} API to estimate the available quota and
+ * compares it against a 120 MB threshold. If the quota is a number and less than 120 MB, it returns true.
+ * If the API is unavailable or an error occurs during estimation, the function safely returns false.
+ *
+ * @returns A promise that resolves to true if the local storage quota is below 120 MB, false otherwise.
  */
 async function checkQuotaLimit(): Promise<boolean> {
     if (!navigator.storage?.estimate) return false;
@@ -86,9 +89,12 @@ async function checkChromePrivate(): Promise<boolean> {
 }
 
 /**
- * Checks if the browser is running in Safari private browsing mode.
- * 
- * @returns A promise that resolves to `true` if the browser is in private mode, `false` otherwise.
+ * Determines if Safari is running in Private Browsing mode.
+ *
+ * This function tests localStorage accessibility by attempting to store and then remove a large data string.
+ * If the operation fails, it indicates that Safari is in Private Browsing mode.
+ *
+ * @returns A promise that resolves to true if Safari is in Private Browsing mode, or false otherwise.
  */
 async function checkSafariPrivate(): Promise<boolean> {
     try {

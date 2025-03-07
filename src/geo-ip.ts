@@ -55,9 +55,13 @@ export interface GeolocationInfo {
     };
 }
 /**
- * Fetch geolocation information for the current user's IP address.
- * @param none
- * @returns Geolocation information or null if an error occurred.
+ * Retrieves geolocation details for the current user's IP address.
+ *
+ * If the required environment variables are missing, the function returns a predefined mock geolocation object.
+ * Otherwise, it sends a GET request to the geolocation API using the configured API key. When the API call is successful,
+ * the returned JSON is parsed into a GeolocationInfo object. If the API call fails or any error occurs, the error is logged and null is returned.
+ *
+ * @returns A promise that resolves to a GeolocationInfo object if successful, or null if an error occurs.
  */
 export async function fetchGeolocationInfo(): Promise<GeolocationInfo | null> {
     if (!PROXY_API_KEY || !GEOIP_URL) {
