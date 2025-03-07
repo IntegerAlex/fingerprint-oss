@@ -1,12 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Browser Fingerprint Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint OSS - User Info Logger</title>
     <link rel="stylesheet" href="./src/style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <h1 style="text-align: center;">Browser Fingerprint Test</h1>
-    <pre id="result">Running test...</pre>
+    <div class="container">
+        <header>
+            <div class="github-header">
+                <a href="https://github.com/IntegerAlex/fingerprint-oss" class="github-button" target="_blank">
+                    <i class="fab fa-github github-icon"></i>
+                    View on GitHub
+                </a>
+                <div class="star-request">
+                    ⭐️ If you find this useful, please star our repo!
+                </div>
+            </div>
+            <h1>Fingerprint OSS</h1>
+            <p class="description">A lightweight, privacy-focused user information logger for web applications</p>
+        </header>
+
+        <main>
+            <section class="installation-guide">
+                <h2>Quick Start</h2>
+                <div class="code-block">
+                    <pre><code>npm install fingerprint-oss</code></pre>
+                    <button class="copy-button" onclick="copyCode(this)">
+                        <i class="far fa-copy"></i>
+                    </button>
+                </div>
+                <div class="usage-example">
+                    <h3>Basic Usage</h3>
+                    <div class="code-block">
+                        <pre><code>const { userInfo } = require('fingerprint-oss');
+const data = userInfo();</code></pre>
+                        <button class="copy-button" onclick="copyCode(this)">
+                            <i class="far fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="result-container">
+                <h2>Live Demo</h2>
+                <pre id="result">Loading...</pre>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="logo-container">
+                    <img src="./public/freejs.png" alt="FreeJS Logo" class="logo">
+                    <img src="./public/goss.png" alt="GOSS Logo" class="logo">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/db/Npm-logo.svg" alt="npm" class="logo">
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/IntegerAlex/fingerprint-oss/issues" target="_blank">Report Issues</a>
+                    <a href="https://github.com/IntegerAlex/fingerprint-oss/blob/main/LICENSE" target="_blank">License</a>
+                    <a href="https://github.com/IntegerAlex/fingerprint-oss/blob/main/CONTRIBUTING.md" target="_blank">Contribute</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('code');
+            navigator.clipboard.writeText(codeBlock.textContent);
+            
+            button.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+                button.innerHTML = '<i class="far fa-copy"></i>';
+            }, 2000);
+        }
+    </script>
     <script type="module" src="./src/main.js"></script>
 </body>
 </html>

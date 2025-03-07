@@ -49,6 +49,12 @@ export interface SystemInfo {
     mathConstants: MathInfo;
     fontPreferences: FontInfo;
     incognito: boolean;
+    confidenceScore: number;
+    bot: {
+        isBot: boolean;
+        signals: string[];
+        confidence: number;
+    };
 }
 
 export interface WebGLInfo {

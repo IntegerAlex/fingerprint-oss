@@ -1,115 +1,328 @@
+/* 
+ * FINGERPRINT TEST STYLES
+ * A clean, organized stylesheet for the browser fingerprint test UI
+ */
+
+/* ==============================
+ * 1. VARIABLES
+ * ============================== */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Colors */
+  --text-primary: #213547;
+  --text-secondary: #666;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --accent-color: #646cff;
+  --accent-hover: #535bf2;
+  --border-color: #eaeaea;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --github-black: #24292e;
+  --success-color: #28a745;
+  
+  /* Confidence score colors */
+  --high-confidence-bg: #d4edda;
+  --high-confidence-text: #155724;
+  --medium-high-bg: #d1ecf1;
+  --medium-high-text: #0c5460;
+  --medium-bg: #fff3cd;
+  --medium-text: #856404;
+  --medium-low-bg: #ffe5d0;
+  --medium-low-text: #7d5a00;
+  --low-bg: #f8d7da;
+  --low-text: #721c24;
+  
+  /* Error colors */
+  --error-color: #dc3545;
+  
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  
+  /* Font sizes */
+  --font-size-sm: 0.9rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.2rem;
+  --font-size-xl: 2.5rem;
+  
+  /* Border radius */
+  --border-radius: 8px;
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: rgba(255, 255, 255, 0.87);
+    --text-secondary: #a0a0a0;
+    --bg-primary: #242424;
+    --bg-secondary: #2a2a2a;
+    --border-color: #333;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Force light mode - overriding dark mode */
+:root {
+  --text-primary: #213547;
+  --text-secondary: #666;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --border-color: #eaeaea;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ==============================
+ * 2. BASE STYLES
+ * ============================== */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  min-width: 320px;
+  min-height: 100vh;
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+h1, h2, h3 {
+  line-height: 1.1;
+  margin: 0 0 var(--spacing-sm);
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+h1 {
+  font-size: var(--font-size-xl);
+  text-align: center;
+}
+
+h2 {
+  font-size: var(--font-size-lg);
+  color: var(--text-primary);
 }
 
 a {
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color 0.2s;
 }
+
 a:hover {
-  color: #535bf2;
+  color: var(--accent-hover);
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+/* ==============================
+ * 3. LAYOUT & COMPONENTS
+ * ============================== */
+.container {
   max-width: 1200px;
-  padding: 20px;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-#app {
-  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--spacing-md);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Styles */
+header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.github-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.github-button {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--github-black);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  transition: background-color 0.2s;
+}
+
+.github-button:hover {
+  background-color: #2c3136;
+  color: white;
+}
+
+.github-icon {
+  margin-right: var(--spacing-xs);
+}
+
+.star-request {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  background-color: #fff8e1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius);
+  border: 1px solid #ffe082;
+  display: inline-block;
+}
+
+.description {
   text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #f7df1eaa);
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
-pre {
-  background: #f4f4f4;
-  padding: 15px;
-  border-radius: 5px;
   max-width: 800px;
-  margin: 20px auto;
-  white-space: pre-wrap;
+  margin: 0 auto var(--spacing-lg);
+  color: var(--text-secondary);
+}
+
+/* Installation Guide */
+.installation-guide {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.installation-guide h3 {
+  margin-top: var(--spacing-md);
+  color: var(--text-primary);
+}
+
+.usage-example {
+  margin-top: var(--spacing-md);
+}
+
+.code-block {
+  position: relative;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  margin: var(--spacing-sm) 0;
+}
+
+.code-block pre {
+  margin: 0;
+  padding: var(--spacing-sm);
   overflow-x: auto;
 }
 
-.error {
-  color: #dc3545;
-  border-left: 4px solid #dc3545;
-  padding-left: 15px;
+.code-block code {
+  font-family: 'Fira Code', 'Roboto Mono', monospace;
+  font-size: var(--font-size-sm);
+}
+
+.copy-button {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius);
+  transition: color 0.2s;
+}
+
+.copy-button:hover {
+  color: var(--accent-color);
+}
+
+.copy-button .fa-check {
+  color: var(--success-color);
+}
+
+/* Result Container */
+.result-container {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+  box-shadow: 0 6px 18px var(--shadow-color);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  flex: 1;
+}
+
+#result {
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  overflow: auto;
+  max-height: 70vh;
+  font-family: 'Fira Code', 'Roboto Mono', monospace;
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.logo {
+  height: 40px;
+  opacity: 0.9;
+  transition: all 0.2s;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  opacity: 1;
+}
+
+.footer-links {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ==============================
+ * 4. RESPONSIVE STYLES
+ * ============================== */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-sm);
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .github-header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .logo-container {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .footer-links {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
 }

@@ -1,5 +1,5 @@
 const PROXY_API_KEY = 'tester';
-const GEOIP_URL = 'http://localhost:8080/';
+const GEOIP_URL = 'https://proxy-server-deploy.onrender.com';
 
 // Warn if required environment variables are missing
 if (!PROXY_API_KEY || !GEOIP_URL) {
