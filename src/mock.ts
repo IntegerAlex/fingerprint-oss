@@ -1,7 +1,14 @@
 import { getMathFingerprint } from './helper';
 
 /**
- * Mock data for testing
+ * Generates a mock system information object for testing purposes.
+ *
+ * Constructs and returns an object mimicking a typical system environment with predefined
+ * properties such as user agent, platform, languages, and various device capabilities. The object
+ * includes details like screen resolution, hardware concurrency, touch support, and a simulated bot
+ * profile. Additionally, it provides math constants by invoking {@link getMathFingerprint()}.
+ *
+ * @returns The mock system information object.
  */
 
 export function getMockSystemInfo() {

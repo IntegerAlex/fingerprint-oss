@@ -112,10 +112,20 @@ export function detectBot(): { isBot: boolean; signals: string[]; confidence: nu
 }
 
 /**
- * Calculate the overall confidence score of the system information
- * @param hasIncognito Whether incognito mode is detected
- * @param botInfo Bot detection results
- * @returns Confidence score between 0.1 and 0.9
+ * Computes an overall confidence score for the system information.
+ *
+ * This function starts from a neutral base score and adjusts it based on incognito mode detection,
+ * bot detection results (including signals and confidence), and several browser consistency checks.
+ * These checks address mismatches between the user agent and platform, abnormal hardware characteristics,
+ * timezone irregularities, unusual screen aspect ratios, storage feature discrepancies, and resistance
+ * to browser fingerprinting. The final score is then clamped to a value between 0.1 and 0.9.
+ *
+ * @param hasIncognito Indicates whether the browser is running in incognito mode.
+ * @param botInfo An object with bot detection results, including:
+ *   - isBot: Whether a bot is detected.
+ *   - signals: A list of indicators used in bot detection.
+ *   - confidence: The confidence level derived from the bot detection.
+ * @returns The computed confidence score for the system information.
  */
 function calculateConfidenceScore(hasIncognito: boolean, botInfo: { isBot: boolean; signals: string[]; confidence: number }): number {
     // Start with a neutral base score
@@ -228,8 +238,21 @@ function calculateConfidenceScore(hasIncognito: boolean, botInfo: { isBot: boole
 }
 
 /**
- * Get system information including OS, browser, device, and bot detection
- * @returns SystemInfo object with collected details
+ * Collects comprehensive system information from the browser environment.
+ *
+ * This asynchronous function aggregates detailed data about the client system, including:
+ * - Core browser properties (e.g., user agent, platform, language preferences, cookie and Do Not Track settings)
+ * - Screen and display metrics (resolution, color depth, and color gamut)
+ * - Hardware details (processor concurrency and device memory)
+ * - Browser feature support (localStorage, sessionStorage, and indexedDB)
+ * - Graphics and audio fingerprints (WebGL, canvas, and audio data)
+ * - Plugin details and vendor information
+ * - Additional characteristics such as touch support, math constants, font preferences, and ad blocker detection
+ * - Privacy indicators including incognito mode status and bot detection signals integrated into an overall confidence score
+ *
+ * In non-browser environments, the function logs a message and returns mock data.
+ *
+ * @returns A promise that resolves to a SystemInfo object containing the aggregated system and browser details.
  */
 export async function getSystemInfo(): Promise<SystemInfo> {
     // Check if we're in a browser environment

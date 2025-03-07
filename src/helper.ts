@@ -17,18 +17,12 @@ export function getColorGamut(): string {
 }
 
 /**
- * Get audio fingerprint of the device
- * @returns Audio fingerprint of the device or null if an error occurred
- * explaination of the code
- * 		- The function creates an AudioContext object to handle audio operations.
-	 * 		- It then creates an OscillatorNode object to generate a periodic waveform.
-	 * 			- The oscillator is connected to an AnalyserNode object to provide real-time frequency and time-domain analysis information.
-	 * 				- The analyser is connected to a ScriptProcessorNode object to process audio data in chunks.
-	 * 					- The script processor is connected to a GainNode object to control the audio volume.
-	 * 				
-	 * 					- The oscillator is started and the analyser is used to get the frequency data.
-	 * 						- The oscillator is stopped and the audio context is closed.
-	 * 							- The sum of the frequency data is returned as the audio fingerprint.
+ * Computes a numeric audio fingerprint for the device.
+ *
+ * This function generates a synthetic audio signal using the Web Audio API and calculates a fingerprint by summing its frequency data.
+ * If any error occurs during the process, it returns null.
+ *
+ * @returns The computed audio fingerprint value, or null if the computation fails.
  */
 export async function getAudioFingerprint(): Promise<number | null> {
     try {
@@ -61,8 +55,12 @@ export async function getAudioFingerprint(): Promise<number | null> {
 
 
 /**
- * get vendor flavors of the device 
- * @returns Array of vendor flavors (chrome, firefox, safari)
+ * Retrieves the browser vendor flavors by inspecting the user agent string.
+ *
+ * This function checks the navigator's user agent for indicators of Chrome, Firefox, and Safari. It adds "safari" only when the user agent
+ * contains "Safari" but not "Chrome" to avoid false positives.
+ *
+ * @returns An array of vendor flavor strings, such as "chrome", "firefox", and/or "safari", based on the detected browser.
  */
 export function getVendorFlavors(): string[] {
     const flavors = [];
@@ -80,12 +78,11 @@ export function getVendorFlavors(): string[] {
 
 
 /**
- * check localStorage is enabled or not
- * @returns boolean value 
- * explaination of the code
- * 		- The function tries to set an item in localStorage and then remove it.
- * 			- If an error occurs, it returns false.
- * 				- If no error occurs, it returns true.
+ * Checks whether localStorage is available and functional.
+ *
+ * The function attempts to set and remove a test item in localStorage.
+ * Returns true if both operations succeed, indicating that localStorage is enabled;
+ * otherwise, returns false.
  */
 export function isLocalStorageEnabled(): boolean {
     try {
@@ -99,12 +96,13 @@ export function isLocalStorageEnabled(): boolean {
 
 
 /**
- * check sessionStorage is enabled or not
- * @returns boolean value
- * explaination of the code
- * 		- The function tries to set an item in sessionStorage and then remove it.
- * 			- If an error occurs, it returns false.
- * 				- If no error occurs, it returns true.
+ * Checks if sessionStorage is enabled in the current environment.
+ *
+ * The function attempts to set and remove an item in sessionStorage. If both operations
+ * succeed, it returns true, indicating that sessionStorage is available. If an error occurs,
+ * such as when sessionStorage is restricted by browser settings, it returns false.
+ *
+ * @returns True if sessionStorage is enabled, false otherwise.
  */
 export function isSessionStorageEnabled(): boolean {
     try {
@@ -117,24 +115,22 @@ export function isSessionStorageEnabled(): boolean {
 }
 
 /**
- * check indexedDB is enabled or not
- * @returns boolean value
- * explaination of the code
- * 		- The function checks if the window object has an indexedDB property.
- * 			- If it does, it returns true.
- * 				- If it doesn't, it returns false.
+ * Determines whether IndexedDB is supported in the current environment.
+ *
+ * Checks for the presence of the `indexedDB` property on the window object.
+ *
+ * @returns True if IndexedDB is available; otherwise, false.
  */
 export function isIndexedDBEnabled(): boolean {
     return !!window.indexedDB;
 }
 
 /**
- * get WebGL information of the device
- * @returns WebGL information of the device
- * explaination of the code
- * 		- The function creates a canvas element and gets the WebGL context.
-	 * 		- It then gets the vendor and renderer information from the context.
-	 * 			- If an error occurs, it returns unknown values.
+ * Retrieves the device's WebGL vendor and renderer information.
+ *
+ * This function creates an offscreen canvas and attempts to obtain a WebGL context along with its debug extension to extract the unmasked vendor and renderer details. If the context or extension is unavailable, or if an error occurs, it returns "unknown" for both values.
+ *
+ * @returns An object containing the WebGL vendor and renderer information, or default "unknown" values if they cannot be obtained.
  */
 export function getWebGLInfo(): WebGLInfo {
     try {
@@ -155,12 +151,17 @@ export function getWebGLInfo(): WebGLInfo {
 }
 
 /**
- * get canvas fingerprint of the device
- * @returns Canvas fingerprint of the device
- * explaination of the code
- * 		- The function creates a canvas element and gets the 2D context.
-	 * 		- It then draws a rectangle and text on the canvas.
-	 * 			- If an error occurs, it returns empty values.
+ * Generates a canvas fingerprint by rendering shapes and text.
+ *
+ * This function creates a canvas element and draws a rectangle and text to capture subtle differences in the device's
+ * canvas rendering behavior. It extracts fingerprint properties including:
+ * - **winding**: A boolean based on the canvas's path winding rules.
+ * - **geometry**: A data URL of the rendered canvas content.
+ * - **text**: The font settings used during drawing.
+ *
+ * If an error occurs or the canvas 2D context is unavailable, it returns default empty values.
+ *
+ * @returns An object containing canvas fingerprint details.
  */
 export function getCanvasFingerprint(): CanvasInfo {
     try {
@@ -193,12 +194,11 @@ export function getCanvasFingerprint(): CanvasInfo {
 }
 
 /**
- * get plugins information of the device
- * @returns Array of plugin information
- * explaination of the code
- * 		- The function gets the plugins from the navigator object.
-	 * 		- It then maps the plugins to an array of objects with name, description, and mimeTypes properties.
-	 * 			- If an error occurs, it returns an empty array.
+ * Retrieves information about installed browser plugins.
+ *
+ * This function extracts plugin details from the navigator's plugins collection and returns them as an array of objects. Each object includes the plugin's name, description, and a list of supported MIME types with their type and suffixes. If an error occurs during retrieval, an empty array is returned.
+ *
+ * @returns An array of plugin information objects.
  */
 export function getPluginsInfo(): PluginInfo[] {
     try {
@@ -216,13 +216,12 @@ export function getPluginsInfo(): PluginInfo[] {
 }
 
 /**
- * get math constants of the device
- * @returns Math constants of the device
- * explaination of the code
- * 		- The function calculates various math constants using the Math object.
- * 			- If an error occurs, it returns default values.
- *  				- If no error occurs, it returns the calculated values.
- *  			 				
+ * Computes a mathematical fingerprint.
+ *
+ * Calculates several values using native Math functions with fixed inputs. The resulting object contains values
+ * from operations such as acos, acosh, asinh, atanh, expm1, sinh, cosh, and tanh, which can be used for device fingerprinting.
+ *
+ * @returns An object containing computed mathematical values.
  */
 export function getMathFingerprint(): MathInfo {
     return {
@@ -238,13 +237,14 @@ export function getMathFingerprint(): MathInfo {
 }
 
 /**
- * get font preferences of the device
- * @returns Font preferences of the device
- * explaination of the code
- * 		- The function creates a canvas element and gets the 2D context.
-	 * 		- It then measures the width of a test string using different font families.
-	 * 			- If an error occurs, it returns an empty array.
- * 				- If no error occurs, it returns an array of objects with name and width properties.
+ * Retrieves the device's base font preferences by measuring text widths on a canvas.
+ *
+ * This function creates a canvas element and uses its 2D context to measure the width of a test string
+ * rendered with common base fonts (monospace, sans-serif, serif). It returns an object with a `fonts` array,
+ * where each entry contains a font name and its measured width. If the canvas 2D context is unavailable,
+ * the function returns an object with an empty `fonts` array.
+ *
+ * @returns An object containing the measured font preferences.
  */
 export function getFontPreferences(): FontInfo {
     const baseFonts = ['monospace', 'sans-serif', 'serif'];
@@ -270,11 +270,14 @@ export function getFontPreferences(): FontInfo {
 }
 
 /**
- * get touch support information of the device
- * @returns Touch support information of the device
- * explaination of the code
- * 		- The function checks if the window object has touch event properties.
-	 * 		- It then returns an object with maxTouchPoints, touchEvent, and touchStart properties.
+ * Retrieves touch support information for the current device.
+ *
+ * Checks if the device supports touch events by verifying the presence of the 'ontouchstart' property on the window object, and returns details about available touch capabilities.
+ *
+ * @returns An object containing:
+ * - maxTouchPoints: The maximum number of supported touch points (defaults to 0 if unavailable).
+ * - touchEvent: A boolean indicating if touch events are supported.
+ * - touchStart: A boolean indicating if the 'touchstart' event is recognized.
  */
 export function getTouchSupportInfo(): TouchSupportInfo {
     return {
