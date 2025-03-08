@@ -46,7 +46,13 @@ export interface BraveInfo {
     brands: string[];
 }
 
-export interface SystemInfo {
+export interface SystemInfo {	
+    incognito: { isPrivate: boolean; browserName: string }; 
+    bot: {
+        isBot: boolean;
+        signals: string[];
+        confidence: number;
+    };
     userAgent: string;
     platform: string;
     languages: string[];
@@ -74,13 +80,7 @@ export interface SystemInfo {
     vendorFlavors: string[];
     mathConstants: MathInfo;
     fontPreferences: FontInfo;
-    incognito: boolean;
     confidenceScore: number;
-    bot: {
-        isBot: boolean;
-        signals: string[];
-        confidence: number;
-    };
 }
 
 export interface WebGLInfo {
