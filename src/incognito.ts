@@ -63,7 +63,8 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function assertEvalToString (value: number): boolean {
-      return value === eval.toString().length
+  	const dummyFnToStringLen = (function dummyFn(){}).toString().length;
+  	return value === dummyFnToStringLen;
     }
 
     function feid (): number {
