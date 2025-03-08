@@ -34,7 +34,7 @@ export function getMockSystemInfo() {
         vendorFlavors: ['test'],
         mathConstants: getMathFingerprint(),
         fontPreferences: { fonts: [] },
-        incognito: false,
+        incognito: { isPrivate: false, browserName: 'Test Browser' },
         bot: botInfo,
         confidenceScore: 0.85
     };

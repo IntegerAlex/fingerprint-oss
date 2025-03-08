@@ -59,7 +59,7 @@ function detectAdBlock(): Promise<boolean> {
  * Detects Brave browser and uBlock Origin (or some ad blocker)
  * @returns {Promise<{ isBrave: boolean, isUBlock: boolean }>}
  */
-export async function detectAdBlockers(): Promise<{ isBrave: boolean, isUBlock: boolean }> {
+export async function detectAdBlockers(): Promise<{ isBrave: boolean, adBlocker: boolean }> {
   // 1. Detect Brave
   const braveChecks = [
     isBraveBrowser(),       // Check navigator.brave
@@ -71,7 +71,7 @@ export async function detectAdBlockers(): Promise<{ isBrave: boolean, isUBlock: 
   // 2. Detect uBlock (or some ad blocker)
   const isUBlock =  await isUBlockActive();
 
-  return { isBrave, isUBlock };
+  return { isBrave, adBlocker: isUBlock };
 }
 
 // Usage

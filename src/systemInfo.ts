@@ -1,5 +1,5 @@
 import { SystemInfo} from './types.js';
-import { isIncognito } from './incognito.js';
+import { detectIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
 import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo} from './helper.js';
@@ -242,19 +242,23 @@ export async function getSystemInfo(): Promise<SystemInfo> {
     const botInfo = detectBot();
 
     // Check for incognito mode
-    const incognitoMode = await isIncognito();
+    const incognitoMode = await detectIncognito(); 
     
     // Calculate confidence score - now including bot info
-    const confidenceScore = calculateConfidenceScore(incognitoMode, botInfo);
+    const confidenceScore = calculateConfidenceScore(incognitoMode.isPrivate, botInfo);
 
     const browserInfo = {
+	    
+        // Privacy modes
+        incognito: incognitoMode,
+	adBlocker: await detectAdBlockers(),
+ 
         // Basic info
         userAgent: navigator.userAgent,
         platform: navigator.platform,
         languages: Array.from(navigator.languages),
         cookiesEnabled: navigator.cookieEnabled,
         doNotTrack: navigator.doNotTrack,
-	adblockers: await detectAdBlockers(),
 	        
         // Screen & Display
         screenResolution: [window.screen.width, window.screen.height] as [number, number],
@@ -291,9 +295,6 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         // Additional features
         mathConstants: getMathFingerprint(),
         fontPreferences: getFontPreferences(),
-        
-        // Privacy modes
-        incognito: incognitoMode,
         
         // Bot detection
         bot: {
