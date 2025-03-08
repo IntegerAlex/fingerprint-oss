@@ -1,7 +1,7 @@
 /**
  * Helper functions for fingerprinting
  */
-import { FontInfo , MathInfo, PluginInfo, TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
+import { FontInfo , MathInfo, PluginInfo, MimeType , TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
 
 /**
  * Get color gamut of the device
@@ -210,13 +210,22 @@ export function getPluginsInfo(): PluginInfo[] {
         return Array.from(navigator.plugins).map(plugin => {
             if (!plugin) return null;
             
+            // Get all properties that are MimeType instances
+            const mimeTypes: MimeType[] = [];
+            for (const key in plugin) {
+                const value = plugin[key];
+                if (value && typeof value === 'object' && value.type && value.suffixes) {
+                    mimeTypes.push({
+                        type: value.type,
+                        suffixes: value.suffixes
+                    });
+                }
+            }
+
             return {
                 name: plugin.name || '',
                 description: plugin.description || '',
-                mimeTypes: Array.from(plugin.mimeTypes || []).map((mime: any) => ({
-                    type: mime.type || '',
-                    suffixes: mime.suffixes || ''
-                }))
+                mimeTypes
             };
         }).filter(Boolean) as PluginInfo[];
     } catch (error) {
@@ -224,6 +233,7 @@ export function getPluginsInfo(): PluginInfo[] {
         return [];
     }
 }
+
 /**
  * get math constants of the device
  * @returns Math constants of the device
