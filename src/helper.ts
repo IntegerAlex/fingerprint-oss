@@ -201,20 +201,29 @@ export function getCanvasFingerprint(): CanvasInfo {
 	 * 			- If an error occurs, it returns an empty array.
  */
 export function getPluginsInfo(): PluginInfo[] {
+    if (!navigator.plugins) {
+        console.warn('Navigator plugins not available');
+        return [];
+    }
+
     try {
-        return Array.from(navigator.plugins).map(plugin => ({
-            name: plugin.name,
-            description: plugin.description,
-            mimeTypes: Array.from(plugin.mimeTypes).map((mime: any) => ({
-                type: mime.type as string,
-                suffixes: mime.suffixes as string
-            }))
-        }));
-    } catch {
+        return Array.from(navigator.plugins).map(plugin => {
+            if (!plugin) return null;
+            
+            return {
+                name: plugin.name || '',
+                description: plugin.description || '',
+                mimeTypes: Array.from(plugin.mimeTypes || []).map((mime: any) => ({
+                    type: mime.type || '',
+                    suffixes: mime.suffixes || ''
+                }))
+            };
+        }).filter(Boolean) as PluginInfo[];
+    } catch (error) {
+        console.error('Error getting plugins:', error);
         return [];
     }
 }
-
 /**
  * get math constants of the device
  * @returns Math constants of the device
