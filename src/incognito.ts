@@ -63,6 +63,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function assertEvalToString (value: number): boolean {
+	// Using a dummy function instead of eval.toString() to avoid security and performance risks
   	const dummyFnToStringLen = (function dummyFn(){}).toString().length;
   	return value === dummyFnToStringLen;
     }
