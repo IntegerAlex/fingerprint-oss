@@ -76,7 +76,7 @@ This project is currently under active development.
 
 ## License
 
-GPL-3.0 - See LICENSE file for details.
+GPL-3.0 - See [LICENSE](./LICENSE.md) file for details.
 
 ## Contributing
 
