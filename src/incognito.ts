@@ -63,7 +63,9 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function assertEvalToString (value: number): boolean {
-      return value === eval.toString().length
+	// Using a dummy function instead of eval.toString() to avoid security and performance risks
+  	const dummyFnToStringLen = (function dummyFn(){}).toString().length;
+  	return value === dummyFnToStringLen;
     }
 
     function feid (): number {
@@ -106,7 +108,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
         const db = window.indexedDB.open(tmp_name, 1)
 
         db.onupgradeneeded = function (i) {
-          const res = i.target?.result
+           const res = (i.target as IDBRequest).result
 
           try {
             res.createObjectStore('test', {

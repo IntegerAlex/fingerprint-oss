@@ -94,15 +94,6 @@ export interface CanvasInfo {
     text: string;
 }
 
-export interface PluginInfo {
-    name: string;
-    description: string;
-    mimeTypes: Array<{
-        type: string;
-        suffixes: string;
-    }>;
-}
-
 export interface MathInfo {
     acos: number;
     acosh: number;
@@ -127,5 +118,16 @@ export interface TouchSupportInfo {
     maxTouchPoints: number;
     touchEvent: boolean;
     touchStart: boolean;
+}
+
+export interface MimeType {
+    type: string;
+    suffixes: string;
+}
+
+export interface PluginInfo {
+    name: string;
+    description: string;
+    mimeTypes: MimeType[];
 }
 

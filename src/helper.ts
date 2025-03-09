@@ -1,7 +1,7 @@
 /**
  * Helper functions for fingerprinting
  */
-import { FontInfo , MathInfo, PluginInfo, TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
+import { FontInfo , MathInfo, PluginInfo, MimeType , TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
 
 /**
  * Get color gamut of the device
@@ -201,16 +201,35 @@ export function getCanvasFingerprint(): CanvasInfo {
 	 * 			- If an error occurs, it returns an empty array.
  */
 export function getPluginsInfo(): PluginInfo[] {
+    if (!navigator.plugins) {
+        console.warn('Navigator plugins not available');
+        return [];
+    }
+
     try {
-        return Array.from(navigator.plugins).map(plugin => ({
-            name: plugin.name,
-            description: plugin.description,
-            mimeTypes: Array.from(plugin.mimeTypes).map((mime: any) => ({
-                type: mime.type as string,
-                suffixes: mime.suffixes as string
-            }))
-        }));
-    } catch {
+        return Array.from(navigator.plugins).map(plugin => {
+            if (!plugin) return null;
+            
+            // Get all properties that are MimeType instances
+            const mimeTypes: MimeType[] = [];
+            for (const key in plugin) {
+                const value = plugin[key];
+                if (value && typeof value === 'object' && value.type && value.suffixes) {
+                    mimeTypes.push({
+                        type: value.type,
+                        suffixes: value.suffixes
+                    });
+                }
+            }
+
+            return {
+                name: plugin.name || '',
+                description: plugin.description || '',
+                mimeTypes
+            };
+        }).filter(Boolean) as PluginInfo[];
+    } catch (error) {
+        console.error('Error getting plugins:', error);
         return [];
     }
 }
