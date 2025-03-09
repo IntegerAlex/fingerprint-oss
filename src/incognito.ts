@@ -108,7 +108,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
         const db = window.indexedDB.open(tmp_name, 1)
 
         db.onupgradeneeded = function (i) {
-          const res = i.target?.result
+           const res = (i.target as IDBRequest).result
 
           try {
             res.createObjectStore('test', {
