@@ -142,18 +142,28 @@ export function getWebGLInfo(): WebGLInfo {
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext;
         if (!gl) return { vendor: 'unknown', renderer: 'unknown' };
 
-        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        if (!debugInfo) return { vendor: 'unknown', renderer: 'unknown' };
+        let vendor = 'unknown';
+        let renderer = 'unknown';
 
-        return {
-            vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || 'unknown',
-            renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || 'unknown'
-        };
-    } catch {
+        try {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || vendor;
+                renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || renderer;
+            } else {
+                vendor = gl.getParameter(gl.VENDOR) || vendor;
+                renderer = gl.getParameter(gl.RENDERER) || renderer;
+            }
+        } catch (extensionError) {
+            console.warn('WEBGL_debug_renderer_info extension not available:', extensionError);
+        }
+
+        return { vendor, renderer };
+    } catch (error) {
+        console.error('Error retrieving WebGL information:', error);
         return { vendor: 'unknown', renderer: 'unknown' };
     }
 }
-
 /**
  * get canvas fingerprint of the device
  * @returns Canvas fingerprint of the device
