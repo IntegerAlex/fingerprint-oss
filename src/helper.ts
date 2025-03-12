@@ -129,12 +129,14 @@ export function isIndexedDBEnabled(): boolean {
 }
 
 /**
- * get WebGL information of the device
- * @returns WebGL information of the device
- * explaination of the code
- * 		- The function creates a canvas element and gets the WebGL context.
-	 * 		- It then gets the vendor and renderer information from the context.
-	 * 			- If an error occurs, it returns unknown values.
+ * Retrieves the device's WebGL vendor and renderer information.
+ *
+ * This function creates a canvas element to obtain a WebGL context and attempts to
+ * extract detailed hardware information using the WEBGL_debug_renderer_info extension.
+ * If the extension is unavailable or an error occurs during retrieval, it returns default
+ * values of 'unknown' for both vendor and renderer.
+ *
+ * @returns An object containing the WebGL vendor and renderer information.
  */
 export function getWebGLInfo(): WebGLInfo {
     try {
