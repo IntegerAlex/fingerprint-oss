@@ -42,6 +42,18 @@ const { userInfo } = require('fingerprint-oss');
 const data = userInfo();
 ```
 
+## Config for GDPR Compliance/Others 
+
+```javascript
+const config = {
+    transparancy: true,
+    message: 'Test Message',
+}
+const data = userInfo(config);
+```
+ - transparancy: If true, it will log a message on console about the data collection.
+ - message: The message to be logged on console.
+
 The `userInfo()` function returns an object containing various data points about the user's browser, system, and environment, which can be used for:
 
 - Fraud detection
