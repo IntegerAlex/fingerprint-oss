@@ -40,14 +40,16 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
 }
 
 // Robust main function
-export default async function userInfo() {
+export default async function userInfo(transparency:boolean=false) {
     try {
         // Parallel data fetching
         const [systemInfo, geoInfo] = await Promise.all([
             getSystemInfo(),
             fetchGeolocationInfo()
         ]);
-
+	if(transparency){
+		console.log('\u00A9 fingerprint-oss');
+	}
         return generateJSON(
             geoInfo,
             systemInfo,
