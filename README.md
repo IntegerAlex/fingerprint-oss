@@ -21,10 +21,8 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
 ## Features
 
 - Lightweight browser fingerprinting
-- Privacy-focused design
-- No external dependencies
 - Easy integration with any web application
-- 100% client-side operation
+- 100% client-side operation ( Except the GeoLocation API )
 - Comprehensive user data collection
 
 ## Installation
@@ -73,6 +71,10 @@ A live demo is available at the GitHub Pages site where you can see the type of 
 ## Project Status
 
 This project is currently under active development.
+
+## CHANGELOG
+
+- [CHANGELOG](./CHANGELOG.md)
 
 ## License
 
