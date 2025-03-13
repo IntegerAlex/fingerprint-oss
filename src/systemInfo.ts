@@ -4,8 +4,19 @@ import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
 import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo} from './helper.js';
 /**
- * Detects if the current user is likely a bot
- * @returns Object containing bot detection result and confidence score
+ * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
+ *
+ * If executed outside of a browser environment, it returns a default bot detection result with a confidence score of 0.8.
+ * The function inspects the user agent for known bot patterns and checks for indicators such as the webdriver flag,
+ * missing storage APIs, few browser plugins, small screen dimensions, and unusual hardware concurrency.
+ *
+ * It computes a weighted confidence score by aggregating strong, medium, and weak signals, capping the final score at 0.9.
+ * A score exceeding 0.7 indicates bot-like behavior.
+ *
+ * @returns An object containing:
+ *  - isBot: A boolean value that is true if bot-like behavior is detected.
+ *  - signals: An array of strings describing the detected signals with their associated strength.
+ *  - confidence: The computed confidence score reflecting the likelihood of bot detection.
  */
 export function detectBot(): { isBot: boolean; signals: string[]; confidence: number } {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
@@ -62,6 +73,18 @@ export function detectBot(): { isBot: boolean; signals: string[]; confidence: nu
     };
 }
 
+/**
+ * Computes a confidence score based on incognito mode status and bot detection results, with additional adjustments for browser consistency.
+ *
+ * The function starts with a base score of 0.7 and subtracts points if the browser is in incognito mode or if bot detection indicates likely bot behavior. Conversely, it adds a small bonus when bot detection confidence is low. It also performs checks to ensure consistency between the user agent and expected browser features on Chrome and Firefox. The final score is clamped between 0.1 and 0.9.
+ *
+ * @param hasIncognito - Indicates whether the browser is in incognito (private) mode.
+ * @param botInfo - An object containing bot detection details:
+ *   - isBot: Whether a bot is detected.
+ *   - signals: An array of detection signals.
+ *   - confidence: The base confidence level from bot detection.
+ * @returns The adjusted confidence score, bounded between 0.1 and 0.9.
+ */
 function calculateConfidenceScore(hasIncognito: boolean, botInfo: { isBot: boolean; signals: string[]; confidence: number }): number {
     let score = 0.7;
 
@@ -91,8 +114,11 @@ function calculateConfidenceScore(hasIncognito: boolean, botInfo: { isBot: boole
     return Math.max(0.1, Math.min(0.9, score));
 }
 /**
- * Get system information including OS, browser, device, and bot detection
- * @returns SystemInfo object with collected details
+ * Retrieves comprehensive system information including OS, browser, device, and bot detection details.
+ *
+ * This function asynchronously gathers a wide range of data from the current environment, such as user agent, platform details, hardware capabilities, display attributes, and privacy-related settings. It also performs bot detection by analyzing various signals and computes an overall confidence score based on these findings. In a non-browser environment, it returns mock system information.
+ *
+ * @returns A promise that resolves to a SystemInfo object with collected details.
  */
 export async function getSystemInfo(): Promise<SystemInfo> {
     // Check if we're in a browser environment
