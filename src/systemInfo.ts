@@ -74,16 +74,16 @@ export function detectBot(): { isBot: boolean; signals: string[]; confidence: nu
 }
 
 /**
- * Computes a confidence score based on incognito mode status and bot detection results, with additional adjustments for browser consistency.
+ * Calculates an adjusted confidence score based on privacy mode and bot detection results.
  *
- * The function starts with a base score of 0.7 and subtracts points if the browser is in incognito mode or if bot detection indicates likely bot behavior. Conversely, it adds a small bonus when bot detection confidence is low. It also performs checks to ensure consistency between the user agent and expected browser features on Chrome and Firefox. The final score is clamped between 0.1 and 0.9.
+ * Starting from a base score of 0.7, the function subtracts a fixed amount if the browser is in incognito mode, and further adjusts the score using the bot detection data. If bot-like behavior is detected, it deducts points scaled by the provided bot confidence value; otherwise, it adds a small bonus based on low bot confidence. It also performs consistency checks for Chrome and Firefox by verifying expected browser features, applying additional deductions for mismatches. The final score is clamped between 0.1 and 0.9.
  *
  * @param hasIncognito - Indicates whether the browser is in incognito (private) mode.
  * @param botInfo - An object containing bot detection details:
- *   - isBot: Whether a bot is detected.
- *   - signals: An array of detection signals.
+ *   - isBot: Whether bot-like behavior is detected.
+ *   - signals: An array of signals used in the detection process.
  *   - confidence: The base confidence level from bot detection.
- * @returns The adjusted confidence score, bounded between 0.1 and 0.9.
+ * @returns The adjusted confidence score, restricted between 0.1 and 0.9.
  */
 function calculateConfidenceScore(hasIncognito: boolean, botInfo: { isBot: boolean; signals: string[]; confidence: number }): number {
     let score = 0.7;
