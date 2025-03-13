@@ -301,11 +301,14 @@ export function getFontPreferences(): FontInfo {
 }
 
 /**
- * get touch support information of the device
- * @returns Touch support information of the device
- * explaination of the code
- * 		- The function checks if the window object has touch event properties.
-	 * 		- It then returns an object with maxTouchPoints, touchEvent, and touchStart properties.
+ * Retrieves the device's touch support details.
+ *
+ * This function checks the global window object for touch event support and returns an object with:
+ * - **maxTouchPoints**: The number of simultaneous touch points supported, defaulting to 0 if unavailable.
+ * - **touchEvent**: A boolean indicating whether touch events are supported.
+ * - **touchStart**: A boolean indicating if the 'ontouchstart' event is supported.
+ *
+ * @returns An object containing touch support information.
  */
 export function getTouchSupportInfo(): TouchSupportInfo {
     return {
@@ -316,8 +319,16 @@ export function getTouchSupportInfo(): TouchSupportInfo {
 }
 
 /**
- * Get detailed device OS information
- * @returns {Object} OS information including platform, name, version, and userAgent
+ * Retrieves detailed operating system information from the browser's navigator.
+ *
+ * This function parses the user agent and platform data to determine the OS name and version,
+ * identifying Windows, macOS, Android, iOS, Linux, and Unix-like systems. When parsing fails or
+ * the navigator is unavailable, it returns "unknown" values. Note that if `navigator` is undefined,
+ * the returned object includes an extra "platform" property.
+ *
+ * @returns An object containing:
+ *  - os: The name of the detected operating system.
+ *  - version: The operating system version or a generic descriptor if a specific version cannot be determined.
  */
 export function getOSInfo() {
   if (typeof navigator === 'undefined') {
