@@ -313,4 +313,109 @@ export function getTouchSupportInfo(): TouchSupportInfo {
     };
 }
 
+/**
+ * Get detailed device OS information
+ * @returns {Object} OS information including platform, name, version, and userAgent
+ */
+export function getOSInfo() {
+  if (typeof navigator === 'undefined') {
+    return {
+      platform: 'unknown',
+      os: 'unknown',
+      version: 'unknown',
+    };
+  }
 
+  const platform = navigator.platform || 'unknown';
+  const userAgent = navigator.userAgent || 'unknown';
+  let os = 'unknown';
+  let version = 'unknown';
+
+  try {
+    // Windows detection
+// Windows detection
+    if (/Windows NT/.test(userAgent)) {
+      os = 'Windows';
+      const match = userAgent.match(/Windows NT ([\d.]+)/);
+      if (match && match[1]) {
+        const versionMapping:{[key:string]:string} = {
+          '10.0': '10/11', // Base mapping
+          '6.3': '8.1',
+          '6.2': '8',
+          '6.1': '7',
+          '6.0': 'Vista',
+          '5.2': 'Server 2003',
+          '5.1': 'XP',
+          '5.0': '2000'
+        };
+        
+        // Check for Windows 11 specific patterns
+        if (match[1] === '10.0' && /(Windows 11|WOW64|Win64|x64)/.test(userAgent)) {
+          version = '11';
+        } else if (match[1] === '10.0') {
+          version = '10';
+        } else {
+          version = versionMapping[match[1]] || match[1];
+        }
+      }
+    }
+    // macOS detection
+    else if (/Mac OS X/.test(userAgent)) {
+      os = 'macOS';
+      const match = userAgent.match(/Mac OS X ([\d_]+)/);
+      if (match && match[1]) {
+        version = match[1].replace(/_/g, '.');
+      }
+    }
+    // Android detection
+    else if (/Android/.test(userAgent)) {
+      os = 'Android';
+      const match = userAgent.match(/Android ([\d.]+)/);
+      if (match && match[1]) {
+        version = match[1];
+      }
+    }
+    // iOS detection (using userAgent patterns)
+    else if (/iPhone|iPad|iPod|CPU(?: iPhone)? OS|MacOS/.test(userAgent)) {
+      os = 'iOS';
+      const match = userAgent.match(/OS ([\d_]+)/);
+      if (match && match[1]) {
+        version = match[1].replace(/_/g, '.');
+      }
+    }
+    // Linux detection
+    else if (/Linux/.test(platform) || /Linux/.test(userAgent)) {
+      os = 'Linux';
+      if (/Ubuntu/.test(userAgent)) {
+        version = 'Ubuntu';
+      } else if (/Fedora/.test(userAgent)) {
+        version = 'Fedora';
+      } else if (/Debian/.test(userAgent)) {
+        version = 'Debian';
+      } else if (/Arch/.test(userAgent)) {
+        version = 'Arch';
+      } else if (/Manjaro/.test(userAgent)) {
+        version = 'Manjaro';
+      } else if (/openSUSE/.test(userAgent)) {
+        version = 'openSUSE';
+      } else if (/Mint/.test(userAgent)) {
+        version = 'Linux Mint';
+      } else {
+        version = 'generic';
+      }
+    }
+    // Fallback for other Unix-based systems
+    else if (/BSD/.test(userAgent) || /SunOS/.test(userAgent)) {
+      os = 'Unix-like';
+      version = 'generic';
+    }
+    // Fallback for unknown OSes
+    else {
+      os = platform;
+    }
+  } catch (err) {
+    console.error('Error parsing OS info:', err);
+  }
+
+  return { os, version };
+}

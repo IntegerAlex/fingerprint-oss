@@ -2,7 +2,7 @@ import { SystemInfo} from './types.js';
 import { detectIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
-import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo} from './helper.js';
+import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo} from './helper.js';
 /**
  * Detects if the current user is likely a bot
  * @returns Object containing bot detection result and confidence score
@@ -132,6 +132,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         // Hardware
         hardwareConcurrency: navigator.hardwareConcurrency,
         deviceMemory: (navigator as any).deviceMemory,
+	os: getOSInfo(),
         
         // Audio capabilities
         audio: await getAudioFingerprint(),

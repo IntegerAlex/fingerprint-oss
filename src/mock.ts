@@ -17,6 +17,7 @@ export function getMockSystemInfo() {
         colorGamut: 'srgb',
         hardwareConcurrency: 8,
         deviceMemory: 8,
+	os : {  os:'test', version:'T' },
         audio: null,
         localStorage: true,
         sessionStorage: true,
