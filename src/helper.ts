@@ -129,12 +129,14 @@ export function isIndexedDBEnabled(): boolean {
 }
 
 /**
- * get WebGL information of the device
- * @returns WebGL information of the device
- * explaination of the code
- * 		- The function creates a canvas element and gets the WebGL context.
-	 * 		- It then gets the vendor and renderer information from the context.
-	 * 			- If an error occurs, it returns unknown values.
+ * Retrieves the device's WebGL vendor and renderer information.
+ *
+ * This function creates a canvas element to obtain a WebGL context and attempts to
+ * extract detailed hardware information using the WEBGL_debug_renderer_info extension.
+ * If the extension is unavailable or an error occurs during retrieval, it returns default
+ * values of 'unknown' for both vendor and renderer.
+ *
+ * @returns An object containing the WebGL vendor and renderer information.
  */
 export function getWebGLInfo(): WebGLInfo {
     try {
@@ -142,18 +144,28 @@ export function getWebGLInfo(): WebGLInfo {
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext;
         if (!gl) return { vendor: 'unknown', renderer: 'unknown' };
 
-        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        if (!debugInfo) return { vendor: 'unknown', renderer: 'unknown' };
+        let vendor = 'unknown';
+        let renderer = 'unknown';
 
-        return {
-            vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || 'unknown',
-            renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || 'unknown'
-        };
-    } catch {
+        try {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || vendor;
+                renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || renderer;
+            } else {
+                vendor = gl.getParameter(gl.VENDOR) || vendor;
+                renderer = gl.getParameter(gl.RENDERER) || renderer;
+            }
+        } catch (extensionError) {
+            console.warn('WEBGL_debug_renderer_info extension not available:', extensionError);
+        }
+
+        return { vendor, renderer };
+    } catch (error) {
+        console.error('Error retrieving WebGL information:', error);
         return { vendor: 'unknown', renderer: 'unknown' };
     }
 }
-
 /**
  * get canvas fingerprint of the device
  * @returns Canvas fingerprint of the device
@@ -289,11 +301,14 @@ export function getFontPreferences(): FontInfo {
 }
 
 /**
- * get touch support information of the device
- * @returns Touch support information of the device
- * explaination of the code
- * 		- The function checks if the window object has touch event properties.
-	 * 		- It then returns an object with maxTouchPoints, touchEvent, and touchStart properties.
+ * Retrieves the device's touch support details.
+ *
+ * This function checks the global window object for touch event support and returns an object with:
+ * - **maxTouchPoints**: The number of simultaneous touch points supported, defaulting to 0 if unavailable.
+ * - **touchEvent**: A boolean indicating whether touch events are supported.
+ * - **touchStart**: A boolean indicating if the 'ontouchstart' event is supported.
+ *
+ * @returns An object containing touch support information.
  */
 export function getTouchSupportInfo(): TouchSupportInfo {
     return {
@@ -303,4 +318,117 @@ export function getTouchSupportInfo(): TouchSupportInfo {
     };
 }
 
+/**
+ * Retrieves detailed operating system information from the browser's navigator.
+ *
+ * This function parses the user agent and platform data to determine the OS name and version,
+ * identifying Windows, macOS, Android, iOS, Linux, and Unix-like systems. When parsing fails or
+ * the navigator is unavailable, it returns "unknown" values. Note that if `navigator` is undefined,
+ * the returned object includes an extra "platform" property.
+ *
+ * @returns An object containing:
+ *  - os: The name of the detected operating system.
+ *  - version: The operating system version or a generic descriptor if a specific version cannot be determined.
+ */
+export function getOSInfo() {
+  if (typeof navigator === 'undefined') {
+    return {
+      platform: 'unknown',
+      os: 'unknown',
+      version: 'unknown',
+    };
+  }
 
+  const platform = navigator.platform || 'unknown';
+  const userAgent = navigator.userAgent || 'unknown';
+  let os = 'unknown';
+  let version = 'unknown';
+
+  try {
+    // Windows detection
+// Windows detection
+    if (/Windows NT/.test(userAgent)) {
+      os = 'Windows';
+      const match = userAgent.match(/Windows NT ([\d.]+)/);
+      if (match && match[1]) {
+        const versionMapping:{[key:string]:string} = {
+          '10.0': '10/11', // Base mapping
+          '6.3': '8.1',
+          '6.2': '8',
+          '6.1': '7',
+          '6.0': 'Vista',
+          '5.2': 'Server 2003',
+          '5.1': 'XP',
+          '5.0': '2000'
+        };
+        
+        // Check for Windows 11 specific patterns
+        if (match[1] === '10.0' && /(Windows 11|WOW64|Win64|x64)/.test(userAgent)) {
+          version = '11';
+        } else if (match[1] === '10.0') {
+          version = '10';
+        } else {
+          version = versionMapping[match[1]] || match[1];
+        }
+      }
+    }
+    // macOS detection
+    else if (/Mac OS X/.test(userAgent)) {
+      os = 'macOS';
+      const match = userAgent.match(/Mac OS X ([\d_]+)/);
+      if (match && match[1]) {
+        version = match[1].replace(/_/g, '.');
+      }
+    }
+    // Android detection
+    else if (/Android/.test(userAgent)) {
+      os = 'Android';
+      const match = userAgent.match(/Android ([\d.]+)/);
+      if (match && match[1]) {
+        version = match[1];
+      }
+    }
+    // iOS detection (using userAgent patterns)
+    else if (/iPhone|iPad|iPod|CPU(?: iPhone)? OS|MacOS/.test(userAgent)) {
+      os = 'iOS';
+      const match = userAgent.match(/OS ([\d_]+)/);
+      if (match && match[1]) {
+        version = match[1].replace(/_/g, '.');
+      }
+    }
+    // Linux detection
+    else if (/Linux/.test(platform) || /Linux/.test(userAgent)) {
+      os = 'Linux';
+      if (/Ubuntu/.test(userAgent)) {
+        version = 'Ubuntu';
+      } else if (/Fedora/.test(userAgent)) {
+        version = 'Fedora';
+      } else if (/Debian/.test(userAgent)) {
+        version = 'Debian';
+      } else if (/Arch/.test(userAgent)) {
+        version = 'Arch';
+      } else if (/Manjaro/.test(userAgent)) {
+        version = 'Manjaro';
+      } else if (/openSUSE/.test(userAgent)) {
+        version = 'openSUSE';
+      } else if (/Mint/.test(userAgent)) {
+        version = 'Linux Mint';
+      } else {
+        version = 'generic';
+      }
+    }
+    // Fallback for other Unix-based systems
+    else if (/BSD/.test(userAgent) || /SunOS/.test(userAgent)) {
+      os = 'Unix-like';
+      version = 'generic';
+    }
+    // Fallback for unknown OSes
+    else {
+      os = platform;
+    }
+  } catch (err) {
+    console.error('Error parsing OS info:', err);
+  }
+
+  return { os, version };
+}

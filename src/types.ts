@@ -1,3 +1,4 @@
+
 // Add WebKit FileSystem types
 declare global {
  interface Navigator {
@@ -63,6 +64,7 @@ export interface SystemInfo {
     colorGamut: string;
     hardwareConcurrency: number;
     deviceMemory: number | undefined;
+    os: { os:string; version:string;  };
     audio: number | null;
     localStorage: boolean;
     sessionStorage: boolean;
