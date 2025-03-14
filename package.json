@@ -1,6 +1,6 @@
 {
   "name": "fingerprint-oss",
-  "version": "0.2.2",
+  "version": "0.2.3-alpha",
   "description": "fingerprint-oss is a javascript util designed to collect various information about the user's device, location, and network.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -13,7 +13,6 @@
   "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",
   "files": [
     "dist",
-    "src",
     "LICENSE",
     "README.md",
     ".env",

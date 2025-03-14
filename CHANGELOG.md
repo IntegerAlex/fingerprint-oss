@@ -1,6 +1,15 @@
 # CHANGELOG
 
 All notable changes to this project will be documented in this file.
+## [0.2.3-alpha] - 2025-03-15
+### Added
+- GDPR compliance, `config` object to set the `GDPR` compliance.
+- New property `os` added to the system information.
+### Improved
+- Bot detection improved.
+- Incognito detection improved.
+- WebGl detection improved.
+
 ## [0.2.2] - 2025-03-10
 ### Added
 - Major working `incognito detector`
