@@ -522,4 +522,4 @@ export async function estimateCores():Promise<number> {
     URL.revokeObjectURL(workerUrl);
   }
 }
-}
+
