@@ -450,12 +450,13 @@ export function getOSInfo() {
 export async function estimateCores():Promise<number> {
   // Fall back to navigator.hardwareConcurrency if Workers are not supported
   if (typeof Worker === 'undefined') {
-    return typeof navigator !== 'undefined' && navigator.hardwareConcurrency ? navigator.hardwareConcurrency : 1;
+    return navigator.hardwareConcurrency || 1;
   }
   
   const workers:Worker[] = [];
   let cores = 0;
   const MAX_CORES = 16;
+  const TIMEOUT_MS = 2000;
 
   const workerScript = `
     self.onmessage = () => {
