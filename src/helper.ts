@@ -319,16 +319,17 @@ export function getTouchSupportInfo(): TouchSupportInfo {
 }
 
 /**
- * Retrieves detailed operating system information from the browser's navigator.
+ * Retrieves operating system information by parsing the browser's navigator data.
  *
- * This function parses the user agent and platform data to determine the OS name and version,
- * identifying Windows, macOS, Android, iOS, Linux, and Unix-like systems. When parsing fails or
- * the navigator is unavailable, it returns "unknown" values. Note that if `navigator` is undefined,
- * the returned object includes an extra "platform" property.
+ * This function analyzes the user agent and platform strings to determine the OS name and version,
+ * supporting detection of Windows, macOS, Android, iOS, Linux, Unix-like systems, and more.
+ * If the navigator object is unavailable or parsing fails, it returns "unknown" values.
+ * Note: When `navigator` is undefined, the returned object also includes a `platform` property.
  *
  * @returns An object containing:
- *  - os: The name of the detected operating system.
- *  - version: The operating system version or a generic descriptor if a specific version cannot be determined.
+ *   - os: The name of the detected operating system.
+ *   - version: The operating system version or a generic descriptor if it cannot be specifically determined.
+ *   - platform (optional): The platform value, present only when `navigator` is undefined.
  */
 export function getOSInfo() {
   if (typeof navigator === 'undefined') {
@@ -434,8 +435,16 @@ export function getOSInfo() {
 }
 
 /**
- * Get logical cores of the device
- * @returns Number of logical cores of the device
+ * Estimates the number of available logical cores on the device.
+ *
+ * This function spawns Web Worker instances to execute a compute-intensive task in parallel,
+ * simulating the workload across cores. Up to 16 workers are created sequentially, and each worker
+ * performs a heavy calculation. If a worker takes longer than 1000ms to complete its task, it is
+ * terminated, halting the estimation process. The final count reflects the number of workers that
+ * successfully completed the task within the performance threshold. In case of an error, any active
+ * workers are terminated and resources are cleaned up before returning the core count.
+ *
+ * @returns The estimated number of logical cores available on the device.
  */
 
 export async function estimateCores():Promise<number> {
