@@ -1,6 +1,10 @@
 # CHANGELOG
 
 All notable changes to this project will be documented in this file.
+## [0.2.3-beta] - 
+### Improved
+- Hardware concurrency (logical cores) detection improved.
+
 ## [0.2.3-alpha] - 2025-03-15
 ### Added
 - GDPR compliance, `config` object to set the `GDPR` compliance.

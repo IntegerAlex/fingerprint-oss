@@ -2,7 +2,7 @@ import { SystemInfo} from './types.js';
 import { detectIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
-import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo} from './helper.js';
+import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo, estimateCores} from './helper.js';
 /**
  * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
  *
@@ -156,7 +156,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
 	touchSupport: getTouchSupportInfo(),
         
         // Hardware
-        hardwareConcurrency: navigator.hardwareConcurrency,
+        hardwareConcurrency: await estimateCores(),
         deviceMemory: (navigator as any).deviceMemory,
 	os: getOSInfo(),
         
