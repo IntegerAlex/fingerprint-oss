@@ -1,5 +1,3 @@
-### CONTRIBUTING
-
 # Contributing to Fingerprint OSS
 
 Thank you for considering contributing to our project! We welcome contributions from everyone.
