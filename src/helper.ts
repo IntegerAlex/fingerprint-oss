@@ -432,3 +432,76 @@ export function getOSInfo() {
 
   return { os, version };
 }
+
+/**
+ * Get logical cores of the device
+ * @returns Number of logical cores of the device
+ */
+
+export async function estimateCores():Promise<number> {
+  const workers:Worker[] = [];
+  let cores = 0;
+  const MAX_CORES = 16;
+
+  const workerScript = `
+    self.onmessage = () => {
+      let sum = 0;
+      for (let i = 0; i < 5e7; i++) {
+        sum += Math.sqrt(i);
+      }
+      self.postMessage(sum);
+    };
+  `;
+
+  const blob = new Blob([workerScript], { type: 'application/javascript' });
+  const workerUrl = URL.createObjectURL(blob);
+
+  try {
+    console.log("Starting core estimation...");
+    
+    while (cores < MAX_CORES) {
+      console.log(`Testing core #${cores + 1}`);
+      const worker = new Worker(workerUrl);
+      const start = performance.now();
+
+      try {
+        await new Promise((resolve, reject) => {
+          worker.onmessage = () => {
+            const time = performance.now() - start;
+            console.log(`Worker #${cores + 1} finished in ${time.toFixed(0)}ms`);
+            
+            if (time > 1000) {
+              console.warn("Threshold exceeded - stopping");
+              worker.terminate();
+              reject(new Error("Threshold exceeded"));
+            } else {
+              cores++;
+              workers.push(worker);
+              resolve(true);
+            }
+          };
+
+          worker.onerror = (err) => {
+            console.error("Worker error:", err);
+            reject(err);
+          };
+
+          worker.postMessage(0);
+        });
+      } catch (workerErr) {
+        console.error("Worker promise rejected:", workerErr);
+        throw workerErr;
+      }
+    }
+
+    // Return the final core count if loop completes
+    console.log(`Loop completed with ${cores} cores detected`);
+    return cores;
+
+  } catch (e) {
+    console.error("Estimation failed:", e);
+    workers.forEach(w => w.terminate()as any);
+    URL.revokeObjectURL(workerUrl);
+    return cores; // Ensure we return a number even on failure
+  }
+}
