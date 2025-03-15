@@ -450,7 +450,7 @@ export function getOSInfo() {
 export async function estimateCores():Promise<number> {
   // Fall back to navigator.hardwareConcurrency if Workers are not supported
   if (typeof Worker === 'undefined') {
-    return navigator.hardwareConcurrency || 1;
+    return typeof navigator !== 'undefined' && navigator.hardwareConcurrency ? navigator.hardwareConcurrency : 1;
   }
   
   const workers:Worker[] = [];
