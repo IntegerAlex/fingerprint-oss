@@ -509,8 +509,11 @@ export async function estimateCores():Promise<number> {
 
   } catch (e) {
     console.error("Estimation failed:", e);
-    workers.forEach(w => w.terminate()as any);
-    URL.revokeObjectURL(workerUrl);
     return cores; // Ensure we return a number even on failure
+  } finally {
+    // Clean up resources in both success and failure cases
+    workers.forEach(w => w.terminate());
+    URL.revokeObjectURL(workerUrl);
   }
+}
 }
