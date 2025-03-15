@@ -1,6 +1,3 @@
-### CHANGELOG
-
-```markdown
 # Changelog
 
 _All notable changes to this project will be documented in this file._
@@ -42,4 +39,3 @@ _All notable changes to this project will be documented in this file._
 
 ### Fixed
 - Published fork of user-info-logger with minimal changes as a new package
-```
