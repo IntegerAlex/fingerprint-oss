@@ -1,5 +1,3 @@
-### LEARN
-
 # Fingerprint OSS Learning Guide
 
 Welcome to the **Fingerprint OSS Learning Guide**! In this guide, you will learn how to use Fingerprint OSS to gather essential data about users' IP addresses, geolocation, and system information in JavaScript applications.
