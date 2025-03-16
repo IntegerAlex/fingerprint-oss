@@ -3,6 +3,7 @@ import { fetchGeolocationInfo } from './geo-ip';
 import { getSystemInfo } from './systemInfo';
 import { getMockSystemInfo } from './mock';
 import { isRiskyASN, getUAPlatformMismatch } from './confidence';
+import { Toast } from './compliance';
 
 /**
  * Calculates a combined confidence score based on system and geolocation information.
@@ -77,11 +78,16 @@ export default async function userInfo(config:{transparency?:boolean, message?:s
             getSystemInfo(),
             fetchGeolocationInfo()
         ]);
-	if(config.transparency){
-		console.log('\u00A9 fingerprint-oss');
-	}
-	if(config.message){
-		console.log(config.message);
+	
+
+	if(config.message || config.transparency){
+		if(config.message){
+			Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
+		}
+		else{
+		console.log(`\u00A9 fingerprint-oss  the software is gathering system data`);
+		Toast.show('\u00A9 fingerprint-oss');
+		}
 	}
         return generateJSON(
             geoInfo,
@@ -99,5 +105,4 @@ export default async function userInfo(config:{transparency?:boolean, message?:s
         );
     }
 }
-
 export { userInfo };	
