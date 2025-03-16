@@ -2,6 +2,11 @@
 
 _All notable changes to this project will be documented in this file._
 
+## [0.2.3-beta] - 
+### Improved
+- Hardware concurrency (logical cores) detection improved.
+- AdBlocker detection improved. (removed complex with Temporary best solution)
+
 ## [0.2.3-alpha] - 2025-03-15
 
 ### Added

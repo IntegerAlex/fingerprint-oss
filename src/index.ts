@@ -70,7 +70,7 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  *   - `message`: When provided, logs the supplied message.
  * @returns A JSON object containing the processed user information.
  */
-export default async function userInfo(config: any = {}) {
+export default async function userInfo(config:{transparency?:boolean, message?:string}={}) {
     try {
         // Parallel data fetching
         const [systemInfo, geoInfo] = await Promise.all([

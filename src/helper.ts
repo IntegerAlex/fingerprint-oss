@@ -319,16 +319,17 @@ export function getTouchSupportInfo(): TouchSupportInfo {
 }
 
 /**
- * Retrieves detailed operating system information from the browser's navigator.
+ * Retrieves operating system information by parsing the browser's navigator data.
  *
- * This function parses the user agent and platform data to determine the OS name and version,
- * identifying Windows, macOS, Android, iOS, Linux, and Unix-like systems. When parsing fails or
- * the navigator is unavailable, it returns "unknown" values. Note that if `navigator` is undefined,
- * the returned object includes an extra "platform" property.
+ * This function analyzes the user agent and platform strings to determine the OS name and version,
+ * supporting detection of Windows, macOS, Android, iOS, Linux, Unix-like systems, and more.
+ * If the navigator object is unavailable or parsing fails, it returns "unknown" values.
+ * Note: When `navigator` is undefined, the returned object also includes a `platform` property.
  *
  * @returns An object containing:
- *  - os: The name of the detected operating system.
- *  - version: The operating system version or a generic descriptor if a specific version cannot be determined.
+ *   - os: The name of the detected operating system.
+ *   - version: The operating system version or a generic descriptor if it cannot be specifically determined.
+ *   - platform (optional): The platform value, present only when `navigator` is undefined.
  */
 export function getOSInfo() {
   if (typeof navigator === 'undefined') {
@@ -432,3 +433,93 @@ export function getOSInfo() {
 
   return { os, version };
 }
+
+/**
+ * Estimates the number of available logical cores on the device.
+ *
+ * This function spawns Web Worker instances to execute a compute-intensive task in parallel,
+ * simulating the workload across cores. Up to 16 workers are created sequentially, and each worker
+ * performs a heavy calculation. If a worker takes longer than 1000ms to complete its task, it is
+ * terminated, halting the estimation process. The final count reflects the number of workers that
+ * successfully completed the task within the performance threshold. In case of an error, any active
+ * workers are terminated and resources are cleaned up before returning the core count.
+ *
+ * @returns The estimated number of logical cores available on the device.
+ */
+
+export async function estimateCores():Promise<number> {
+  // Fall back to navigator.hardwareConcurrency if Workers are not supported
+  if (typeof Worker === 'undefined') {
+    return navigator.hardwareConcurrency || 1;
+  }
+  
+  const workers:Worker[] = [];
+  let cores = 0;
+  const MAX_CORES = 16;
+  const TIMEOUT_MS = 2000;
+
+  const workerScript = `
+    self.onmessage = () => {
+      let sum = 0;
+      for (let i = 0; i < 5e7; i++) {
+        sum += Math.sqrt(i);
+      }
+      self.postMessage(sum);
+    };
+  `;
+
+  const blob = new Blob([workerScript], { type: 'application/javascript' });
+  const workerUrl = URL.createObjectURL(blob);
+
+  try {
+    //console.log("Starting core estimation...");
+    
+    while (cores < MAX_CORES) {
+      //console.log(`Testing core #${cores + 1}`);
+      const worker = new Worker(workerUrl);
+      const start = performance.now();
+
+      try {
+        await new Promise((resolve, reject) => {
+          worker.onmessage = () => {
+            const time = performance.now() - start;
+     //       console.log(`Worker #${cores + 1} finished in ${time.toFixed(0)}ms`);
+            
+            if (time > 1000) {
+    //          console.warn("Threshold exceeded - stopping");
+              worker.terminate();
+              reject(new Error("Threshold exceeded"));
+            } else {
+              cores++;
+              workers.push(worker);
+              resolve(true);
+            }
+          };
+
+          worker.onerror = (err) => {
+   //         console.error("Worker error:", err);
+            reject(err);
+          };
+
+          worker.postMessage(0);
+        });
+      } catch (workerErr) {
+  //      console.error("Worker promise rejected:", workerErr);
+        throw workerErr;
+      }
+    }
+
+    // Return the final core count if loop completes
+ //   console.log(`Loop completed with ${cores} cores detected`);
+    return cores;
+
+  } catch (e) {
+    console.error("Estimation failed:", e);
+    return cores; // Ensure we return a number even on failure
+  } finally {
+    // Clean up resources in both success and failure cases
+    workers.forEach(w => w.terminate());
+    URL.revokeObjectURL(workerUrl);
+  }
+}
+
