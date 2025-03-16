@@ -4,9 +4,10 @@
  * @returns {void}
  */
  // Toast notification system with CSS injection and display logic
-export class Toast {
-  private static stylesInjected = false;
-
+export const Toast = {
+  stylesInjected: false,
+  // ... (rest of the Toast implementation using functions)
+};
   /**
    * Show a toast notification
    * @param message The message to display
