@@ -80,12 +80,15 @@ export default async function userInfo(config:{transparency?:boolean, message?:s
         ]);
 	
 
- if(config.message || config.transparency){
- 	const message = config.message || 'the software is gathering system data';
- 	Toast.show(`\u00A9 fingerprint-oss  ${message}`);
- 	if(config.transparency){
- 		console.log(`\u00A9 fingerprint-oss  ${message}`);
- 	}
+ if(config.transparency) {
+   const message = config.message || 'the software is gathering system data';
+   console.log(`\u00A9 fingerprint-oss  ${message}`);
+  
+   if(config.message) {
+     Toast.show(`\u00A9 fingerprint-oss  ${message}`);
+   }
+ } else if(config.message) {
+   Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
  }
         return generateJSON(
             geoInfo,
