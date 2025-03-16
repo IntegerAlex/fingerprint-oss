@@ -83,7 +83,7 @@ export default async function userInfo(config:{transparency?:boolean, message?:s
  if(config.transparency) {
    const message = config.message || 'the software is gathering system data';
    console.log(`\u00A9 fingerprint-oss  ${message}`);
-  
+	Toast.show(`\u00A9 fingerprint-oss`); 
    if(config.message) {
      Toast.show(`\u00A9 fingerprint-oss  ${message}`);
    }
