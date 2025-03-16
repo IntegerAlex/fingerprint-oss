@@ -472,10 +472,10 @@ export async function estimateCores():Promise<number> {
   const workerUrl = URL.createObjectURL(blob);
 
   try {
-    console.log("Starting core estimation...");
+    //console.log("Starting core estimation...");
     
     while (cores < MAX_CORES) {
-      console.log(`Testing core #${cores + 1}`);
+      //console.log(`Testing core #${cores + 1}`);
       const worker = new Worker(workerUrl);
       const start = performance.now();
 
@@ -483,10 +483,10 @@ export async function estimateCores():Promise<number> {
         await new Promise((resolve, reject) => {
           worker.onmessage = () => {
             const time = performance.now() - start;
-            console.log(`Worker #${cores + 1} finished in ${time.toFixed(0)}ms`);
+     //       console.log(`Worker #${cores + 1} finished in ${time.toFixed(0)}ms`);
             
             if (time > 1000) {
-              console.warn("Threshold exceeded - stopping");
+    //          console.warn("Threshold exceeded - stopping");
               worker.terminate();
               reject(new Error("Threshold exceeded"));
             } else {
@@ -497,20 +497,20 @@ export async function estimateCores():Promise<number> {
           };
 
           worker.onerror = (err) => {
-            console.error("Worker error:", err);
+   //         console.error("Worker error:", err);
             reject(err);
           };
 
           worker.postMessage(0);
         });
       } catch (workerErr) {
-        console.error("Worker promise rejected:", workerErr);
+  //      console.error("Worker promise rejected:", workerErr);
         throw workerErr;
       }
     }
 
     // Return the final core count if loop completes
-    console.log(`Loop completed with ${cores} cores detected`);
+ //   console.log(`Loop completed with ${cores} cores detected`);
     return cores;
 
   } catch (e) {

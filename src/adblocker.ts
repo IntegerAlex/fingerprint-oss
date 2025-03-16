@@ -36,25 +36,44 @@ async function isBraveBrowserUAData(): Promise<boolean> {
  * @returns {Promise<boolean>} true if uBlock Origin is detected, false otherwise
  */
  async function isUBlockActive(): Promise<boolean> {
-    let result = false;
-    try {
-        result = await detectAdBlock();
-    } catch (error) {
-        console.error('Error detecting ad blocker:', error);
-    }
-    return result;
+  let result = false;
+  try {
+    result = await detectAdBlock();
+  } catch (error) {
+    console.error('Error detecting ad blocker:', error);
+  }
+  return result;
 }
-function detectAdBlock(): Promise<boolean> {
-    return new Promise((resolve) => {
-        const script = document.createElement('script');
-        script.src = './dfp_async.js'; // Must exist on your server
-        script.onload = () => resolve(!document.getElementById('GTvbiUxNuhSd'));
-        script.onerror = () => resolve(true);
-        document.body.appendChild(script);
+// src/adblocker.ts
+interface AdsByGoogle {
+  loaded: boolean;
+  push: (config: any) => void;
+}
+async function detectAdBlock(): Promise<boolean> {
+  try {
+    // Fetch the script and read it as text
+    const response = await fetch('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', {
+      method: 'GET',
+      mode: 'no-cors',
     });
+
+    // If the response is null, it means the ad blocker fully blocked it
+    if (!response) return true;
+
+    // Try to read response text (this might fail if completely blocked)
+    const text = await response.text();
+
+    // Check for uBlock Origin or similar modifications in the script response
+    if (text.includes('uBlock Origin') || text.includes('window.adsbygoogle = { loaded: true, push: function() {} };')) {
+      return true; // Adblocker detected
+    }
+
+    return false; // No adblock detected
+  } catch (_error: unknown) {
+    return true; // Fetch failure = likely ad blocker
+  }
 }
 
-// Usage example
 /**
  * Detects Brave browser and uBlock Origin (or some ad blocker)
  * @returns {Promise<{ isBrave: boolean, isUBlock: boolean }>}
