@@ -2,6 +2,11 @@
 
 _All notable changes to this project will be documented in this file._
 
+## [0.2.3] - 2025-03-18
+
+### Added
+-  user alerts, especially when system transparency settings are enabled.
+
 ## [0.2.3-beta] - 
 ### Improved
 - Hardware concurrency (logical cores) detection improved.
