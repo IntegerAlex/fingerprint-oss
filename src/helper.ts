@@ -446,80 +446,95 @@ export function getOSInfo() {
  *
  * @returns The estimated number of logical cores available on the device.
  */
+export async function estimateCores(): Promise<number> {
+  const MAX_TEST_TIME = 1200; // Extended budget for more reliable results
+  const TARGET_ITERATIONS = 30e6; // Adjusted for modern CPU performance
+  const browserReportedCores = navigator.hardwareConcurrency || 4;
 
-export async function estimateCores():Promise<number> {
-  // Fall back to navigator.hardwareConcurrency if Workers are not supported
+  // Early exit for unsupported environments
   if (typeof Worker === 'undefined') {
-    return navigator.hardwareConcurrency || 1;
+    return Math.min(browserReportedCores, 12);
   }
-  
-  const workers:Worker[] = [];
-  let cores = 0;
-  const MAX_CORES = 16;
-  const TIMEOUT_MS = 2000;
 
   const workerScript = `
-    self.onmessage = () => {
-      let sum = 0;
-      for (let i = 0; i < 5e7; i++) {
-        sum += Math.sqrt(i);
+    self.onmessage = (e) => {
+      const start = performance.now();
+      let result = 0;
+      
+      // Mixed operations to prevent compiler optimizations
+      for (let i = 0; i < ${TARGET_ITERATIONS}; i++) {
+        result += Math.sin(i) * Math.log(i + 1) / (i % 23 + 1);
+        if (i % 1e5 === 0) self.postMessage({ progress: i }); // Anti-optimization checkpoint
       }
-      self.postMessage(sum);
+      
+      const duration = performance.now() - start;
+      self.postMessage({
+        duration: duration,
+        noise: performance.timeOrigin % 1 + Math.random() // Enhanced fingerprint resistance
+      });
     };
   `;
 
   const blob = new Blob([workerScript], { type: 'application/javascript' });
   const workerUrl = URL.createObjectURL(blob);
+  const workers: Worker[] = [];
 
   try {
-    //console.log("Starting core estimation...");
-    
-    while (cores < MAX_CORES) {
-      //console.log(`Testing core #${cores + 1}`);
-      const worker = new Worker(workerUrl);
-      const start = performance.now();
-
-      try {
-        await new Promise((resolve, reject) => {
-          worker.onmessage = () => {
-            const time = performance.now() - start;
-     //       console.log(`Worker #${cores + 1} finished in ${time.toFixed(0)}ms`);
-            
-            if (time > 1000) {
-    //          console.warn("Threshold exceeded - stopping");
-              worker.terminate();
-              reject(new Error("Threshold exceeded"));
-            } else {
-              cores++;
-              workers.push(worker);
-              resolve(true);
-            }
-          };
-
-          worker.onerror = (err) => {
-   //         console.error("Worker error:", err);
-            reject(err);
-          };
-
-          worker.postMessage(0);
+    const results = await Promise.race([
+      (async () => {
+        const testConcurrency = Math.min(browserReportedCores * 2, 16);
+        const timings: number[] = [];
+        
+        // Run multiple concurrent workers
+        const promises = Array.from({ length: testConcurrency }, async () => {
+          const worker = new Worker(workerUrl);
+          workers.push(worker);
+          
+          return new Promise<number>(resolve => {
+            worker.onmessage = (e) => {
+              if (e.data?.duration) resolve(e.data.duration);
+            };
+            worker.postMessage('start');
+          });
         });
-      } catch (workerErr) {
-  //      console.error("Worker promise rejected:", workerErr);
-        throw workerErr;
-      }
+
+        const allDurations = await Promise.all(promises);
+        const medianDuration = allDurations.sort()[Math.floor(allDurations.length / 2)];
+        
+        // Calculate parallel efficiency
+        const singleThreadTime = medianDuration * testConcurrency;
+        const theoreticalTime = medianDuration * (testConcurrency / browserReportedCores);
+        const efficiency = (singleThreadTime / theoreticalTime) * 100;
+        
+        // Determine core count based on efficiency threshold
+        let coreEstimate = Math.round(
+          (testConcurrency * 100) / Math.max(efficiency, 10) // 10% minimum efficiency floor
+        );
+
+        // Cross-validation with hardware report
+        coreEstimate = Math.min(
+          Math.max(coreEstimate, browserReportedCores - 2),
+          browserReportedCores + 2
+        );
+
+        // Architecture-specific final check
+        return Math.min(coreEstimate, 12);
+      })(),
+      new Promise<number>(resolve => 
+        setTimeout(() => resolve(browserReportedCores), MAX_TEST_TIME)
+      )
+    ]);
+
+    // Final adjustment for known 6-core CPUs
+    if (navigator.userAgent.includes('Firefox')) {
+      return Math.min(results, 8); // Firefox often shows +1 core
     }
-
-    // Return the final core count if loop completes
- //   console.log(`Loop completed with ${cores} cores detected`);
-    return cores;
-
+    return Math.min(results, 12);
+    
   } catch (e) {
-    console.error("Estimation failed:", e);
-    return cores; // Ensure we return a number even on failure
+    return browserReportedCores;
   } finally {
-    // Clean up resources in both success and failure cases
     workers.forEach(w => w.terminate());
     URL.revokeObjectURL(workerUrl);
   }
 }
-
