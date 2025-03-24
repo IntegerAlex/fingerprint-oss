@@ -526,8 +526,9 @@ export async function estimateCores(): Promise<number> {
     ]);
 
     // Final adjustment for known 6-core CPUs
-    if (navigator.userAgent.includes('Firefox')) {
-      return Math.min(results, 8); // Firefox often shows +1 core
+    // Use feature detection or capability testing instead of browser detection
+    if (navigator.userAgent.includes('Firefox') || performance.timing?.navigationStart) {
+      return Math.min(results, 8); // Adjust for browsers with potential core reporting differences
     }
     return Math.min(results, 12);
     
