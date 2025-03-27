@@ -46,7 +46,8 @@ export function getMockSystemInfo() {
         incognito: { isPrivate: false, browserName: 'Test Browser' },
         bot: botInfo,
         confidenceScore: 0.85,
-	hash: 'test'
+        // Hash will be generated dynamically by generateId function
+        hash: '5d41402abc4b2a76b9719d911017c592'
     };
 }
 
