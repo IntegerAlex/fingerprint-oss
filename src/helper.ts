@@ -518,7 +518,7 @@ export async function estimateCores(): Promise<number> {
         );
 
         // Architecture-specific final check
-        return Math.min(coreEstimate, 12);
+        return Math.min(Math.max(coreEstimate, 1), 12);
       })(),
       new Promise<number>(resolve => 
         setTimeout(() => resolve(browserReportedCores), MAX_TEST_TIME)
