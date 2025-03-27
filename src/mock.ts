@@ -45,7 +45,8 @@ export function getMockSystemInfo() {
         fontPreferences: { fonts: [] },
         incognito: { isPrivate: false, browserName: 'Test Browser' },
         bot: botInfo,
-        confidenceScore: 0.85
+        confidenceScore: 0.85,
+	hash: 'test'
     };
 }
 
