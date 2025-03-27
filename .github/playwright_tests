@@ -1,0 +1,27 @@
+jobs:
+  tests_e2e:
+    name: Run end-to-end tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Set up Node.js in the `./test` folder
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'  # Specify your desired node version
+
+      - name: Install dependencies
+        run: |
+          cd ./test
+          npm ci  # Install dependencies in the `./test` folder
+
+      - name: Install Playwright browsers
+        run: |
+          cd ./test
+          npx playwright install --with-deps  # Install browsers in the `./test` folder
+
+      - name: Run tests
+        run: |
+          cd ./test
+          npx playwright test  # Run tests from the `./test` folder
