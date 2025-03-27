@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
 	"test":"npx playwright test"
-  {
+  },
     "name": "fingerprint-oss-test",
     "version": "0.0.1",
     "main": "index.js",
