@@ -1,6 +1,7 @@
 /**
  * Helper functions for fingerprinting
  */
+import { error } from 'console';
 import { FontInfo , MathInfo, PluginInfo, MimeType , TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
 
 /**
@@ -437,11 +438,10 @@ export function getOSInfo() {
 /**
  * Estimates the number of available logical cores on the device.
  *
- * This function spawns Web Worker instances to execute a compute-intensive task in parallel,
+ * This function spawns Web Worker instances to execute a compute‑intensive task in parallel,
  * simulating the workload across cores. Up to 16 workers are created sequentially, and each worker
- * performs a heavy calculation. If a worker takes longer than 1000ms to complete its task, it is
- * terminated, halting the estimation process. The final count reflects the number of workers that
- * successfully completed the task within the performance threshold. In case of an error, any active
+ * performs a heavy calculation. If a worker takes longer than 1200ms to complete its task, it is
+ * terminated, and the browser‑reported core count is returned. In case of an error, any active
  * workers are terminated and resources are cleaned up before returning the core count.
  *
  * @returns The estimated number of logical cores available on the device.
@@ -460,17 +460,15 @@ export async function estimateCores(): Promise<number> {
     self.onmessage = (e) => {
       const start = performance.now();
       let result = 0;
-      
       // Mixed operations to prevent compiler optimizations
       for (let i = 0; i < ${TARGET_ITERATIONS}; i++) {
         result += Math.sin(i) * Math.log(i + 1) / (i % 23 + 1);
-        if (i % 1e5 === 0) self.postMessage({ progress: i }); // Anti-optimization checkpoint
+        if (i % 1e5 === 0) self.postMessage({ progress: i });
       }
-      
       const duration = performance.now() - start;
       self.postMessage({
         duration: duration,
-        noise: performance.timeOrigin % 1 + Math.random() // Enhanced fingerprint resistance
+        noise: performance.timeOrigin % 1 + Math.random()
       });
     };
   `;
@@ -480,59 +478,61 @@ export async function estimateCores(): Promise<number> {
   const workers: Worker[] = [];
 
   try {
-    const results = await Promise.race([
-      (async () => {
-        const testConcurrency = Math.min(browserReportedCores * 2, 16);
-        const timings: number[] = [];
-        
-        // Run multiple concurrent workers
-        const promises = Array.from({ length: testConcurrency }, async () => {
-          const worker = new Worker(workerUrl);
-          workers.push(worker);
-          
-          return new Promise<number>(resolve => {
-            worker.onmessage = (e) => {
-              if (e.data?.duration) resolve(e.data.duration);
-            };
-            worker.postMessage('start');
-          });
+    // Immediately invoke the async function so it returns a Promise<number>
+    const corePromise = (async () => {
+      const testConcurrency = Math.min(browserReportedCores * 2, 16);
+      // Create an array of Promises from concurrently running workers
+      const promises = Array.from({ length: testConcurrency }, async () => {
+        const worker = new Worker(workerUrl);
+        workers.push(worker);
+        return new Promise<number>(resolve => {
+          worker.onmessage = (e) => {
+            if (e.data?.duration) {
+              resolve(e.data.duration);
+            }
+          };
+          worker.postMessage('start');
         });
+      });
+      const allDurations = await Promise.all(promises);
+      // Sort durations to find the median
+      allDurations.sort((a, b) => a - b);
+      const medianDuration = allDurations[Math.floor(allDurations.length / 2)];
+      
+      // Calculate parallel efficiency
+      const singleThreadTime = medianDuration * testConcurrency;
+      const theoreticalTime = medianDuration * (testConcurrency / browserReportedCores);
+      const efficiency = (singleThreadTime / theoreticalTime) * 100;
+      
+      // Determine core count based on efficiency threshold
+      let coreEstimate = Math.round(
+        (testConcurrency * 100) / Math.max(efficiency, 10) // 10% minimum efficiency floor
+      );
+      
+      // Cross-validation with hardware report
+      coreEstimate = Math.min(
+        Math.max(coreEstimate, browserReportedCores - 2),
+        browserReportedCores + 2
+      );
+      
+      // Architecture‑specific final check
+      return Math.min(Math.max(coreEstimate, 1), 12);
+    })().catch((err: any) => {
+      console.error("Core estimation failed:", err);
+      return browserReportedCores;
+    });
 
-        const allDurations = await Promise.all(promises);
-        const medianDuration = allDurations.sort()[Math.floor(allDurations.length / 2)];
-        
-        // Calculate parallel efficiency
-        const singleThreadTime = medianDuration * testConcurrency;
-        const theoreticalTime = medianDuration * (testConcurrency / browserReportedCores);
-        const efficiency = (singleThreadTime / theoreticalTime) * 100;
-        
-        // Determine core count based on efficiency threshold
-        let coreEstimate = Math.round(
-          (testConcurrency * 100) / Math.max(efficiency, 10) // 10% minimum efficiency floor
-        );
-
-        // Cross-validation with hardware report
-        coreEstimate = Math.min(
-          Math.max(coreEstimate, browserReportedCores - 2),
-          browserReportedCores + 2
-        );
-
-        // Architecture-specific final check
-        return Math.min(Math.max(coreEstimate, 1), 12);
-        }).catch(err => {
-          console.error("Core estimation failed:", err);
-          return browserReportedCores;
-        }),
-      })(),
-      new Promise<number>(resolve => 
+    // Race the core estimation promise against a timeout promise
+    const results = await Promise.race([
+      corePromise,
+      new Promise<number>(resolve =>
         setTimeout(() => resolve(browserReportedCores), MAX_TEST_TIME)
       )
     ]);
 
-    // Final adjustment for known 6-core CPUs
-    // Use feature detection or capability testing instead of browser detection
+    // Final adjustment for certain browsers
     if (navigator.userAgent.includes('Firefox') || performance.timing?.navigationStart) {
-      return Math.min(results, 8); // Adjust for browsers with potential core reporting differences
+      return Math.min(results, 8);
     }
     return Math.min(results, 12);
     
@@ -543,3 +543,4 @@ export async function estimateCores(): Promise<number> {
     URL.revokeObjectURL(workerUrl);
   }
 }
+
