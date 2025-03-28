@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script type="module">
+      import { userInfo } from 'https://cdn.jsdelivr.net/npm/fingerprint-oss@0.2.3/dist/index.esm.js';
+
+      document.addEventListener("DOMContentLoaded", function () {
+        userInfo().then(result => {
+	window.test = result;
+          console.log(result);
+          // Process the result here
+        }).catch((error) => {
+          console.error("Error:", error);
+        });
+      });
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
+

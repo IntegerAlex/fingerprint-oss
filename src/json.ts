@@ -1,5 +1,6 @@
 import { SystemInfo } from './types.js';
 import { GeolocationInfo } from './geo-ip.js';
+import { generateId } from './hash.js';
 /**
  * Interpret a confidence score and return a human-readable description
  * @param score Confidence score between 0.1 and 0.9
@@ -49,7 +50,7 @@ function interpretConfidenceScore(score: number): {
     }
 }
 
-export function generateJSON(
+export async function generateJSON(
     geolocationInfo: GeolocationInfo | null, 
     systemInfo: SystemInfo, 
     combinedConfidenceScore?: number
@@ -112,7 +113,8 @@ export function generateJSON(
         } : null,
         
         // System information
-        systemInfo
+        systemInfo ,
+	hash: await generateId(systemInfo),
     };
 }
 

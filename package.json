@@ -1,6 +1,6 @@
 {
   "name": "fingerprint-oss",
-  "version": "0.2.3",
+  "version": "0.2.4-alpha",
   "description": "fingerprint-oss is a javascript util designed to collect various information about the user's device, location, and network.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -45,5 +45,8 @@
     "typedoc": "^0.27.9",
     "typescript": "^5.0.4",
     "vite": "^4.3.5"
+  },
+  "dependencies": {
+    "hash-wasm": "^4.12.0"
   }
 }
