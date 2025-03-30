@@ -30,7 +30,10 @@ jobs:
           npx playwright install webkit    
           npx playwright install msedge  
           npx playwright install chrome
-
+      - name: http-server
+        run: |
+          cd ./test
+          npx http-server -p 8080 
       - name: Run tests
         run: |
           cd ./test

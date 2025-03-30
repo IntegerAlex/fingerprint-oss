@@ -4,18 +4,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-	"test":"npx playwright test"
+    "test": "npx playwright test"
   },
-    "name": "fingerprint-oss-test",
-    "version": "0.0.1",
-    "main": "index.js",
-    "type": "module",
-    "scripts": {
-  	"test":"npx playwright test"
-    },
-    "license": "BSD-3-Clause",
-    "description": "This project contains tests for fingerprint-oss",
-    "author": "Akshat Kotpalliwar",
+  "license": "BSD-3-Clause",
+  "description": "This project contains tests for fingerprint-oss",
+  "author": "Akshat Kotpalliwar",
   "devDependencies": {
     "@playwright/test": "^1.51.1",
     "jest-playwright-preset": "^4.0.0",
@@ -23,6 +16,7 @@
   },
   "dependencies": {
     "fingerprint-oss": "^0.2.3",
+    "http-server": "^14.1.1",
     "vitest": "^3.0.9"
   }
 }
