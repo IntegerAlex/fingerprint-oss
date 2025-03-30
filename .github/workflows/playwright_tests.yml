@@ -33,7 +33,7 @@ jobs:
       - name: http-server
         run: |
           cd ./test
-          npx http-server -p 8080 
+          npx http-server -p 8080 &
       - name: Run tests
         run: |
           cd ./test
