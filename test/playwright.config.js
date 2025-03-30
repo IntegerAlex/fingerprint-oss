@@ -11,19 +11,17 @@ export default defineConfig({
       use: { browserName: 'firefox' },   // Browser setup for Firefox
     },
     {
-      name: 'Safari',
+      name: 'WebKit',
       use: { browserName: 'webkit' },    // Browser setup for WebKit (Safari)
     },
     {
-      name:'MsEdge',
-      use:{browserName:'msedge'},
+      name: 'Microsoft Edge',
+      use: { browserName: 'chromium', channel: 'msedge' },
     },
     {
-      name:'Chrome',
-      use:{browserName:'chrome'},
-     },	
-
-	  
+      name: 'Google Chrome',
+      use: { browserName: 'chromium', channel: 'chrome' },
+    },
   ],
 });
 

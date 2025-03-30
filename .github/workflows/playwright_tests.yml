@@ -3,7 +3,7 @@ name: End-to-End Tests
 on:
   pull_request:
     branches:
-      - main  # Adjust this to your default branch if different
+      - main  
 
 jobs:
   tests_e2e:
@@ -13,28 +13,36 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Set up Node.js in the `./test` folder
       - uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Specify your desired node version
+          node-version: '20'  
 
       - name: Install dependencies
         run: |
           cd ./test
-          npm install 
+          npm install  # Use npm install to generate package-lock.json if it doesn't exist
+
+      - name: Install WebKit dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-4-1 libgraphene-1.0-0 libwoff1 libvpx7 libevent-2.1-7 libopus0 \
+            libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 libgstreamer-plugins-good1.0-0 libgstreamer-plugins-bad1.0-0 \
+            libflite1 libavif16 libharfbuzz-icu0 libsecret-1-0 libhyphen0 libmanette-0.2-0 libgles2 libx264-163
+
+      - name: Start HTTP server in the background
+        run: |
+          cd ./test
+          npx http-server -p 8080 &  # Start the server in the background
+
       - name: Install Playwright browsers
         run: |
           cd ./test
-          npx playwright install chromium  
-          npx playwright install firefox  
-          npx playwright install webkit    
-          npx playwright install msedge  
-          npx playwright install chrome
-      - name: http-server
-        run: |
-          cd ./test
-          npx http-server -p 8080 &
+          npx playwright install chromium
+          npx playwright install firefox
+          npx playwright install webkit
+
       - name: Run tests
         run: |
           cd ./test
-          npx playwright test  
+          npx playwright test  # Run tests from the `./test` folder
+
