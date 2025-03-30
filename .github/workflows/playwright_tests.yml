@@ -1,3 +1,10 @@
+name: End-to-End Tests
+
+on:
+  pull_request:
+    branches:
+      - main  # Adjust this to your default branch if different
+
 jobs:
   tests_e2e:
     name: Run end-to-end tests
@@ -14,14 +21,17 @@ jobs:
       - name: Install dependencies
         run: |
           cd ./test
-          npm ci  # Install dependencies in the `./test` folder
-
+          npm install 
       - name: Install Playwright browsers
         run: |
           cd ./test
-          npx playwright install --with-deps  # Install browsers in the `./test` folder
+          npx playwright install chromium  
+          npx playwright install firefox  
+          npx playwright install webkit    
+          npx playwright install msedge  
+          npx playwright install chrome
 
       - name: Run tests
         run: |
           cd ./test
-          npx playwright test  # Run tests from the `./test` folder
+          npx playwright test  
