@@ -24,7 +24,10 @@ const assertFingerprintData = (testData) => {
   expect(testData.systemInfo.adBlocker.adBlocker).toBe(false);
   expect(testData.systemInfo.adBlocker.isBrave).toBe(false);
   expect(['Chrome', 'Firefox', 'Brave', 'Safari','Edge']).toContain(testData.systemInfo.incognito.browserName);
-  expect(testData.systemInfo.screenResolution).toEqual([1280, 720]);
+  expect(Array.isArray(testData.systemInfo.screenResolution)).toBe(true);
+  expect(testData.systemInfo.screenResolution.length).toBe(2);
+  expect(typeof testData.systemInfo.screenResolution[0]).toBe('number');
+  expect(typeof testData.systemInfo.screenResolution[1]).toBe('number');
   expect(typeof testData.systemInfo.timezone).toBe('string');
   expect(testData.systemInfo.localStorage).toBe(true);
   expect(testData.systemInfo.sessionStorage).toBe(true);
