@@ -3,7 +3,7 @@ name: End-to-End Tests
 on:
   pull_request:
     branches:
-      - main  # Adjust this to your default branch if different
+      - main  
 
 jobs:
   tests_e2e:
@@ -13,25 +13,29 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Set up Node.js in the `./test` folder
       - uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Specify your desired node version
+          node-version: '20'  
 
       - name: Install dependencies
         run: |
           cd ./test
-          npm install 
+          npm install  # Use npm install to generate package-lock.json if it doesn't exist
+
+      - name: Start HTTP server in the background
+        run: |
+          cd ./test
+          npx http-server -p 8080 &  # Start the server in the background
+
       - name: Install Playwright browsers
         run: |
           cd ./test
-          npx playwright install chromium  
-          npx playwright install firefox  
-          npx playwright install webkit    
-          npx playwright install msedge  
-          npx playwright install chrome
+          npx playwright install chromium
+          npx playwright install firefox
+          npx playwright install webkit
 
       - name: Run tests
         run: |
           cd ./test
-          npx playwright test  
+          npx playwright test  # Run tests from the `./test` folder
+
