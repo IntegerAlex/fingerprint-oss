@@ -9,7 +9,13 @@ import { SystemInfo } from './types';
 export async function generateId(systemInfo: SystemInfo): Promise<string> {
   const keys = Object.keys(systemInfo).sort();
 
-  if (keys.length === 0) return await sha256(''); // Early return for empty input
+  if (keys.length === 0) {
+    try {
+      return await sha256('');
+    } catch (error) {
+      return ''; // Or another appropriate default value
+    }
+  }
 
   const sortedInfo: Record<string, unknown> = {};
 
