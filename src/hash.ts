@@ -1,32 +1,36 @@
 /**
- * Generate a Hash from the system info to identify the user
- * @param systemInfo 
- * @returns hash string
+ * Generates a SHA-256 hash from sorted system info for identification.
+ * @param systemInfo Object containing system-specific data.
+ * @returns A SHA-256 hash string.
  */
 import { sha256 } from 'hash-wasm';
 import { SystemInfo } from './types';
 
 export async function generateId(systemInfo: SystemInfo): Promise<string> {
-  // Get the sorted keys (as strings)
-  const sortedKeys = Object.keys(systemInfo).sort();
+  const keys = Object.keys(systemInfo).sort();
 
-  // Create a new object with sorted keys.
-  // We use Record<string, any> so that we don't need to change SystemInfo elsewhere.
-  const sortedSystemInfo: Record<string, any> = {};
-
-  for (const key of sortedKeys) {
-    // Use a type assertion for the key to access systemInfo safely.
-    sortedSystemInfo[key] = systemInfo[key as keyof SystemInfo];
+  if (keys.length === 0) {
+    try {
+      return await sha256('');
+    } catch (error) {
+      return ''; // Or another appropriate default value
+    }
   }
 
-  // JSON.stringify with a replacer function to handle special values.
-  const hashInput = JSON.stringify(sortedSystemInfo, (key, value) => {
+  const sortedInfo: Record<string, unknown> = {};
+
+  for (const key of keys) {
+    sortedInfo[key] = systemInfo[key as keyof SystemInfo];
+  }
+
+  // Serialize with normalization for undefined, Infinity, NaN
+  const json = JSON.stringify(sortedInfo, (_key, value) => {
     if (value === undefined) return 'undefined';
     if (value === Infinity) return 'Infinity';
     if (Number.isNaN(value)) return 'NaN';
     return value;
   });
 
-  return await sha256(hashInput);
+  return await sha256(json);
 }
 
