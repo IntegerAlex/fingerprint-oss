@@ -29,7 +29,11 @@ export class Toast {
     // Hide and remove the toast after duration
     setTimeout(() => {
       toast.classList.remove('show');
-      toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+      toast.addEventListener('transitionend', () => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }, { once: true });
     }, duration);
   }
 
