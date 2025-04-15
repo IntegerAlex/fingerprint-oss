@@ -1,5 +1,5 @@
 /**
- * Toast notification system with dynamic CSS injection and smooth animation.
+ * Toast notification system with glassmorphism styling and smooth animation.
  */
 export class Toast {
   private static stylesInjected = false;
@@ -21,24 +21,20 @@ export class Toast {
 
     document.body.appendChild(toast);
 
-    // Trigger animation on next frame
+    // Trigger animation
     requestAnimationFrame(() => {
       toast.classList.add('show');
     });
 
-    // Hide and remove the toast after duration
+    // Hide and remove after duration
     setTimeout(() => {
       toast.classList.remove('show');
-      toast.addEventListener('transitionend', () => {
-        if (toast.parentNode) {
-          toast.remove();
-        }
-      }, { once: true });
+      toast.addEventListener('transitionend', () => toast.remove(), { once: true });
     }, duration);
   }
 
   /**
-   * Injects required CSS styles for toast notifications.
+   * Injects glassmorphic CSS styles for toasts.
    */
   private static injectStyles(): void {
     const style = document.createElement('style');
@@ -48,18 +44,20 @@ export class Toast {
         left: 50%;
         bottom: 32px;
         transform: translateX(-50%) translateY(20px);
-        min-width: max-content;
         max-width: 80vw;
-        background-color: #222;
+        background: rgba(255, 255, 255, 0.1);
         color: #fff;
-        padding: 12px 20px;
-        border-radius: 6px;
+        padding: 12px 24px;
+        border-radius: 10px;
         font-size: 15px;
         text-align: center;
         z-index: 9999;
         opacity: 0;
         pointer-events: none;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         transition: opacity 0.4s ease, transform 0.4s ease;
       }
 
@@ -67,11 +65,18 @@ export class Toast {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
       }
+
+      @media (prefers-color-scheme: dark) {
+        .toast {
+          background: rgba(30, 30, 30, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+      }
     `;
     document.head.appendChild(style);
   }
 }
 
 // Example usage:
-// Toast.show("✅ Action completed successfully!");
+// Toast.show("✨ Toast with glass effect!");
 
