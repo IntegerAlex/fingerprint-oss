@@ -1,19 +1,15 @@
 /**
- * Show toasts in the browser.
- * @param {string} message
- * @returns {void}
+ * Toast notification system with dynamic CSS injection and smooth animation.
  */
- // Toast notification system with CSS injection and display logic
 export class Toast {
-  private static stylesInjected: boolean = false;
-  
+  private static stylesInjected = false;
+
   /**
-   * Show a toast notification
-   * @param message The message to display
-   * @param duration Visibility duration in milliseconds (default: 3000)
+   * Displays a toast notification.
+   * @param message The message to display.
+   * @param duration Duration in milliseconds before auto-dismissal (default: 3000).
    */
-  public static show(message: string, duration: number = 3000): void {
-    // Inject styles only once
+  public static show(message: string, duration = 3000): void {
     if (!this.stylesInjected) {
       this.injectStyles();
       this.stylesInjected = true;
@@ -25,55 +21,53 @@ export class Toast {
 
     document.body.appendChild(toast);
 
-    // Use requestAnimationFrame for smooth animation
+    // Trigger animation on next frame
     requestAnimationFrame(() => {
       toast.classList.add('show');
     });
 
-    // Auto-hide after duration
+    // Hide and remove the toast after duration
     setTimeout(() => {
       toast.classList.remove('show');
-      
-      // Wait for animation to complete before removing
-      toast.addEventListener('transitionend', () => {
-        toast.remove();
-      }, { once: true });
+      toast.addEventListener('transitionend', () => toast.remove(), { once: true });
     }, duration);
   }
 
   /**
-   * Inject required CSS styles for toast notifications
+   * Injects required CSS styles for toast notifications.
    */
   private static injectStyles(): void {
     const style = document.createElement('style');
     style.textContent = `
       .toast {
-        visibility: hidden;
-        min-width: 250px;
-        margin-left: -125px;
-        background: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 4px;
-        padding: 12px;
         position: fixed;
-        z-index: 10000;
         left: 50%;
-        bottom: 30px;
-        font-size: 14px;
+        bottom: 32px;
+        transform: translateX(-50%) translateY(20px);
+        min-width: max-content;
+        max-width: 80vw;
+        background-color: #222;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-size: 15px;
+        text-align: center;
+        z-index: 9999;
         opacity: 0;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        pointer-events: none;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        transition: opacity 0.4s ease, transform 0.4s ease;
       }
 
       .toast.show {
-        visibility: visible;
         opacity: 1;
+        transform: translateX(-50%) translateY(0);
       }
     `;
     document.head.appendChild(style);
   }
 }
 
-// Usage example:
-// Toast.show("This is a toast message!");
+// Example usage:
+// Toast.show("✅ Action completed successfully!");
+
