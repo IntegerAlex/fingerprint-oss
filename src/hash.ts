@@ -1,7 +1,14 @@
+/**
+ * Generates a SHA-256 hash from sorted system info for identification.
+ * @param systemInfo Object containing system-specific data.
+ * @returns A SHA-256 hash string.
+ */
+
 import { SystemInfo } from './types';
 import { sha256 } from 'hash-wasm';
 
 export async function generateId(systemInfo: SystemInfo): Promise<string> {
+
   const stableInfo = {
     // Core browser identity properties
     userAgent: systemInfo.userAgent,
