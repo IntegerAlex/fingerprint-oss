@@ -7,7 +7,8 @@
 [![GitHub issues](https://img.shields.io/github/issues/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/IntegerAlex/fingerprint-oss/pulls)
 
-A free and open source alternative to commercial fingerprinting services like FingerprintJS.
+![fingerprint-oss](/logo.png)
+>A free and open source alternative to commercial fingerprinting services like FingerprintJS.
 
 ## About
 
