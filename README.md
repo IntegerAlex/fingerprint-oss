@@ -3,11 +3,11 @@
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://opensource.org/licenses/GPL-3.0)
 [![npm version](https://img.shields.io/npm/v/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
 [![GitHub stars](https://img.shields.io/github/stars/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/stargazers)
-[![npm downloads](https://img.shields.io/npm/dm/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
+[![npm downloads](https://img.shields.io/npm/dy/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
 [![GitHub issues](https://img.shields.io/github/issues/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/IntegerAlex/fingerprint-oss/pulls)
-
-A free and open source alternative to commercial fingerprinting services like FingerprintJS.
+<img src="/logo.png" alt="Description" width="300" height="300" />
+>A free and open source alternative to commercial fingerprinting services like FingerprintJS.
 
 ## About
 

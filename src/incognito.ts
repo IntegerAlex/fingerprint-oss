@@ -1,6 +1,6 @@
 /*!
  *
- * detectIncognito v1.3.7
+ * detectIncognito v1.4.1
  *
  * https://github.com/Joe12387/detectIncognito
  *
@@ -63,9 +63,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function assertEvalToString (value: number): boolean {
-	// Using a dummy function instead of eval.toString() to avoid security and performance risks
-  	const dummyFnToStringLen = (function dummyFn(){}).toString().length;
-  	return value === dummyFnToStringLen;
+      return value === eval.toString().length
     }
 
     function feid (): number {
@@ -101,21 +99,43 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
      * Safari (Safari for iOS & macOS)
      **/
 
+    function newSafariTestByStorageFallback (): void {
+      if (!navigator.storage?.estimate) {
+        __callback(false);
+        return;
+      }
+
+      navigator.storage
+        .estimate()
+        .then(({ usage, quota }) => {
+          // iOS 18.x/macOS Safari 18.x (normal): ~41GB
+          // iOS 18.x/macOS Safari 18.x (private): ~1GB
+          // If reported quota < 2 GB => likely private
+          if (quota && quota < 2_000_000_000) {
+            __callback(true);
+          } else {
+            __callback(false);
+          }
+        })
+        .catch(() => {
+          __callback(false);
+        });
+    }
+
     function newSafariTest (): void {
       const tmp_name = String(Math.random())
 
       try {
         const db = window.indexedDB.open(tmp_name, 1)
 
-        db.onupgradeneeded = function (i) {
-           const res = (i.target as IDBRequest).result
+        db.onupgradeneeded = function (i:any) {
+		
+          const res = i.target?.result 
 
           try {
             res.createObjectStore('test', {
               autoIncrement: true
             }).put(new Blob())
-
-            __callback(false)
           } catch (e) {
             let message = e
 
@@ -128,11 +148,15 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
             }
 
             const matchesExpectedError = message.includes('BlobURLs are not yet supported')
-
-            __callback(matchesExpectedError); return
+            if (matchesExpectedError) {
+              __callback(true)
+            }
           } finally {
             res.close()
             window.indexedDB.deleteDatabase(tmp_name)
+
+            // indexdb works on newer versions of safari so we need to check via storage fallback
+            newSafariTestByStorageFallback();
           }
         }
       } catch (e) {
