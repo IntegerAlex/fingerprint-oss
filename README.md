@@ -6,8 +6,7 @@
 [![npm downloads](https://img.shields.io/npm/dy/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
 [![GitHub issues](https://img.shields.io/github/issues/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/IntegerAlex/fingerprint-oss/pulls)
-
-![fingerprint-oss](/logo.png)
+<img src="/logo.png" alt="Description" width="300" height="300" />
 >A free and open source alternative to commercial fingerprinting services like FingerprintJS.
 
 ## About
