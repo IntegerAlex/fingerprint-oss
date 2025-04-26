@@ -1,6 +1,7 @@
 import { SystemInfo } from './types.js';
 import { GeolocationInfo } from './geo-ip.js';
 import { generateId } from './hash.js';
+import { getVpnStatus } from './vpn.js';
 /**
  * Interpret a confidence score and return a human-readable description
  * @param score Confidence score between 0.1 and 0.9
@@ -66,7 +67,9 @@ export async function generateJSON(
     const isVpn = geolocationInfo?.traits?.isAnonymousVpn || false;
     const isHosting = geolocationInfo?.traits?.isHostingProvider || false;
     const isTor = geolocationInfo?.traits?.isTorExitNode || false;
-
+    console.log('geoip', geolocationInfo?.location.timeZone);
+    console.log('localtime', systemInfo.timezone);
+    const vpnStatus = await getVpnStatus({geoip:geolocationInfo?.location?.timeZone || '', localtime: systemInfo.timezone});
     return {
         // Confidence assessments at the top of the returned object
         confidenceAssessment: {
@@ -93,6 +96,7 @@ export async function generateJSON(
         
         // Geolocation information
         geolocation: geolocationInfo ? {
+	    vpnStatus,
             ip: geolocationInfo.ipAddress,
             city: geolocationInfo.city?.name || '',
             region: geolocationInfo.subdivisions?.[0] || { isoCode: '', name: '' },
