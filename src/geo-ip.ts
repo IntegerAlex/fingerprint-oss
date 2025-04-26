@@ -1,6 +1,5 @@
 const PROXY_API_KEY = 'tester';
 const GEOIP_URL = 'https://proxy-server-deploy.onrender.com';
-
 // Warn if required environment variables are missing
 if (!PROXY_API_KEY || !GEOIP_URL) {
     console.warn('Warning: PROXY_API_KEY or GEOIP_URL environment variables are not set. Geolocation functionality may not work correctly.');
