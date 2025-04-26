@@ -7,6 +7,14 @@
 import { SystemInfo } from './types';
 import { sha256 } from 'hash-wasm';
 
+/**
+ * Generates a deterministic SHA-256 hash string that uniquely identifies a system based on normalized and sorted system information.
+ *
+ * Extracts and normalizes key properties from {@link systemInfo}, including browser identity, language, graphics capabilities, platform details, GPU information, font metrics, math constants, and plugins. The resulting object is recursively sorted and serialized with consistent formatting before hashing.
+ *
+ * @param systemInfo - The system information object containing browser, hardware, and environment details to be fingerprinted.
+ * @returns A SHA-256 hash string representing the normalized system fingerprint.
+ */
 export async function generateId(systemInfo: SystemInfo): Promise<string> {
 
   const stableInfo = {
@@ -56,7 +64,13 @@ plugins: systemInfo.plugins
   return await sha256(hashInput);
 }
 
-// Additional normalization in replacer
+/**
+ * Normalizes values for JSON serialization by handling ArrayBuffers, rounding numbers, and trimming whitespace in strings.
+ *
+ * @param key - The property key being processed.
+ * @param value - The property value to normalize.
+ * @returns The normalized value for serialization.
+ */
 function replacer(key: string, value: any) {
   if (value instanceof ArrayBuffer) return '';
   if (typeof value === 'number') return Number(value.toFixed(3));
@@ -64,6 +78,14 @@ function replacer(key: string, value: any) {
   return value;
 }
 
+/**
+ * Recursively sorts the keys of objects and the elements of arrays to ensure deterministic ordering.
+ *
+ * For arrays, each element is recursively sorted and the array is ordered lexicographically by the JSON stringification of its elements. For objects, keys are sorted alphabetically and each value is recursively processed. Primitive values are returned unchanged.
+ *
+ * @param obj - The object or array to sort.
+ * @returns A new object or array with all keys and elements sorted recursively.
+ */
 function deepSortObject(obj: Record<string, any>): any {
   if (Array.isArray(obj)) {
     return obj

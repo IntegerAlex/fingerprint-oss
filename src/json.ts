@@ -51,6 +51,16 @@ function interpretConfidenceScore(score: number): {
     }
 }
 
+/**
+ * Generates a structured JSON object combining geolocation data, system information, and confidence assessments.
+ *
+ * The returned object includes interpreted confidence scores for both the system and an optional combined assessment, details about potential network threats (such as proxies, VPNs, Tor, or hosting providers), geolocation information with VPN status, and a unique hash derived from the system information.
+ *
+ * @param geolocationInfo - Geolocation data for the user, or null if unavailable.
+ * @param systemInfo - Information about the user's system, including confidence score and bot detection signals.
+ * @param combinedConfidenceScore - An optional overall confidence score to be interpreted and included in the assessment.
+ * @returns An object containing confidence assessments, geolocation details (with VPN status), system information, and a unique hash.
+ */
 export async function generateJSON(
     geolocationInfo: GeolocationInfo | null, 
     systemInfo: SystemInfo, 

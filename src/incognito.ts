@@ -35,6 +35,13 @@ declare global {
   }
 }
 
+/**
+ * Detects whether the current browser session is in private or incognito mode and identifies the browser.
+ *
+ * @returns A Promise that resolves to an object containing {@link isPrivate}, indicating if private/incognito mode is active, and {@link browserName}, the detected browser name.
+ *
+ * @throws {Error} If the browser cannot be determined or if a required storage quota query fails.
+ */
 export async function detectIncognito(): Promise<{ isPrivate: boolean; browserName: string }>{
   return await new Promise(function (resolve, reject) {
     let browserName = 'Unknown'
