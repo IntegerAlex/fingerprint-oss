@@ -1,6 +1,6 @@
 {
   "name": "fingerprint-oss",
-  "version": "0.2.4-alpha",
+  "version": "0.2.4",
   "description": "fingerprint-oss is a javascript util designed to collect various information about the user's device, location, and network.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -30,6 +30,10 @@
     "track-user",
     "steal-info"
   ],
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/IntegerAlex"
+  },
   "license": "GPL-3.0-only",
   "repository": {
     "type": "git",

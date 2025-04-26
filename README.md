@@ -6,8 +6,8 @@
 [![npm downloads](https://img.shields.io/npm/dy/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
 [![GitHub issues](https://img.shields.io/github/issues/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/IntegerAlex/fingerprint-oss/pulls)
-<img src="/logo.png" alt="Description" width="300" height="300" />
->A free and open source alternative to commercial fingerprinting services like FingerprintJS.
+<img src="/logo.png" alt="logo" width="200" height="200" />
+>A free and open source fingerprinting services unlike FingerprintJS.
 
 ## About
 
@@ -30,7 +30,7 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
 Install via npm:
 
 ```bash
-npm install fingerprint-oss
+npm install fingerprint-oss@latest
 ```
 
 ## Usage
@@ -39,7 +39,7 @@ Basic usage:
 
 ```javascript
 const { userInfo } = require('fingerprint-oss');
-const data = userInfo();
+const data = await userInfo();
 ```
 
 ## Config for GDPR Compliance/Others 
@@ -78,7 +78,7 @@ Fingerprint OSS can collect information about:
 
 ## Demo
 
-A live demo is available at the GitHub Pages site where you can see the type of information collected by the library.
+You can see a live demo of Fingerprint OSS in action [here](https://fingerprint-oss-demo.vercel.app/).
 
 ## Project Status
 

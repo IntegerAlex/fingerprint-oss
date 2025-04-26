@@ -1,6 +1,6 @@
 interface TimeZone {
-    geoip: string | null | undefined;
-    localtime: string | null | undefined;
+    geoip?: string | null | undefined;
+    localtime?: string | null | undefined;
 }
 
 export async function getVpnStatus(timeZone: TimeZone): Promise<Object> {

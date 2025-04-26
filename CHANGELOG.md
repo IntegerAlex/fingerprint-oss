@@ -2,6 +2,22 @@
 
 _All notable changes to this project will be documented in this file._
 
+## [0.2.4] - 2025-04-27
+
+### Added
+
+- Basic VPN detection functionality.
+
+### Improved
+
+- Improved incognito detection on safari.
+
+## [0.2.4-beta] - 2025-04-15
+
+### Improved
+
+- transparency message improved.
+
 ## [0.2.4-alpha] - 2025-03-28
 
 ### Added
