@@ -67,9 +67,10 @@ export async function generateJSON(
     const isVpn = geolocationInfo?.traits?.isAnonymousVpn || false;
     const isHosting = geolocationInfo?.traits?.isHostingProvider || false;
     const isTor = geolocationInfo?.traits?.isTorExitNode || false;
-    console.log('geoip', geolocationInfo?.location.timeZone);
-    console.log('localtime', systemInfo.timezone);
-    const vpnStatus = await getVpnStatus({geoip:geolocationInfo?.location?.timeZone || '', localtime: systemInfo.timezone});
+    const vpnStatus = await getVpnStatus({
+      geoip: geolocationInfo?.location?.timeZone || '',
+      localtime: systemInfo.timezone
+    });
     return {
         // Confidence assessments at the top of the returned object
         confidenceAssessment: {
