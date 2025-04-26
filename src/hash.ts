@@ -27,8 +27,8 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
     os: systemInfo.os,
     
     // Hardware fingerprint (normalized)
-    gpuVendor: systemInfo.webGL?.vendor.replace(/\(.*?\)/g, '').trim(),
-    gpuRenderer: systemInfo.webGL?.renderer.replace(/(0x[\da-f]+)|(D3D\d+)|(vs_.*?ps_.*)/gi, '').trim(),
+    gpuVendor: (systemInfo.webGL?.vendor ?? '').replace(/\(.*?\)/g, '').trim(),
+    gpuRenderer: (systemInfo.webGL?.renderer ?? '').replace(/(0x[\da-f]+)|(D3D\d+)|(vs_.*?ps_.*)/gi, '').trim(),
     
     // Privacy-neutral font metrics
     fontMetrics: systemInfo.fontPreferences.fonts.map(f => ({
