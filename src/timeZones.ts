@@ -137,8 +137,8 @@ export const timezoneAliases: Record<string, string> = {
     'NZST': 'Pacific/Auckland',               // New Zealand Standard Time
 
     // Pacific
-    'PST': 'Pacific/Honolulu',                // Pacific Standard Time (Hawaii)
-    'PDT': 'America/Los_Angeles',             // Pacific Daylight Time (California)
+    'PST': 'America/Los_Angeles',             // Pacific Standard Time (West Coast)
+    'PDT': 'America/Los_Angeles',             // Pacific Daylight Time (West Coast)
     'GMT': 'Etc/GMT',                         // Greenwich Mean Time
     'UTC': 'Etc/UTC',                         // Coordinated Universal Time
 
