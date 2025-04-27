@@ -2,6 +2,22 @@ interface TimeZone {
     geoip?: string | null | undefined;
     localtime?: string | null | undefined;
 }
+/**
+ * A mapping of common timezone aliases to their canonical names.
+ * This helps normalize timezone strings that refer to the same location but use different naming.
+ */
+import {timezoneAliases} from './timeZones';
+
+/**
+ * Normalizes a timezone string by checking against known aliases.
+ * 
+ * @param timezone - The timezone string to normalize
+ * @returns The normalized timezone string
+ */
+function normalizeTimezone(timezone: string | null | undefined): string | null | undefined {
+    if (!timezone) return timezone;
+    return timezoneAliases[timezone] || timezone;
+}
 
 /**
  * Determines the likelihood of VPN usage based on provided geoip and localtime time zone information.
@@ -22,9 +38,13 @@ export async function getVpnStatus(timeZone: TimeZone): Promise<Object> {
         return { vpn: { status: false, probability: 0.5 } };
     }
 
-    // Compare geoip and localtime for mismatches
-    const isTimezoneMismatch = timeZone.localtime !== timeZone.geoip;
-    
+    // Normalize both timezone strings before comparison
+    const normalizedGeoip = normalizeTimezone(timeZone.geoip);
+    const normalizedLocaltime = normalizeTimezone(timeZone.localtime);
+
+    // Compare normalized timezone strings
+    const isTimezoneMismatch = normalizedLocaltime !== normalizedGeoip;
+
     if (isTimezoneMismatch) {
         // Mismatch in timezones, which might indicate VPN usage
         return { vpn: { status: true, probability: 0.75 } }; // Increase probability due to mismatch
@@ -33,4 +53,3 @@ export async function getVpnStatus(timeZone: TimeZone): Promise<Object> {
     // If timezones match, return a lower probability of VPN usage
     return { vpn: { status: false, probability: 0.2 } }; // Lower probability if there's no mismatch
 }
-
