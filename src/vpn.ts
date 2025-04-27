@@ -16,7 +16,8 @@ import {timezoneAliases} from './timeZones';
  */
 function normalizeTimezone(timezone: string | null | undefined): string | null | undefined {
     if (!timezone) return timezone;
-    return timezoneAliases[timezone] || timezone;
+    const trimmedTimezone = timezone.trim();
+    return timezoneAliases[trimmedTimezone] || trimmedTimezone;
 }
 
 /**
