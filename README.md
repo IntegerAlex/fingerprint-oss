@@ -76,6 +76,10 @@ Fingerprint OSS can collect information about:
 - WebGL capabilities
 - And more...
 
+## Ethical Contribution notice
+
+[NOTICE](./NOTICE.md)
+
 ## Demo
 
 You can see a live demo of Fingerprint OSS in action [here](https://fingerprint-oss-demo.vercel.app/).
