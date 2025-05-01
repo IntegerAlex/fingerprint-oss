@@ -138,7 +138,7 @@ This project is currently under active development.
 
 ## License
 
-GPL-3.0 - See [LICENSE](./LICENSE.md) file for details.
+LGPLv3 - See [LICENSE](./LICENSE.md) file for details.
 
 ## Contributing
 
