@@ -84,47 +84,6 @@ Fingerprint OSS can collect information about:
 
 [NOTICE](./NOTICE.md)
 
-## Demo
-
-You can see a live demo of Fingerprint OSS in action [here](https://fingerprint-oss-demo.vercel.app/).
-
-## Project Status
-
-This project is currently under active development.
-
-## CHANGELOG
-
-- [CHANGELOG](./CHANGELOG.md)
-
-## License
-
-GPL-3.0 - See [LICENSE](./LICENSE.md) file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request or open issues on our GitHub repository.
-
-## Acknowledgements
-
-This project is a fork of user-info-logger, with enhancements and improvements for better performance and features.
-
-## GDPR Compliance
-
-Fingerprint OSS is designed with GDPR compliance in mind. The library provides options to ensure transparency and user consent for data collection. You can configure the library to display a message to users about the data being collected and ensure that the data collection process is transparent.
-
-To enable GDPR compliance, use the following configuration:
-
-```javascript
-const config = {
-    transparency: true,
-    message: 'We collect data to enhance your experience. By using our service, you consent to data collection.',
-}
-const data = userInfo(config);
-```
-
-By setting `transparency` to `true` and providing a `message`, you can inform users about the data collection process and obtain their consent.
-
-
 ## Project Status
 
 This project is currently under active development.
