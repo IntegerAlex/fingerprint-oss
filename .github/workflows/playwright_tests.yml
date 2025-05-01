@@ -19,21 +19,24 @@ jobs:
         with:
           node-version: '20'
 
-      # Step: Build and link local fingerprint-oss
-      - name: Build and link local fingerprint-oss
+      # Step: Install root package and build it
+      - name: Install dependencies and build fingerprint-oss
         run: |
-          cd fingerprint-oss
           npm install
           npm run build
           npm run rollup
+
+      # Step: Link the local package (like npm link)
+      - name: Create symlink for local package
+        run: |
           npm link
 
-      # Step: Install test project and link local fingerprint-oss
-      - name: Install test project and link local module
+      # Step: Go to test folder and link local module
+      - name: Install test deps and link local module
         run: |
           cd test
           npm install
-          npm link ../fingerprint-oss
+          npm link ../
 
       # Step: Start HTTP server
       - name: Start HTTP Server
