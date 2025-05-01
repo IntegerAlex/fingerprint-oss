@@ -124,9 +124,6 @@ const data = userInfo(config);
 
 By setting `transparency` to `true` and providing a `message`, you can inform users about the data collection process and obtain their consent.
 
-## Demo
-
-You can see a live demo of Fingerprint OSS in action [here](https://fingerprint-oss-demo.vercel.app/).
 
 ## Project Status
 
