@@ -61,6 +61,10 @@ The `userInfo()` function returns an object containing various data points about
 - Analytics
 - Security enhancements
 
+## Wiki
+
+ - [DeepWiki](https://deepwiki.com/IntegerAlex/fingerprint-oss)
+
 ## Data Collected
 
 Fingerprint OSS can collect information about:
