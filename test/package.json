@@ -15,7 +15,6 @@
     "playwright": "^1.51.1"
   },
   "dependencies": {
-    "fingerprint-oss": "^0.2.4-alpha",
     "http-server": "^14.1.1",
     "vitest": "^3.0.9"
   }
