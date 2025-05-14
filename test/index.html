@@ -7,27 +7,35 @@
     <script type="module">
       import { userInfo } from 'fingerprint-oss';
 
+      console.log('[TEST_HTML] Script start. Initializing window.testStatus = loading');
       window.testStatus = 'loading';
       
       document.addEventListener("DOMContentLoaded", function () {
         const statusElement = document.getElementById('status');
+        console.log('[TEST_HTML] DOMContentLoaded. Setting status text to Loading fingerprint data...');
         statusElement.textContent = 'Loading fingerprint data...';
         
+        console.log('[TEST_HTML] Calling userInfo()...');
         userInfo().then(result => {
+          console.log('[TEST_HTML] userInfo() promise resolved. Setting window.testStatus = success');
           window.test = result;
           window.testStatus = 'success';
           statusElement.textContent = 'Fingerprint data loaded successfully!';
-          console.log('Fingerprint data:', result);
+          console.log('[TEST_HTML] Fingerprint data:', JSON.stringify(result, null, 2));
           
           // Display some basic data on the page
           document.getElementById('browserInfo').textContent = 
             `Browser: ${result.systemInfo.incognito.browserName}`;
+          console.log('[TEST_HTML] Displayed browser info.');
         }).catch((error) => {
+          console.error('[TEST_HTML] userInfo() promise REJECTED. Setting window.testStatus = error');
           window.testStatus = 'error';
           statusElement.textContent = 'Error loading fingerprint data';
-          console.error("Error:", error);
+          console.error("[TEST_HTML] Error details:", error);
         });
+        console.log('[TEST_HTML] userInfo() call initiated, promise chain set up.');
       });
+      console.log('[TEST_HTML] Event listener for DOMContentLoaded attached.');
     </script>
   </head>
   <body>
