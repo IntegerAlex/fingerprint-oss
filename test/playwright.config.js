@@ -4,19 +4,15 @@ export default defineConfig({
   projects: [
     {
       name: 'Chromium',
-      use: { browserName: 'chromium' },  // Browser setup for Chromium
+      use: { browserName: 'chromium' },
     },
     {
       name: 'Firefox',
-      use: { browserName: 'firefox' },   // Browser setup for Firefox
+      use: { browserName: 'firefox' },
     },
     {
-      name: 'Microsoft Edge',
-      use: { browserName: 'chromium', channel: 'msedge' },
-    },
-    {
-      name: 'Google Chrome',
-      use: { browserName: 'chromium', channel: 'chrome' },
+      name: 'WebKit',
+      use: { browserName: 'webkit' },
     },
   ],
 });

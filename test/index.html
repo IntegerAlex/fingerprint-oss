@@ -1,21 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint OSS Test</title>
     <script type="module">
-	    import { userInfo } from 'fingerprint-oss';
+      import { userInfo } from 'fingerprint-oss';
 
+      window.testStatus = 'loading';
+      
       document.addEventListener("DOMContentLoaded", function () {
+        const statusElement = document.getElementById('status');
+        statusElement.textContent = 'Loading fingerprint data...';
+        
         userInfo().then(result => {
-	window.test = result;
-          console.log(result);
-          // Process the result here
+          window.test = result;
+          window.testStatus = 'success';
+          statusElement.textContent = 'Fingerprint data loaded successfully!';
+          console.log('Fingerprint data:', result);
+          
+          // Display some basic data on the page
+          document.getElementById('browserInfo').textContent = 
+            `Browser: ${result.systemInfo.incognito.browserName}`;
         }).catch((error) => {
+          window.testStatus = 'error';
+          statusElement.textContent = 'Error loading fingerprint data';
           console.error("Error:", error);
         });
       });
     </script>
   </head>
   <body>
+    <h1>Fingerprint OSS Test</h1>
+    <div id="status">Initializing...</div>
+    <div id="browserInfo"></div>
   </body>
 </html>
 
