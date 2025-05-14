@@ -63,7 +63,7 @@ The `userInfo()` function returns an object containing various data points about
 
 ## Wiki
 
- - [DeepWiki](https://deepwiki.com/IntegerAlex/fingerprint-oss)
+ - [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IntegerAlex/fingerprint-oss)
 
 ## Data Collected
 
