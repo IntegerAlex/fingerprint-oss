@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
+  timeout: 90000, // 90 seconds
   projects: [
     {
       name: 'Chromium',

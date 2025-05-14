@@ -49,7 +49,7 @@ jobs:
       - name: Install Playwright Browsers
         run: |
           cd test
-          npx playwright install chromium firefox webkit
+          npx playwright install --with-deps chromium firefox webkit
 
       # Step: Run Playwright tests
       - name: Run Playwright Tests
