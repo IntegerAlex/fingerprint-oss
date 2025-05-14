@@ -104,4 +104,3 @@ export default async function userInfo(config:{transparency?:boolean, message?:s
         );
     }
 }
-export { userInfo };	
