@@ -6,24 +6,40 @@
 [![npm downloads](https://img.shields.io/npm/dy/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
 [![GitHub issues](https://img.shields.io/github/issues/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/IntegerAlex/fingerprint-oss/pulls)
+
 <img src="/logo.png" alt="logo" width="200" height="200" />
->A free and open source fingerprinting services unlike FingerprintJS.
+
+> A free and open source fingerprinting service unlike FingerprintJS.
+
+## ⚠️ Important Notice
+
+This library is released under the LGPL-3.0 license and includes ethical guidelines for usage. Please read our [Ethical Contribution Notice](./NOTICE.md) before using this library. We are committed to:
+
+- Transparent data collection
+- User privacy protection
+- Ethical usage of fingerprinting technology
+- Compliance with privacy regulations
 
 ## About
 
-Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinting library that logs user information. Unlike commercial alternatives that are "source available" but not truly open, Fingerprint OSS is released under the GPL-3.0 license, making it fully open source and free to use.
+Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinting library that logs user information. Unlike commercial alternatives that are "source available" but not truly open, Fingerprint OSS is released under the LGPL-3.0 license, making it fully open source and free to use.
 
-## DEMO 
+## Demo
 
-- [LIVE](https://fingerprint-oss-demo.vercel.app/)
-- [DEMO REPO](https://github.com/IntegerAlex/fingerprint-oss-demo)
+- [Live Demo](https://fingerprint-oss-demo.vercel.app/)
+- [Demo Repository](https://github.com/IntegerAlex/fingerprint-oss-demo)
 
 ## Features
 
 - Lightweight browser fingerprinting
 - Easy integration with any web application
-- 100% client-side operation ( Except the GeoLocation API )
+- 100% client-side operation (except the GeoLocation API)
 - Comprehensive user data collection
+- VPN detection
+- Incognito mode detection
+- AdBlocker detection
+- Bot detection
+- GDPR compliance support
 
 ## Installation
 
@@ -38,32 +54,31 @@ npm install fingerprint-oss@latest
 Basic usage:
 
 ```javascript
-const { userInfo } = require('fingerprint-oss');
+import userInfo from 'fingerprint-oss';
 const data = await userInfo();
 ```
 
-## Config for GDPR Compliance/Others 
+## Configuration for GDPR Compliance
 
 ```javascript
 const config = {
-    transparancy: true,
-    message: 'Test Message',
-}
-const data = userInfo(config);
+    transparency: true,
+    message: 'Custom message about data collection'
+};
+
+const data = await userInfo(config);
 ```
- - transparancy: If true, it will log a message on console about the data collection.
- - message: The message to be logged on console.
 
-The `userInfo()` function returns an object containing various data points about the user's browser, system, and environment, which can be used for:
+Configuration options:
+- `transparency`: If true, logs a message to the console about data collection
+- `message`: Custom message to be logged to the console
 
-- Fraud detection
-- User identification
-- Analytics
-- Security enhancements
+## Documentation
 
-## Wiki
-
- - [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IntegerAlex/fingerprint-oss)
+- [API Documentation](./API.md) - Detailed API reference and output structure
+- [Wiki](https://deepwiki.com/IntegerAlex/fingerprint-oss)
+- [Changelog](./CHANGELOG.md)
+- [Ethical Contribution Notice](./NOTICE.md)
 
 ## Data Collected
 
@@ -78,19 +93,17 @@ Fingerprint OSS can collect information about:
 - Hardware information
 - Canvas fingerprinting
 - WebGL capabilities
+- VPN status
+- Incognito mode status
+- AdBlocker status
+- Bot detection
 - And more...
 
-## Ethical Contribution Notice
-
-[NOTICE](./NOTICE.md)
+For a complete list of collected data and their structure, please refer to our [API Documentation](./API.md).
 
 ## Project Status
 
-This project is currently under active development.
-
-## CHANGELOG
-
-- [CHANGELOG](./CHANGELOG.md)
+This project is currently under active development. See the [changelog](./CHANGELOG.md) for the latest updates.
 
 ## License
 
@@ -98,7 +111,7 @@ LGPLv3 - See [LICENSE](./LICENSE.md) file for details.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request or open issues on our GitHub repository.
+Contributions are welcome! Please feel free to submit a Pull Request or open issues on our GitHub repository. Before contributing, please read our [Ethical Contribution Notice](./NOTICE.md) to ensure your contributions align with our ethical guidelines.
 
 ## Acknowledgements
 

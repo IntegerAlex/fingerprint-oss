@@ -1,27 +1,30 @@
 # Changelog
 
-_All notable changes to this project will be documented in this file._
+All notable changes to this project will be documented in this file.
+
+## [0.2.5-beta] - 2025-04-30
+
+### Changed
+- Removed named exports in favor of default export
+- Updated import syntax in documentation
+- Updated license to LGPL v3
 
 ## [0.2.4] - 2025-04-27
 
 ### Added
-
-- Basic VPN detection functionality.
+- Basic VPN detection functionality
 
 ### Improved
-
-- Improved incognito detection on safari.
+- Improved incognito detection on Safari
 
 ## [0.2.4-beta] - 2025-04-15
 
 ### Improved
-
-- transparency message improved.
+- Enhanced transparency message display
 
 ## [0.2.4-alpha] - 2025-03-28
 
 ### Added
-
 - Hash implementation for generating unique device identifiers
 - Improved hardware concurrency detection with enhanced reliability
 - Added test suite with Playwright for automated testing
@@ -29,58 +32,59 @@ _All notable changes to this project will be documented in this file._
 ## [0.2.3] - 2025-03-18
 
 ### Added
--  user alerts, especially when system transparency settings are enabled.
+- User alerts for system transparency settings
 
-## [0.2.3-beta] - 
+## [0.2.3-beta] - 2025-03-17
+
 ### Improved
-- Hardware concurrency (logical cores) detection improved.
-- AdBlocker detection improved. (removed complex with Temporary best solution)
+- Enhanced hardware concurrency (logical cores) detection
+- Simplified AdBlocker detection implementation
 
 ## [0.2.3-alpha] - 2025-03-15
 
 ### Added
-- GDPR compliance: added a `config` object to set GDPR compliance.
-- New property `os` added to the system information.
+- GDPR compliance: added config object for compliance settings
+- New `os` property to system information
 
 ### Improved
-- Bot detection improved.
-- Incognito detection improved.
-- WebGL detection improved.
+- Enhanced bot detection accuracy
+- Improved incognito detection reliability
+- Enhanced WebGL detection capabilities
 
 ## [0.2.2] - 2025-03-10
 
 ### Added
-- Major working **incognito detector**.
-- Added **Ethical Notice** to the LICENSE.
+- Major working incognito detector
+- Added Ethical Notice to the LICENSE
 
 ### Improved
-- Enhanced the confidence score of the system information.
+- Enhanced confidence score of system information
 
 ### Fixed
-- Resolved issues with the plugin system as reported by a client.
+- Resolved issues with the plugin system
 
 ## [0.2.2-beta] - 2025-03-08
 
 ### Added
-- Confidence score for the system information.
-- Adblocker detector.
+- Confidence score for system information
+- Adblocker detector
 
 ## [0.2.2-alpha] - 2025-03-08
 
-### Fixed
-- GeoIP logger added to log geolocation information.
-- System info fixes.
-
 ### Added
-- Versioning schema.
+- GeoIP logger for geolocation information
+- Versioning schema
+
+### Fixed
+- System information logging issues
 
 ## [0.0.2] - 2025-03-06
 
 ### Added
-- System info logger to log system information.
-- Published only build files.
+- System info logger
+- Published build files
 
 ## [0.0.1] - 2025-03-06
 
 ### Fixed
-- Published fork of user-info-logger with minimal changes as a new package.
+- Initial release of user-info-logger fork with minimal changes
