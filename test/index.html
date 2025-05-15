@@ -1,11 +1,27 @@
+/*!
+ * Copyright (c) 2025 Akshat Kotpalliwar (alias IntegerAlex on GitHub)
+ * This software is licensed under the GNU Lesser General Public License (LGPL) v3 or later.
+ *
+ * You are free to use, modify, and redistribute this software, but modifications must also be licensed under the LGPL.
+ * This project is distributed without any warranty; see the LGPL for more details.
+ *
+ * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
+ */
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fingerprint OSS Test</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "fingerprint-oss": "/node_modules/fingerprint-oss/dist/index.esm.js"
+        }
+      }
+    </script>
     <script type="module">
-      import { userInfo } from 'fingerprint-oss';
+      import  userInfo  from 'fingerprint-oss';
 
       console.log('[TEST_HTML] Script start. Initializing window.testStatus = loading');
       window.testStatus = 'loading';

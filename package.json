@@ -41,6 +41,8 @@
     "url": "https://github.com/IntegerAlex/fingerprint-oss.git"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.9",

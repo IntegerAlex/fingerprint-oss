@@ -18,6 +18,10 @@ cd test
 npm install
 npm link ../
 
+# Kill any existing process on port 8080 to prevent EADDRINUSE
+echo "Attempting to free port 8080..."
+fuser -k 8080/tcp || true
+
 # Start HTTP server in background
 echo "Starting HTTP server..."
 npx http-server -p 8080 &
