@@ -68,12 +68,11 @@ export interface GeolocationInfo {
  * @returns Geolocation information or null if an error occurred.
  */
 export async function fetchGeolocationInfo(): Promise<GeolocationInfo | null> {
-    // ALWAYS use mock data for now to ensure tests are stable and don't rely on external API
-    // In a real scenario, this could be controlled by an environment variable e.g., if (process.env.NODE_ENV === 'test')
-    const useMockData = true; // Force mock data
+    // Only use mock data if API credentials are missing
+    const useMockData = !PROXY_API_KEY || !GEOIP_URL;
 
-    if (useMockData || !PROXY_API_KEY || !GEOIP_URL) {
-        console.log('Using mock geolocation data for testing');
+    if (useMockData) {
+        console.log('Using mock geolocation data due to missing API credentials');
         return {
             ipAddress: '192.168.1.1',
             country: { isoCode: 'US', name: 'United States' },
