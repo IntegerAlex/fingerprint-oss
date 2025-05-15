@@ -1,21 +1,63 @@
+/*!
+ * Copyright (c) 2025 Akshat Kotpalliwar (alias IntegerAlex on GitHub)
+ * This software is licensed under the GNU Lesser General Public License (LGPL) v3 or later.
+ *
+ * You are free to use, modify, and redistribute this software, but modifications must also be licensed under the LGPL.
+ * This project is distributed without any warranty; see the LGPL for more details.
+ *
+ * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
+ */
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint OSS Test</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "fingerprint-oss": "/node_modules/fingerprint-oss/dist/index.esm.js"
+        }
+      }
+    </script>
     <script type="module">
-      import { userInfo } from 'https://cdn.jsdelivr.net/npm/fingerprint-oss@0.2.3/dist/index.esm.js';
+      import  userInfo  from 'fingerprint-oss';
 
+      console.log('[TEST_HTML] Script start. Initializing window.testStatus = loading');
+      window.testStatus = 'loading';
+      
       document.addEventListener("DOMContentLoaded", function () {
+        const statusElement = document.getElementById('status');
+        console.log('[TEST_HTML] DOMContentLoaded. Setting status text to Loading fingerprint data...');
+        statusElement.textContent = 'Loading fingerprint data...';
+        
+        console.log('[TEST_HTML] Calling userInfo()...');
         userInfo().then(result => {
-	window.test = result;
-          console.log(result);
-          // Process the result here
+          console.log('[TEST_HTML] userInfo() promise resolved. Setting window.testStatus = success');
+          window.test = result;
+          window.testStatus = 'success';
+          statusElement.textContent = 'Fingerprint data loaded successfully!';
+          console.log('[TEST_HTML] Fingerprint data:', JSON.stringify(result, null, 2));
+          
+          // Display some basic data on the page
+          document.getElementById('browserInfo').textContent = 
+            `Browser: ${result.systemInfo.incognito.browserName}`;
+          console.log('[TEST_HTML] Displayed browser info.');
         }).catch((error) => {
-          console.error("Error:", error);
+          console.error('[TEST_HTML] userInfo() promise REJECTED. Setting window.testStatus = error');
+          window.testStatus = 'error';
+          statusElement.textContent = 'Error loading fingerprint data';
+          console.error("[TEST_HTML] Error details:", error);
         });
+        console.log('[TEST_HTML] userInfo() call initiated, promise chain set up.');
       });
+      console.log('[TEST_HTML] Event listener for DOMContentLoaded attached.');
     </script>
   </head>
   <body>
+    <h1>Fingerprint OSS Test</h1>
+    <div id="status">Initializing...</div>
+    <div id="browserInfo"></div>
   </body>
 </html>
 

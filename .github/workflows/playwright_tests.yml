@@ -3,7 +3,7 @@ name: End-to-End Tests
 on:
   pull_request:
     branches:
-      - main  
+      - main
 
 jobs:
   tests_e2e:
@@ -11,31 +11,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'  
+          node-version: '20'
 
-      - name: Install dependencies
+      # Step: Install root package and build it
+      - name: Install dependencies and build fingerprint-oss
         run: |
-          cd ./test
-          npm install  # Use npm install to generate package-lock.json if it doesn't exist
+          npm install
+          npm run build
+          # npm run rollup is now redundant as build already runs rollup
 
-      - name: Start HTTP server in the background
+      # Step: Link the local package (like npm link)
+      - name: Create symlink for local package
         run: |
-          cd ./test
-          npx http-server -p 8080 &  # Start the server in the background
+          npm link
 
-      - name: Install Playwright browsers
+      # Step: Go to test folder and link local module
+      - name: Install test deps and link local module
         run: |
-          cd ./test
-          npx playwright install chromium
-          npx playwright install firefox
-          npx playwright install webkit
+          cd test
+          npm install
+          npm link ../
 
-      - name: Run tests
+      # Step: Start HTTP server
+      - name: Start HTTP Server
         run: |
-          cd ./test
-          npx playwright test  # Run tests from the `./test` folder
+          cd test
+          npx http-server -p 8080 &
+        shell: bash
 
+      # Step: Install Playwright Browsers
+      - name: Install Playwright Browsers
+        run: |
+          cd test
+          npx playwright install --with-deps chromium firefox webkit
+
+      # Step: Run Playwright tests
+      - name: Run Playwright Tests
+        run: |
+          cd test
+          npx playwright test

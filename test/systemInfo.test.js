@@ -7,7 +7,7 @@ const logBrowserConsoleMessages = (page) => {
 
 // Function to wait for the fingerprint data to be populated
 const waitForFingerprintData = async (page) => {
-  await page.waitForFunction(() => window.test !== undefined, { timeout: 60000 });
+  await page.waitForFunction(() => window.testStatus === 'success', { timeout: 60000 });
 };
 
 // Function to retrieve the test data from the browser context
@@ -23,7 +23,7 @@ const assertFingerprintData = (testData) => {
   // Example checks for system information
   expect(testData.systemInfo.adBlocker.adBlocker).toBe(false);
   expect(testData.systemInfo.adBlocker.isBrave).toBe(false);
-  expect(['Chrome', 'Firefox', 'Brave', 'Safari','Edge']).toContain(testData.systemInfo.incognito.browserName);
+  expect(['Chrome', 'Firefox', 'Brave', 'Safari', 'Edge']).toContain(testData.systemInfo.incognito.browserName);
   expect(Array.isArray(testData.systemInfo.screenResolution)).toBe(true);
   expect(testData.systemInfo.screenResolution.length).toBe(2);
   expect(typeof testData.systemInfo.screenResolution[0]).toBe('number');
@@ -36,11 +36,16 @@ const assertFingerprintData = (testData) => {
 };
 
 test('fingerprint-oss systemInfo Test', async ({ page }) => {
+  // Navigate to the test page
   await page.goto('http://localhost:8080/');
 
+  // Setup logging
   logBrowserConsoleMessages(page);
+  
+  // Wait for fingerprint data to be ready
   await waitForFingerprintData(page);
 
+  // Get the test data
   const testData = await getTestData(page);
 
   try {

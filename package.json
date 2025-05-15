@@ -1,12 +1,13 @@
 {
   "name": "fingerprint-oss",
-  "version": "0.2.4",
+  "version": "0.2.5-beta",
   "description": "fingerprint-oss is a javascript util designed to collect various information about the user's device, location, and network.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "rollup -c",
     "rollup": "rollup -c",
     "docs": "typedoc"
   },
@@ -40,6 +41,8 @@
     "url": "https://github.com/IntegerAlex/fingerprint-oss.git"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.9",

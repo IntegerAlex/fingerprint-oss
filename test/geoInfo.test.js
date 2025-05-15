@@ -7,7 +7,7 @@ const logBrowserConsoleMessages = (page) => {
 
 // Function to wait for the fingerprint data to be populated
 const waitForFingerprintData = async (page) => {
-  await page.waitForFunction(() => window.test !== undefined, { timeout: 60000 });
+  await page.waitForFunction(() => window.testStatus === 'success', { timeout: 60000 });
 };
 
 // Function to retrieve the test data from the browser context
@@ -51,12 +51,23 @@ const assertGeolocationData = (testData) => {
 };
 
 test('fingerprint-oss geoInfo test', async ({ page }) => {
+  // Go to the test page
   await page.goto('http://localhost:8080/');
-
+  
+  // Setup logging and wait for data
   logBrowserConsoleMessages(page);
+  
+  // Wait for fingerprint data to be ready
   await waitForFingerprintData(page);
-
+  
+  // Get and validate the test data
   const testData = await getTestData(page);
-  assertGeolocationData(testData);
+  
+  try {
+    assertGeolocationData(testData);
+  } catch (error) {
+    console.error('Test failed. Full testData:', JSON.stringify(testData, null, 2));
+    throw error;
+  }
 });
 
