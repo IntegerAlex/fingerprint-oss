@@ -17,6 +17,20 @@
 import { SystemInfo } from './types';
 import { sha256 } from 'hash-wasm';
 
+// Helper function for reliable rounding
+function reliableRound(value: number, precision: number): string {
+  const multiplier = Math.pow(10, precision);
+  // Handle potential floating point inaccuracies for numbers very close to x.5
+  // e.g. 1.2345 * 1000 = 1234.4999999999998, Math.round would give 1234.
+  // Adding a small epsilon can help, but must be smaller than what would change a correct rounding.
+  // A more robust way is to convert to string and check, or use a decimal library.
+  // For this specific case, let's test Math.round directly first.
+  // The issue with 1.2345 was that toFixed(3) was truncating it to "1.234".
+  // Math.round(1.2345 * 1000) = Math.round(1234.5) = 1235. So this should work.
+  const roundedValue = Math.round(value * multiplier) / multiplier;
+  return roundedValue.toFixed(precision);
+}
+
 /**
  * Generates a deterministic SHA-256 hash string that uniquely identifies a system based on normalized and sorted system information.
  *
@@ -32,10 +46,6 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
     userAgent: systemInfo.userAgent,
     platform: systemInfo.platform,
     
-    // Language and regional settings
-    languages: systemInfo.languages,
-    timezone: systemInfo.timezone,
-    
     // Graphics capabilities (normalized)
     screenResolution: systemInfo.screenResolution,
     colorDepth: systemInfo.colorDepth,
@@ -47,6 +57,12 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
     // Hardware fingerprint (normalized)
     gpuVendor: (systemInfo.webGL?.vendor ?? '').replace(/\(.*?\)/g, '').trim(),
     gpuRenderer: (systemInfo.webGL?.renderer ?? '').replace(/(0x[\da-f]+)|(D3D\d+)|(vs_.*?ps_.*)/gi, '').trim(),
+    hardwareConcurrency: systemInfo.hardwareConcurrency,
+    deviceMemory: systemInfo.deviceMemory,
+
+    // Canvas and Audio fingerprints
+    canvasFingerprint: systemInfo.canvas,
+    audioFingerprint: systemInfo.audio,
     
     // Privacy-neutral font metrics
     fontMetrics: systemInfo.fontPreferences.fonts.map(f => ({
@@ -54,12 +70,12 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
       width: Math.round(f.width / 10) * 10 // Round to nearest 10
     })),
    // Fixed mathConstants section
-mathConstants: Object.fromEntries(
-  Object.entries(systemInfo.mathConstants).map(([k, v]) => [
-    k, 
-    Number(Number(v).toFixed(3))  // Explicit conversion and fixed decimal places
-  ])  // Added closing bracket for map
-),  // Comma added for object separation
+    mathConstants: Object.fromEntries(
+      Object.entries(systemInfo.mathConstants).map(([k, v]) => [
+        k,
+        reliableRound(Number(v), 3) // Use reliable rounding
+      ])
+    ),
 
 // Fixed plugins section
 plugins: systemInfo.plugins
@@ -83,7 +99,7 @@ plugins: systemInfo.plugins
  */
 function replacer(key: string, value: any) {
   if (value instanceof ArrayBuffer) return '';
-  if (typeof value === 'number') return Number(value.toFixed(3));
+  if (typeof value === 'number') return Number(value.toFixed(3)); // This should be fine for numbers not processed by reliableRound
   if (typeof value === 'string') return value.replace(/\s+/g, ' ').trim();
   return value;
 }
