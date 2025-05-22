@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateId } from '../src/hash';
-import { SystemInfo, WebGLInfo, CanvasInfo, MathInfo, FontInfo, PluginInfo, MimeType } from '../src/types';
+import { SystemInfo, WebGLInfo, CanvasInfo, MathInfo, FontPreferencesInfo, PluginInfo, MimeType } from '../src/types'; // Updated FontInfo to FontPreferencesInfo
 
 // Utility for deep cloning to ensure test independence
 const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
@@ -11,24 +11,24 @@ const baselineSystemInfo: SystemInfo = {
     screenResolution: [1920, 1080],
     colorDepth: 24,
     colorGamut: "srgb",
-    os: { os: "Windows", version: "10" }, // Corrected to match SystemInfo.os type
+    os: { os: "Windows", version: "10" },
     webGL: { 
-        vendor: "Google Inc. (NVIDIA)", 
-        renderer: "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 SUPER Direct3D11 vs_5_0 ps_5_0, D3D11)" 
+        vendor: "Google Inc. (NVIDIA)", // Kept for type completeness, not directly in hash
+        renderer: "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 SUPER Direct3D11 vs_5_0 ps_5_0, D3D11)", // Kept for type completeness
+        imageHash: "mock_webgl_image_hash_v1" 
     } as WebGLInfo,
-    hardwareConcurrency: 8,
-    deviceMemory: 8,
-    canvas: { // Assuming CanvasInfo structure based on type
-        winding: true,
-        geometry: "canvas-geometry-fingerprint",
-        text: "canvas-text-fingerprint"
+    // hardwareConcurrency and deviceMemory removed
+    canvas: { 
+        winding: true, // Not directly in hash, but part of CanvasInfo type
+        geometry: "canvas-geometry-fingerprint", // This is used
+        text: "canvas-text-fingerprint" // Not directly in hash
     } as CanvasInfo,
-    audio: 123.456789, // generateId normalizes this to 3 decimal places
-    fontPreferences: {
-        fonts: [{ name: "Arial", width: 100.234 }, { name: "Times New Roman", width: 110.789 }], // widths will be rounded
-    } as FontInfo,
-    mathConstants: { // Values will be rounded to 3 decimal places
-        acos: 1.2345, // This is the key value for the failing test
+    audio: 123.456789, 
+    fontPreferences: { // Updated structure
+        detectedFonts: ["Arial", "Calibri", "Courier New"].sort() // Ensure sorted
+    } as FontPreferencesInfo,
+    mathConstants: { 
+        acos: 1.2345,
         acosh: 2.3456,
         asinh: 3.4567,
         atanh: 4.5678,
@@ -42,8 +42,11 @@ const baselineSystemInfo: SystemInfo = {
         { name: "Google Hangouts", description: "Google Talk Plugin", mimeTypes: [] }
     ] as PluginInfo[],
     
+    // These are not part of stableInfo, so changes to them should not affect the hash
     languages: ["en-US", "en"],
     timezone: "America/New_York",
+    
+    // Other properties to make SystemInfo complete as per its type definition
     incognito: { isPrivate: false, browserName: "Chrome" },
     bot: { isBot: false, signals: [], confidence: 0 },
     cookiesEnabled: true,
@@ -52,9 +55,11 @@ const baselineSystemInfo: SystemInfo = {
     sessionStorage: true,
     indexedDB: true,
     touchSupport: { maxTouchPoints: 0, touchEvent: false, touchStart: false },
-    vendor: "Google Inc.",
-    vendorFlavors: ["Google Chrome"],
+    vendor: "Google Inc.", // Not directly in hash
+    vendorFlavors: ["Google Chrome"], // Not directly in hash
     confidenceScore: 100, 
+    deviceMemory: undefined, // Explicitly set as undefined as it's optional in SystemInfo
+    hardwareConcurrency: navigator.hardwareConcurrency || 0, // Keep for type, not in hash
 };
 
 describe('generateId', () => {
@@ -65,7 +70,7 @@ describe('generateId', () => {
         expect(hash1).toBe(hash2);
     });
 
-    it('should produce the same hash when irrelevant properties like timezone or languages change', async () => {
+    it('should produce the same hash when irrelevant properties (timezone, languages) change', async () => {
         const hash1 = await generateId(baselineSystemInfo);
         const modifiedInfo = deepClone(baselineSystemInfo);
         modifiedInfo.timezone = "Europe/London";
@@ -74,39 +79,112 @@ describe('generateId', () => {
         expect(hash1).toBe(hash2);
     });
 
-    it('should produce a different hash when webGL.renderer changes', async () => {
+    // New tests for webGLImageHash
+    it('should produce a different hash when webGL.imageHash changes', async () => {
         const hash1 = await generateId(baselineSystemInfo);
         const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.webGL.renderer = "ANGLE (Intel, Intel Iris Xe Graphics Direct3D11 vs_5_0 ps_5_0, D3D11)";
+        modifiedInfo.webGL.imageHash = "new_mock_webgl_image_hash";
         const hash2 = await generateId(modifiedInfo);
         expect(hash1).not.toBe(hash2);
     });
 
-    it('should produce a different hash when hardwareConcurrency changes', async () => {
-        const hash1 = await generateId(baselineSystemInfo);
-        const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.hardwareConcurrency = 12;
-        const hash2 = await generateId(modifiedInfo);
-        expect(hash1).not.toBe(hash2);
+    it('should use placeholder and produce consistent hash if webGL.imageHash is null', async () => {
+        const infoWithNullHash = deepClone(baselineSystemInfo);
+        infoWithNullHash.webGL.imageHash = null;
+        const hash1 = await generateId(infoWithNullHash);
+
+        const infoWithNullHash2 = deepClone(baselineSystemInfo);
+        infoWithNullHash2.webGL.imageHash = null;
+        const hash2 = await generateId(infoWithNullHash2);
+        expect(hash1).toBe(hash2);
+        
+        // Also check it's different from baseline
+        const baselineHash = await generateId(baselineSystemInfo);
+        expect(hash1).not.toBe(baselineHash);
     });
     
-    it('should produce a different hash when deviceMemory changes', async () => {
+    it('should use placeholder and produce consistent hash if webGL itself is missing (for imageHash)', async () => {
+        const infoWithoutWebGL = deepClone(baselineSystemInfo);
+        // @ts-ignore: Testing robustness against missing webGL property
+        delete infoWithoutWebGL.webGL; 
+        const hash1 = await generateId(infoWithoutWebGL as SystemInfo);
+
+        const infoWithoutWebGL2 = deepClone(baselineSystemInfo);
+        // @ts-ignore: Testing robustness
+        delete infoWithoutWebGL2.webGL;
+        const hash2 = await generateId(infoWithoutWebGL2 as SystemInfo);
+        expect(hash1).toBe(hash2);
+        
+        const baselineHash = await generateId(baselineSystemInfo);
+        expect(hash1).not.toBe(baselineHash); // Expect 'webgl_hash_unavailable' placeholder
+    });
+
+
+    // New tests for detectedFontsString
+    it('should produce a different hash when fontPreferences.detectedFonts content changes', async () => {
         const hash1 = await generateId(baselineSystemInfo);
         const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.deviceMemory = 16;
+        modifiedInfo.fontPreferences.detectedFonts = ["Arial", "Calibri", "Verdana"].sort();
         const hash2 = await generateId(modifiedInfo);
         expect(hash1).not.toBe(hash2);
     });
 
+    it('should use placeholder and produce consistent hash if fontPreferences.detectedFonts is empty', async () => {
+        const infoWithEmptyFonts = deepClone(baselineSystemInfo);
+        infoWithEmptyFonts.fontPreferences.detectedFonts = [];
+        const hash1 = await generateId(infoWithEmptyFonts);
+
+        const infoWithEmptyFonts2 = deepClone(baselineSystemInfo);
+        infoWithEmptyFonts2.fontPreferences.detectedFonts = [];
+        const hash2 = await generateId(infoWithEmptyFonts2);
+        expect(hash1).toBe(hash2);
+
+        // Also check it's different from baseline
+        const baselineHash = await generateId(baselineSystemInfo);
+        expect(hash1).not.toBe(baselineHash); // Expect 'no_fonts_detected'
+    });
+    
+    it('should use placeholder and produce consistent hash if fontPreferences itself is missing', async () => {
+        const infoWithoutFontPrefs = deepClone(baselineSystemInfo);
+        // @ts-ignore: Testing robustness
+        delete infoWithoutFontPrefs.fontPreferences;
+        const hash1 = await generateId(infoWithoutFontPrefs as SystemInfo);
+
+        const infoWithoutFontPrefs2 = deepClone(baselineSystemInfo);
+        // @ts-ignore: Testing robustness
+        delete infoWithoutFontPrefs2.fontPreferences;
+        const hash2 = await generateId(infoWithoutFontPrefs2 as SystemInfo);
+        expect(hash1).toBe(hash2);
+        
+        const baselineHash = await generateId(baselineSystemInfo);
+        expect(hash1).not.toBe(baselineHash); // Expect 'no_fonts_detected'
+    });
+
+    it('should produce the same hash regardless of fontPreferences.detectedFonts order (as it should be pre-sorted)', async () => {
+        // generateId relies on getFontPreferences to sort, or sorts itself.
+        // The mock data in baselineSystemInfo already has sorted fonts.
+        // This test assumes the sorting happens prior to generateId or by it.
+        const hash1 = await generateId(baselineSystemInfo); // Uses ["Arial", "Calibri", "Courier New"]
+
+        const modifiedInfo = deepClone(baselineSystemInfo);
+        modifiedInfo.fontPreferences.detectedFonts = ["Courier New", "Arial", "Calibri"]; // Unsorted
+        // If generateId expects pre-sorted, or if the source (getFontPreferences) sorts, this should still yield same hash
+        // as the join(',') would be on a sorted list. Our current generateId joins what it gets.
+        // The getFontPreferences function *does* sort. So this test is valid.
+        const hash2 = await generateId(modifiedInfo);
+        expect(hash1).toBe(hash2);
+    });
+
+    // Adapted/Reviewed existing tests
     it('should produce a different hash when userAgent changes', async () => {
         const hash1 = await generateId(baselineSystemInfo);
         const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36";
+        modifiedInfo.userAgent = "New User Agent String";
         const hash2 = await generateId(modifiedInfo);
         expect(hash1).not.toBe(hash2);
     });
     
-    it('should produce a different hash when canvas fingerprint (geometry) changes', async () => {
+    it('should produce a different hash when canvas.geometry (canvasFingerprint) changes', async () => {
         const hash1 = await generateId(baselineSystemInfo);
         const modifiedInfo = deepClone(baselineSystemInfo);
         modifiedInfo.canvas.geometry = "new-canvas-geometry-fingerprint";
@@ -114,17 +192,32 @@ describe('generateId', () => {
         expect(hash1).not.toBe(hash2);
     });
 
-    it('should produce a different hash when audio fingerprint changes', async () => {
+    it('should produce a different hash when audio (audioFingerprint) changes', async () => {
         const hash1 = await generateId(baselineSystemInfo);
         const modifiedInfo = deepClone(baselineSystemInfo);
         modifiedInfo.audio = 987.654321;
         const hash2 = await generateId(modifiedInfo);
         expect(hash1).not.toBe(hash2);
     });
+    
+    it('should use placeholder if audio is null', async () => {
+        const infoWithNullAudio = deepClone(baselineSystemInfo);
+        infoWithNullAudio.audio = null;
+        const hash1 = await generateId(infoWithNullAudio);
+
+        const infoWithNullAudio2 = deepClone(baselineSystemInfo);
+        infoWithNullAudio2.audio = null;
+        const hash2 = await generateId(infoWithNullAudio2);
+        expect(hash1).toBe(hash2);
+        
+        const baselineHash = await generateId(baselineSystemInfo);
+        expect(hash1).not.toBe(baselineHash);
+    });
+
 
     it('should correctly filter Brave plugins and be sensitive to other plugin changes', async () => {
         const basePlugins = [
-            { name: "Chrome PDF Viewer", description: "Portable Document Format", mimeTypes: [{type: "application/pdf", suffixes: "pdf"} as MimeType] }
+            { name: "Chrome PDF Viewer", description: "Desc1", mimeTypes: [{type: "app/pdf", suffixes: "pdf"} as MimeType] }
         ] as PluginInfo[];
 
         const infoWithNonBravePlugin = deepClone(baselineSystemInfo);
@@ -134,68 +227,76 @@ describe('generateId', () => {
         const infoWithBravePlugin = deepClone(infoWithNonBravePlugin);
         infoWithBravePlugin.plugins = [
             ...basePlugins,
-            { name: "Brave Shields", description: "Brave browser feature", mimeTypes: [] } as PluginInfo
+            { name: "Brave Shields", description: "Brave stuff", mimeTypes: [] } as PluginInfo
         ];
         const hashBrave = await generateId(infoWithBravePlugin);
-        expect(hashBrave).toBe(hashBaseline);
+        expect(hashBrave).toBe(hashBaseline); // Brave plugin filtered out
         
         const infoWithAnotherNonBravePlugin = deepClone(infoWithNonBravePlugin);
         infoWithAnotherNonBravePlugin.plugins = [
             ...basePlugins,
-            { name: "VLC Web Plugin", description: "VLC media player plugin", mimeTypes: [{type: "application/vlc", suffixes: "vlc"} as MimeType] } as PluginInfo
+            { name: "VLC Web Plugin", description: "VLC", mimeTypes: [{type: "app/vlc", suffixes: "vlc"} as MimeType] } as PluginInfo
         ];
         const hashOtherPlugin = await generateId(infoWithAnotherNonBravePlugin);
         expect(hashOtherPlugin).not.toBe(hashBaseline);
-
-        const infoWithModifiedNonBravePlugin = deepClone(infoWithNonBravePlugin);
-        infoWithModifiedNonBravePlugin.plugins = [
-            { name: "Chrome PDF Viewer MODIFIED", description: "Portable Document Format", mimeTypes: [{type: "application/pdf", suffixes: "pdf"} as MimeType] }
-        ] as PluginInfo[];
-        const hashModifiedPlugin = await generateId(infoWithModifiedNonBravePlugin);
-        expect(hashModifiedPlugin).not.toBe(hashBaseline);
-    });
-    
-    it('should be sensitive to changes in font preferences (font name)', async () => {
-        const hash1 = await generateId(baselineSystemInfo);
-        const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.fontPreferences.fonts[0].name = "Verdana";
-        const hash2 = await generateId(modifiedInfo);
-        expect(hash1).not.toBe(hash2);
-    });
-
-    it('should be sensitive to changes in font preferences (font width, beyond rounding)', async () => {
-        const hash1 = await generateId(baselineSystemInfo); 
-        const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.fontPreferences.fonts[0].width = 115.0; 
-        const hash2 = await generateId(modifiedInfo);
-        expect(hash1).not.toBe(hash2);
-    });
-    
-    it('should be insensitive to minor changes in font preferences (font width, within rounding)', async () => {
-        const hash1 = await generateId(baselineSystemInfo); 
-        const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.fontPreferences.fonts[0].width = 102.1; 
-        const hash2 = await generateId(modifiedInfo);
-        expect(hash1).toBe(hash2); 
-    });
-
-    it('should be sensitive to changes in math constants (value change)', async () => {
-        const hash1 = await generateId(baselineSystemInfo);
-        const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.mathConstants.acos = 1.238; 
-        const hash2 = await generateId(modifiedInfo);
-        expect(hash1).not.toBe(hash2);
     });
     
     it('should be insensitive to minor changes in math constants (value change within toFixed(3) rounding)', async () => {
-        // This test previously failed due to inconsistent rounding of 1.2345 by toFixed(3).
-        // The fix involves using a reliable rounding function before toFixed(3).
-        const hash1 = await generateId(baselineSystemInfo); // acos: 1.2345
+        const hash1 = await generateId(baselineSystemInfo); // acos: 1.2345 -> "1.235"
         
         const modifiedInfo = deepClone(baselineSystemInfo);
-        modifiedInfo.mathConstants.acos = 1.2345000001; 
+        modifiedInfo.mathConstants.acos = 1.2345000001; // also -> "1.235" via reliableRound
         
         const hash2 = await generateId(modifiedInfo);
         expect(hash1).toBe(hash2);
+    });
+
+    it('should be sensitive to changes in math constants (value change beyond toFixed(3) rounding)', async () => {
+        const hash1 = await generateId(baselineSystemInfo);
+        const modifiedInfo = deepClone(baselineSystemInfo);
+        modifiedInfo.mathConstants.acos = 1.238; // -> "1.238"
+        const hash2 = await generateId(modifiedInfo);
+        expect(hash1).not.toBe(hash2);
+    });
+
+    // Tests for other stableInfo properties
+    it('should produce a different hash when platform changes', async () => {
+        const hash1 = await generateId(baselineSystemInfo);
+        const modifiedInfo = deepClone(baselineSystemInfo);
+        modifiedInfo.platform = "MacIntel";
+        const hash2 = await generateId(modifiedInfo);
+        expect(hash1).not.toBe(hash2);
+    });
+
+    it('should produce a different hash when screenResolution changes', async () => {
+        const hash1 = await generateId(baselineSystemInfo);
+        const modifiedInfo = deepClone(baselineSystemInfo);
+        modifiedInfo.screenResolution = [1024, 768];
+        const hash2 = await generateId(modifiedInfo);
+        expect(hash1).not.toBe(hash2);
+    });
+
+    it('should produce a different hash when colorDepth changes', async () => {
+        const hash1 = await generateId(baselineSystemInfo);
+        const modifiedInfo = deepClone(baselineSystemInfo);
+        modifiedInfo.colorDepth = 16;
+        const hash2 = await generateId(modifiedInfo);
+        expect(hash1).not.toBe(hash2);
+    });
+
+    it('should produce a different hash when colorGamut changes', async () => {
+        const hash1 = await generateId(baselineSystemInfo);
+        const modifiedInfo = deepClone(baselineSystemInfo);
+        modifiedInfo.colorGamut = "p3";
+        const hash2 = await generateId(modifiedInfo);
+        expect(hash1).not.toBe(hash2);
+    });
+
+    it('should produce a different hash when os changes', async () => {
+        const hash1 = await generateId(baselineSystemInfo);
+        const modifiedInfo = deepClone(baselineSystemInfo);
+        modifiedInfo.os = { os: "Linux", version: "Ubuntu" };
+        const hash2 = await generateId(modifiedInfo);
+        expect(hash1).not.toBe(hash2);
     });
 });

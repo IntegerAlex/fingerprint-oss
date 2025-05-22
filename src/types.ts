@@ -77,7 +77,7 @@ export interface SystemInfo {
     localStorage: boolean;
     sessionStorage: boolean;
     indexedDB: boolean;
-    webGL: WebGLInfo;
+    webGL: WebGLInfo; // This will be Promise<WebGLInfo> at the point of collection
     canvas: CanvasInfo;
     plugins: PluginInfo[];
     timezone: string;
@@ -89,13 +89,14 @@ export interface SystemInfo {
     vendor: string;
     vendorFlavors: string[];
     mathConstants: MathInfo;
-    fontPreferences: FontInfo;
+    fontPreferences: FontPreferencesInfo; // Updated name
     confidenceScore: number;
 }
 
 export interface WebGLInfo {
     vendor: string;
     renderer: string;
+    imageHash: string | null; // Added imageHash
 }
 
 export interface CanvasInfo {
@@ -115,11 +116,9 @@ export interface MathInfo {
     tanh: number;
 }
 
-export interface FontInfo {
-    fonts: Array<{
-        name: string;
-        width: number;
-    }>;
+// Renamed from FontInfo and structure changed
+export interface FontPreferencesInfo {
+    detectedFonts: string[];
 }
 
 // ... Add other interfaces for each feature ...
@@ -140,4 +139,3 @@ export interface PluginInfo {
     description: string;
     mimeTypes: MimeType[];
 }
-

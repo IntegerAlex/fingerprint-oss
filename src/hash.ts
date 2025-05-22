@@ -17,16 +17,9 @@
 import { SystemInfo } from './types';
 import { sha256 } from 'hash-wasm';
 
-// Helper function for reliable rounding
+// Helper function for reliable rounding (ensure this is present from previous fixes)
 function reliableRound(value: number, precision: number): string {
   const multiplier = Math.pow(10, precision);
-  // Handle potential floating point inaccuracies for numbers very close to x.5
-  // e.g. 1.2345 * 1000 = 1234.4999999999998, Math.round would give 1234.
-  // Adding a small epsilon can help, but must be smaller than what would change a correct rounding.
-  // A more robust way is to convert to string and check, or use a decimal library.
-  // For this specific case, let's test Math.round directly first.
-  // The issue with 1.2345 was that toFixed(3) was truncating it to "1.234".
-  // Math.round(1.2345 * 1000) = Math.round(1234.5) = 1235. So this should work.
   const roundedValue = Math.round(value * multiplier) / multiplier;
   return roundedValue.toFixed(precision);
 }
@@ -34,7 +27,8 @@ function reliableRound(value: number, precision: number): string {
 /**
  * Generates a deterministic SHA-256 hash string that uniquely identifies a system based on normalized and sorted system information.
  *
- * Extracts and normalizes key properties from {@link systemInfo}, including browser identity, language, graphics capabilities, platform details, GPU information, font metrics, math constants, and plugins. The resulting object is recursively sorted and serialized with consistent formatting before hashing.
+ * Extracts and normalizes key properties from {@link systemInfo}. The resulting object is 
+ * recursively sorted and serialized with consistent formatting before hashing.
  *
  * @param systemInfo - The system information object containing browser, hardware, and environment details to be fingerprinted.
  * @returns A SHA-256 hash string representing the normalized system fingerprint.
@@ -43,55 +37,60 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
 
   const stableInfo = {
     // Core browser identity properties
-    userAgent: systemInfo.userAgent,
-    platform: systemInfo.platform,
+    userAgent: systemInfo.userAgent ?? 'ua_unavailable',
+    platform: systemInfo.platform ?? 'platform_unavailable',
     
     // Graphics capabilities (normalized)
-    screenResolution: systemInfo.screenResolution,
-    colorDepth: systemInfo.colorDepth,
-    colorGamut: systemInfo.colorGamut,
+    screenResolution: systemInfo.screenResolution ?? [0,0],
+    colorDepth: systemInfo.colorDepth ?? 0,
+    colorGamut: systemInfo.colorGamut ?? 'gamut_unavailable',
     
     // Platform fundamentals
-    os: systemInfo.os,
+    os: systemInfo.os ?? { os: 'os_unavailable', version: 'version_unavailable' },
     
-    // Hardware fingerprint (normalized)
-    gpuVendor: (systemInfo.webGL?.vendor ?? '').replace(/\(.*?\)/g, '').trim(),
-    gpuRenderer: (systemInfo.webGL?.renderer ?? '').replace(/(0x[\da-f]+)|(D3D\d+)|(vs_.*?ps_.*)/gi, '').trim(),
-    hardwareConcurrency: systemInfo.hardwareConcurrency,
-    deviceMemory: systemInfo.deviceMemory,
+    // New WebGL Image Hash
+    webGLImageHash: systemInfo.webGL?.imageHash ?? 'webgl_hash_unavailable',
+
+    // New Font Fingerprinting
+    detectedFontsString: (systemInfo.fontPreferences?.detectedFonts && systemInfo.fontPreferences.detectedFonts.length > 0) 
+                         ? systemInfo.fontPreferences.detectedFonts.join(',') 
+                         : 'no_fonts_detected',
 
     // Canvas and Audio fingerprints
-    canvasFingerprint: systemInfo.canvas,
-    audioFingerprint: systemInfo.audio,
+    canvasFingerprint: systemInfo.canvas?.geometry ?? 'canvas_geo_unavailable',
+    // Ensure audioFingerprint is consistently a string or number, or a placeholder string
+    audioFingerprint: systemInfo.audio !== null && systemInfo.audio !== undefined 
+                      ? systemInfo.audio 
+                      : 'audio_fp_unavailable',
     
-    // Privacy-neutral font metrics
-    fontMetrics: systemInfo.fontPreferences.fonts.map(f => ({
-      name: f.name,
-      width: Math.round(f.width / 10) * 10 // Round to nearest 10
-    })),
-   // Fixed mathConstants section
-    mathConstants: Object.fromEntries(
-      Object.entries(systemInfo.mathConstants).map(([k, v]) => [
-        k,
-        reliableRound(Number(v), 3) // Use reliable rounding
-      ])
-    ),
+    // Math constants (using reliableRound from previous fix)
+    mathConstants: systemInfo.mathConstants 
+                   ? Object.fromEntries(
+                       Object.entries(systemInfo.mathConstants).map(([k, v]) => [
+                         k,
+                         reliableRound(Number(v), 3)
+                       ])
+                     )
+                   : {}, // Provide an empty object if mathConstants is undefined
 
-// Fixed plugins section
-plugins: systemInfo.plugins
-  .filter(p => !p.name?.includes('Brave'))
-  .map(p => ({
-    name: p.name?.replace(/\s+/g, ' ').trim() || '',
-    types: p.mimeTypes?.map(mt => mt.type) || []
-  })) 
+    // Plugins (filtered)
+    plugins: systemInfo.plugins 
+             ? systemInfo.plugins
+                 .filter(p => p && p.name && !p.name.includes('Brave'))
+                 .map(p => ({
+                   name: p.name?.replace(/\s+/g, ' ').trim() || '',
+                   types: p.mimeTypes?.map(mt => mt.type) || []
+                 }))
+             : [] // Provide an empty array if plugins is undefined
   };
+
   const sortedStableInfo = deepSortObject(stableInfo);
   const hashInput = JSON.stringify(sortedStableInfo, replacer);
   return await sha256(hashInput);
 }
 
 /**
- * Normalizes values for JSON serialization by handling ArrayBuffers, rounding numbers, and trimming whitespace in strings.
+ * Normalizes values for JSON serialization by handling ArrayBuffers, rounding numbers (if not already strings), and trimming whitespace in strings.
  *
  * @param key - The property key being processed.
  * @param value - The property value to normalize.
@@ -99,7 +98,9 @@ plugins: systemInfo.plugins
  */
 function replacer(key: string, value: any) {
   if (value instanceof ArrayBuffer) return '';
-  if (typeof value === 'number') return Number(value.toFixed(3)); // This should be fine for numbers not processed by reliableRound
+  // Numbers that are not already strings (like mathConstants or audioFingerprint if it was stringified)
+  // will be processed here.
+  if (typeof value === 'number') return Number(value.toFixed(3)); 
   if (typeof value === 'string') return value.replace(/\s+/g, ' ').trim();
   return value;
 }
@@ -116,10 +117,15 @@ function deepSortObject(obj: Record<string, any>): any {
   if (Array.isArray(obj)) {
     return obj
       .map(deepSortObject)
-      .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+      .sort((a, b) => {
+        // Ensure consistent stringification for sorting comparison
+        const strA = JSON.stringify(a, replacer); 
+        const strB = JSON.stringify(b, replacer);
+        return strA.localeCompare(strB);
+      });
   }
   
-  if (obj && typeof obj === 'object') {
+  if (obj && typeof obj === 'object' && obj !== null) { // Added null check for obj
     return Object.keys(obj)
       .sort()
       .reduce((acc, key) => {
