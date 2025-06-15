@@ -178,7 +178,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         indexedDB: isIndexedDBEnabled(),
         
         // Graphics & Canvas
-        webGL: getWebGLInfo(),
+        webGL: await getWebGLInfo(), // getWebGLInfo is now async
         canvas: getCanvasFingerprint(),
         
         // Plugins & MIME
