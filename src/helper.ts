@@ -27,8 +27,9 @@ export function getColorGamut(): string {
 }
 
 /**
- * Get audio fingerprint of the device
- * @returns Audio fingerprint of the device or null if an error occurred
+ * Generates an audio fingerprint by analyzing the device's audio processing characteristics.
+ *
+ * @returns A numeric fingerprint representing the device's audio profile, or `null` if fingerprinting fails.
  */
 export async function getAudioFingerprint(): Promise<number | null> {
     try {
@@ -62,8 +63,9 @@ export async function getAudioFingerprint(): Promise<number | null> {
 
 
 /**
- * get vendor flavors of the device 
- * @returns Array of vendor flavors (chrome, firefox, safari)
+ * Detects and returns the browser vendor flavors present in the user agent string.
+ *
+ * @returns An array containing any combination of 'chrome', 'firefox', and 'safari' if detected in the current browser.
  */
 export function getVendorFlavors(): string[] {
     const flavors = [];
@@ -80,6 +82,11 @@ export function getVendorFlavors(): string[] {
 }
 
 
+/**
+ * Determines whether `localStorage` is available and writable in the current environment.
+ *
+ * @returns `true` if `localStorage` can be used; otherwise, `false`
+ */
 export function isLocalStorageEnabled(): boolean {
     try {
         localStorage.setItem('test', 'test');
@@ -90,6 +97,11 @@ export function isLocalStorageEnabled(): boolean {
     }
 }
 
+/**
+ * Determines whether sessionStorage is available and writable in the current environment.
+ *
+ * @returns True if sessionStorage can be used; otherwise, false.
+ */
 export function isSessionStorageEnabled(): boolean {
     try {
         sessionStorage.setItem('test', 'test');
@@ -100,13 +112,19 @@ export function isSessionStorageEnabled(): boolean {
     }
 }
 
+/**
+ * Determines whether IndexedDB is available in the current environment.
+ *
+ * @returns `true` if `window.indexedDB` is present; otherwise, `false`.
+ */
 export function isIndexedDBEnabled(): boolean {
     return !!window.indexedDB;
 }
 
 /**
- * Retrieves the device's WebGL vendor, renderer, and an image hash from a rendered scene.
- * @returns A Promise resolving to an object containing WebGL vendor, renderer, and imageHash.
+ * Asynchronously retrieves the device's WebGL vendor, renderer, and a SHA-256 hash of a rendered WebGL scene.
+ *
+ * @returns A Promise that resolves to an object containing the WebGL vendor, renderer, and an imageHash representing the rendered scene. If WebGL is unavailable or an error occurs, the imageHash will contain an error string.
  */
 export async function getWebGLInfo(): Promise<WebGLInfo> {
     let vendor = 'unknown';
@@ -220,6 +238,11 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
     }
 }
 
+/**
+ * Generates a fingerprint of the device's canvas rendering capabilities.
+ *
+ * @returns An object containing the winding rule support, a data URL of the rendered canvas, and the font used.
+ */
 export function getCanvasFingerprint(): CanvasInfo {
     try {
         const canvas = document.createElement('canvas');
@@ -249,6 +272,14 @@ export function getCanvasFingerprint(): CanvasInfo {
     }
 }
 
+/**
+ * Returns an array of plugin information objects detected from the browser's `navigator.plugins`.
+ *
+ * Each object includes the plugin's name, description, and an array of supported MIME types with their suffixes.
+ * Returns an empty array if plugins are unavailable or an error occurs.
+ *
+ * @returns An array of plugin information objects, or an empty array if not available.
+ */
 export function getPluginsInfo(): PluginInfo[] {
     if (!navigator.plugins) {
         console.warn('Navigator plugins not available');
@@ -279,6 +310,11 @@ export function getPluginsInfo(): PluginInfo[] {
     }
 }
 
+/**
+ * Returns a fingerprint object containing the results of various Math functions applied to fixed input values.
+ *
+ * @returns An object with the results of `acos`, `acosh`, `asinh`, `atanh`, `expm1`, `sinh`, `cosh`, and `tanh` for specific numeric inputs.
+ */
 export function getMathFingerprint(): MathInfo {
     return {
         acos: Math.acos(0.123456789),
@@ -293,8 +329,9 @@ export function getMathFingerprint(): MathInfo {
 }
 
 /**
- * Detects available fonts by comparing dimensions against a baseline generic font.
- * @returns An object containing a sorted list of detected font names.
+ * Detects and returns a sorted list of fonts available on the user's system by comparing rendered text dimensions against generic font baselines.
+ *
+ * @returns An object containing the sorted array of detected font names under `detectedFonts`.
  */
 export function getFontPreferences(): FontPreferencesInfo {
     const fontList = [
@@ -393,6 +430,11 @@ export function getFontPreferences(): FontPreferencesInfo {
 }
 
 
+/**
+ * Returns information about the device's touch support capabilities.
+ *
+ * @returns An object containing the maximum number of touch points supported and boolean flags indicating the presence of touch event support.
+ */
 export function getTouchSupportInfo(): TouchSupportInfo {
     return {
 	maxTouchPoints: navigator.maxTouchPoints || 0,
@@ -401,6 +443,11 @@ export function getTouchSupportInfo(): TouchSupportInfo {
     };
 }
 
+/**
+ * Detects and returns the operating system name and version based on the browser's user agent and platform.
+ *
+ * @returns An object containing the detected OS name and version.
+ */
 export function getOSInfo() {
   if (typeof navigator === 'undefined') {
     return {
@@ -494,6 +541,13 @@ export function getOSInfo() {
   return { os, version };
 }
 
+/**
+ * Estimates the number of logical CPU cores available to the browser.
+ *
+ * Spawns multiple Web Workers to perform compute-intensive tasks and measures their execution times to infer the likely number of cores. Falls back to the browser-reported value or a capped estimate if workers are unavailable or if the test times out. The result is further limited for certain browsers to account for known reporting inconsistencies.
+ *
+ * @returns A promise that resolves to the estimated number of logical CPU cores, between 1 and 12 (or 8 for Firefox and some environments).
+ */
 export async function estimateCores(): Promise<number> {
   const MAX_TEST_TIME = 1200; 
   const TARGET_ITERATIONS = 30e6; 
