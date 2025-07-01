@@ -103,9 +103,8 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
  */
 function replacer(key: string, value: any) {
   if (value instanceof ArrayBuffer) return '';
-  // Numbers that are not already strings (like mathConstants or audioFingerprint if it was stringified)
-  // will be processed here.
-  if (typeof value === 'number') return Number(reliableRound(value, 3));
+  // Keep the string representation from reliableRound to maintain precision consistency
+  if (typeof value === 'number') return reliableRound(value, 3);
   if (typeof value === 'string') return value.replace(/\s+/g, ' ').trim();
   return value;
 }
@@ -123,9 +122,10 @@ function deepSortObject(obj: Record<string, any>): any {
     return obj
       .map(deepSortObject)
       .sort((a, b) => {
-        // Ensure consistent stringification for sorting comparison
-        const strA = JSON.stringify(a, replacer); 
-        const strB = JSON.stringify(b, replacer);
+        // Use standard JSON.stringify for sorting comparison without the replacer
+        // This keeps sorting logic decoupled from serialization transformations
+        const strA = JSON.stringify(a); 
+        const strB = JSON.stringify(b);
         return strA.localeCompare(strB);
       });
   }
