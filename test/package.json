@@ -16,10 +16,10 @@
   "devDependencies": {
     "@playwright/test": "^1.51.1",
     "jsdom": "^23.0.0",
-    "playwright": "^1.51.1"
+    "playwright": "^1.51.1",
+    "vitest": "^3.0.9"
   },
   "dependencies": {
-    "http-server": "^14.1.1",
-    "vitest": "^3.0.9"
+    "http-server": "^14.1.1"
   }
 }

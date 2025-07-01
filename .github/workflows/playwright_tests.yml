@@ -29,24 +29,27 @@ jobs:
           npm ci
           npm run build
 
-      # Step: Install test dependencies
+      # Step: Install test dependencies only (no fingerprint-oss package yet)
       - name: Install test dependencies
         run: |
           cd test
           npm ci
 
-      # Step: Create a local package and install it in test directory
-      - name: Package and install locally
+      # Step: Run unit tests (they import from source directly)
+      - name: Run Unit Tests
         run: |
-          # Pack the built package
-          npm pack --pack-destination ./test/
           cd test
-          # Install the local package
-          npm install fingerprint-oss-*.tgz
-          # Clean up the tarball
-          rm fingerprint-oss-*.tgz
+          npm run test:unit
 
-      # Step: Start HTTP server in background
+      # Step: Create fingerprint-oss package structure for e2e tests
+      - name: Setup package for e2e tests
+        run: |
+          mkdir -p test/node_modules/fingerprint-oss/dist
+          cp -r dist/* test/node_modules/fingerprint-oss/dist/
+          # Copy package.json for proper module resolution
+          cp package.json test/node_modules/fingerprint-oss/
+
+      # Step: Start HTTP server in background for e2e tests
       - name: Start HTTP Server
         run: |
           cd test
@@ -61,12 +64,6 @@ jobs:
         run: |
           cd test
           npx playwright install --with-deps chromium firefox webkit
-
-      # Step: Run unit tests first
-      - name: Run Unit Tests
-        run: |
-          cd test
-          npm run test:unit
 
       # Step: Run Playwright tests
       - name: Run Playwright Tests
