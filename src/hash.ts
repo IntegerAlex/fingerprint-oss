@@ -17,7 +17,13 @@
 import { SystemInfo } from './types';
 import { sha256 } from 'hash-wasm';
 
-// Helper function for reliable rounding (ensure this is present from previous fixes)
+/**
+ * Rounds a numeric value to a specified decimal precision and returns it as a fixed-point string.
+ *
+ * @param value - The number to round
+ * @param precision - The number of decimal places to round to
+ * @returns The rounded value as a string with fixed decimal places
+ */
 function reliableRound(value: number, precision: number): string {
   const multiplier = Math.pow(10, precision);
   const roundedValue = Math.round(value * multiplier) / multiplier;
@@ -27,8 +33,7 @@ function reliableRound(value: number, precision: number): string {
 /**
  * Generates a deterministic SHA-256 hash string that uniquely identifies a system based on normalized and sorted system information.
  *
- * Extracts and normalizes key properties from {@link systemInfo}. The resulting object is 
- * recursively sorted and serialized with consistent formatting before hashing.
+ * Extracts key properties from the provided system information, applies default placeholders for missing data, normalizes and sorts the data, and serializes it consistently before hashing. This ensures the resulting fingerprint is stable and unique for the given system characteristics.
  *
  * @param systemInfo - The system information object containing browser, hardware, and environment details to be fingerprinted.
  * @returns A SHA-256 hash string representing the normalized system fingerprint.
@@ -90,7 +95,7 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
 }
 
 /**
- * Normalizes values for JSON serialization by handling ArrayBuffers, rounding numbers (if not already strings), and trimming whitespace in strings.
+ * Normalizes values during JSON serialization by converting ArrayBuffers to empty strings, rounding numeric values to three decimal places, and trimming whitespace in strings.
  *
  * @param key - The property key being processed.
  * @param value - The property value to normalize.
@@ -106,12 +111,12 @@ function replacer(key: string, value: any) {
 }
 
 /**
- * Recursively sorts the keys of objects and the elements of arrays to ensure deterministic ordering.
+ * Recursively sorts objects and arrays to produce a deterministically ordered structure.
  *
- * For arrays, each element is recursively sorted and the array is ordered lexicographically by the JSON stringification of its elements. For objects, keys are sorted alphabetically and each value is recursively processed. Primitive values are returned unchanged.
+ * Arrays are sorted by the lexicographic order of their JSON stringified elements, and objects have their keys sorted alphabetically with values recursively processed. Primitive values are returned as-is.
  *
- * @param obj - The object or array to sort.
- * @returns A new object or array with all keys and elements sorted recursively.
+ * @param obj - The object or array to recursively sort
+ * @returns A new object or array with all keys and elements sorted deterministically
  */
 function deepSortObject(obj: Record<string, any>): any {
   if (Array.isArray(obj)) {
