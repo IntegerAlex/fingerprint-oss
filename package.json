@@ -1,7 +1,7 @@
 {
   "name": "fingerprint-oss",
-  "version": "0.2.5-beta",
-  "description": "fingerprint-oss is a javascript util designed to collect various information about the user's device, location, and network.",
+  "version": "1.0.0",
+  "description": "A comprehensive JavaScript library for device fingerprinting and system information collection. Provides robust, deterministic fingerprinting for web applications with privacy-conscious design.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,11 @@
   "scripts": {
     "build": "rollup -c",
     "rollup": "rollup -c",
-    "docs": "typedoc"
+    "docs": "typedoc",
+    "test": "cd test && npm run test",
+    "test:unit": "cd test && npm run test:unit",
+    "test:e2e": "cd test && npm run test:e2e",
+    "prepublishOnly": "npm run build"
   },
   "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",
   "files": [
@@ -20,16 +24,21 @@
     "package.json"
   ],
   "keywords": [
-    "user",
-    "info",
-    "logger",
-    "device",
-    "location",
-    "network",
+    "fingerprinting",
+    "device-fingerprint",
+    "browser-fingerprint",
+    "system-info",
+    "user-agent",
+    "canvas-fingerprint",
+    "webgl-fingerprint",
+    "audio-fingerprint",
+    "font-detection",
+    "privacy",
+    "security",
+    "web-analytics",
+    "device-detection",
     "tracking",
-    "ip",
-    "track-user",
-    "steal-info"
+    "identification"
   ],
   "funding": {
     "type": "github",
@@ -39,6 +48,13 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/IntegerAlex/fingerprint-oss.git"
+  },
+  "bugs": {
+    "url": "https://github.com/IntegerAlex/fingerprint-oss/issues"
+  },
+  "homepage": "https://github.com/IntegerAlex/fingerprint-oss#readme",
+  "engines": {
+    "node": ">=16.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",

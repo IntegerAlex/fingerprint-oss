@@ -2,12 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.5-beta] - 2025-04-30
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Changed
-- Removed named exports in favor of default export
-- Updated import syntax in documentation
-- Updated license to LGPL v3
+## [0.9.0] - 2025-07-01
+
+### Canary Release
+This marks the first stable canary release of fingerprint-oss with comprehensive fingerprinting capabilities, robust testing, and canary-ready codebase.
+
+## [0.2.5-beta] - 2025-04-30
+- Beta release with core fingerprinting functionality
+- Basic testing infrastructure
+- Initial hash generation implementation
+
+### [0.1.0-alpha] - 2024-XX-XX
+- Initial alpha release
+- Proof of concept implementation
 
 ## [0.2.4] - 2025-04-27
 

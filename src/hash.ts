@@ -58,7 +58,7 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
 
     // New Font Fingerprinting
     detectedFontsString: (systemInfo.fontPreferences?.detectedFonts && systemInfo.fontPreferences.detectedFonts.length > 0) 
-                         ? systemInfo.fontPreferences.detectedFonts.join(',') 
+                         ? systemInfo.fontPreferences.detectedFonts.slice().sort().join(',') 
                          : 'no_fonts_detected',
 
     // Canvas and Audio fingerprints
