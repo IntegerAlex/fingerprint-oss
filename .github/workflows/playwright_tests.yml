@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
 
 jobs:
   tests_e2e:
@@ -12,38 +15,46 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       # Step: Install root package and build it
       - name: Install dependencies and build fingerprint-oss
         run: |
-          npm install
+          npm ci
           npm run build
-          # npm run rollup is now redundant as build already runs rollup
 
-      # Step: Link the local package (like npm link)
-      - name: Create symlink for local package
-        run: |
-          npm link
-
-      # Step: Go to test folder and link local module
-      - name: Install test deps and link local module
+      # Step: Install test dependencies
+      - name: Install test dependencies
         run: |
           cd test
-          npm install
-          npm link ../
+          npm ci
 
-      # Step: Start HTTP server
+      # Step: Create a local package and install it in test directory
+      - name: Package and install locally
+        run: |
+          # Pack the built package
+          npm pack --pack-destination ./test/
+          cd test
+          # Install the local package
+          npm install fingerprint-oss-*.tgz
+          # Clean up the tarball
+          rm fingerprint-oss-*.tgz
+
+      # Step: Start HTTP server in background
       - name: Start HTTP Server
         run: |
           cd test
           npx http-server -p 8080 &
-        shell: bash
+          # Wait for server to start
+          sleep 3
+          # Verify server is running
+          curl -f http://localhost:8080/ || exit 1
 
       # Step: Install Playwright Browsers
       - name: Install Playwright Browsers
@@ -51,8 +62,23 @@ jobs:
           cd test
           npx playwright install --with-deps chromium firefox webkit
 
+      # Step: Run unit tests first
+      - name: Run Unit Tests
+        run: |
+          cd test
+          npm run test:unit
+
       # Step: Run Playwright tests
       - name: Run Playwright Tests
         run: |
           cd test
-          npx playwright test
+          npm run test:e2e
+
+      # Step: Upload test results on failure
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test/test-results/
+          retention-days: 30
