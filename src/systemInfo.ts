@@ -123,11 +123,11 @@ function calculateConfidenceScore(hasIncognito: boolean, botInfo: { isBot: boole
     return Math.max(0.1, Math.min(0.9, score));
 }
 /**
- * Retrieves comprehensive system information including OS, browser, device, and bot detection details.
+ * Asynchronously collects detailed system information from the browser, including OS, browser, device, privacy settings, and bot detection results.
  *
- * This function asynchronously gathers a wide range of data from the current environment, such as user agent, platform details, hardware capabilities, display attributes, and privacy-related settings. It also performs bot detection by analyzing various signals and computes an overall confidence score based on these findings. In a non-browser environment, it returns mock system information.
+ * Gathers a comprehensive set of attributes such as user agent, hardware capabilities, display properties, privacy modes, browser features, and environmental fingerprints. Performs bot detection and computes an overall confidence score. Returns mock data if not executed in a browser environment.
  *
- * @returns A promise that resolves to a SystemInfo object with collected details.
+ * @returns A promise that resolves to a SystemInfo object containing all collected system and browser details.
  */
 export async function getSystemInfo(): Promise<SystemInfo> {
     // Check if we're in a browser environment
@@ -178,7 +178,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         indexedDB: isIndexedDBEnabled(),
         
         // Graphics & Canvas
-        webGL: getWebGLInfo(),
+        webGL: await getWebGLInfo(), // getWebGLInfo is now async
         canvas: getCanvasFingerprint(),
         
         // Plugins & MIME

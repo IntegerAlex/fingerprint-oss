@@ -10,8 +10,8 @@
 /**
  * Helper functions for fingerprinting
  */
-import { error } from 'console';
-import { FontInfo , MathInfo, PluginInfo, MimeType , TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
+import { sha256 } from 'hash-wasm';
+import { FontPreferencesInfo , MathInfo, PluginInfo, MimeType , TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
 
 /**
  * Get color gamut of the device
@@ -27,18 +27,9 @@ export function getColorGamut(): string {
 }
 
 /**
- * Get audio fingerprint of the device
- * @returns Audio fingerprint of the device or null if an error occurred
- * explaination of the code
- * 		- The function creates an AudioContext object to handle audio operations.
-	 * 		- It then creates an OscillatorNode object to generate a periodic waveform.
-	 * 			- The oscillator is connected to an AnalyserNode object to provide real-time frequency and time-domain analysis information.
-	 * 				- The analyser is connected to a ScriptProcessorNode object to process audio data in chunks.
-	 * 					- The script processor is connected to a GainNode object to control the audio volume.
-	 * 				
-	 * 					- The oscillator is started and the analyser is used to get the frequency data.
-	 * 						- The oscillator is stopped and the audio context is closed.
-	 * 							- The sum of the frequency data is returned as the audio fingerprint.
+ * Generates an audio fingerprint by analyzing the device's audio processing characteristics.
+ *
+ * @returns A numeric fingerprint representing the device's audio profile, or `null` if fingerprinting fails.
  */
 export async function getAudioFingerprint(): Promise<number | null> {
     try {
@@ -65,14 +56,16 @@ export async function getAudioFingerprint(): Promise<number | null> {
 
         return audioData.reduce((a, b) => a + b, 0);
     } catch (e) {
+        console.warn('Error getting audio fingerprint:', e);
         return null;
     }
 }
 
 
 /**
- * get vendor flavors of the device 
- * @returns Array of vendor flavors (chrome, firefox, safari)
+ * Detects and returns the browser vendor flavors present in the user agent string.
+ *
+ * @returns An array containing any combination of 'chrome', 'firefox', and 'safari' if detected in the current browser.
  */
 export function getVendorFlavors(): string[] {
     const flavors = [];
@@ -90,12 +83,9 @@ export function getVendorFlavors(): string[] {
 
 
 /**
- * check localStorage is enabled or not
- * @returns boolean value 
- * explaination of the code
- * 		- The function tries to set an item in localStorage and then remove it.
- * 			- If an error occurs, it returns false.
- * 				- If no error occurs, it returns true.
+ * Determines whether `localStorage` is available and writable in the current environment.
+ *
+ * @returns `true` if `localStorage` can be used; otherwise, `false`
  */
 export function isLocalStorageEnabled(): boolean {
     try {
@@ -107,14 +97,10 @@ export function isLocalStorageEnabled(): boolean {
     }
 }
 
-
 /**
- * check sessionStorage is enabled or not
- * @returns boolean value
- * explaination of the code
- * 		- The function tries to set an item in sessionStorage and then remove it.
- * 			- If an error occurs, it returns false.
- * 				- If no error occurs, it returns true.
+ * Determines whether sessionStorage is available and writable in the current environment.
+ *
+ * @returns True if sessionStorage can be used; otherwise, false.
  */
 export function isSessionStorageEnabled(): boolean {
     try {
@@ -127,36 +113,35 @@ export function isSessionStorageEnabled(): boolean {
 }
 
 /**
- * check indexedDB is enabled or not
- * @returns boolean value
- * explaination of the code
- * 		- The function checks if the window object has an indexedDB property.
- * 			- If it does, it returns true.
- * 				- If it doesn't, it returns false.
+ * Determines whether IndexedDB is available in the current environment.
+ *
+ * @returns `true` if `window.indexedDB` is present; otherwise, `false`.
  */
 export function isIndexedDBEnabled(): boolean {
     return !!window.indexedDB;
 }
 
 /**
- * Retrieves the device's WebGL vendor and renderer information.
+ * Asynchronously retrieves the device's WebGL vendor, renderer, and a SHA-256 hash of a rendered WebGL scene.
  *
- * This function creates a canvas element to obtain a WebGL context and attempts to
- * extract detailed hardware information using the WEBGL_debug_renderer_info extension.
- * If the extension is unavailable or an error occurs during retrieval, it returns default
- * values of 'unknown' for both vendor and renderer.
- *
- * @returns An object containing the WebGL vendor and renderer information.
+ * @returns A Promise that resolves to an object containing the WebGL vendor, renderer, and an imageHash representing the rendered scene. If WebGL is unavailable or an error occurs, the imageHash will contain an error string.
  */
-export function getWebGLInfo(): WebGLInfo {
+export async function getWebGLInfo(): Promise<WebGLInfo> {
+    let vendor = 'unknown';
+    let renderer = 'unknown';
+    let imageHash: string | null = null;
+
     try {
         const canvas = document.createElement('canvas');
-        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext;
-        if (!gl) return { vendor: 'unknown', renderer: 'unknown' };
+        canvas.width = 64;
+        canvas.height = 64;
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext | null;
 
-        let vendor = 'unknown';
-        let renderer = 'unknown';
+        if (!gl) {
+            return { vendor, renderer, imageHash: 'webgl_context_unavailable' };
+        }
 
+        // Get vendor and renderer strings
         try {
             const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
             if (debugInfo) {
@@ -166,23 +151,97 @@ export function getWebGLInfo(): WebGLInfo {
                 vendor = gl.getParameter(gl.VENDOR) || vendor;
                 renderer = gl.getParameter(gl.RENDERER) || renderer;
             }
-        } catch (extensionError) {
-            console.warn('WEBGL_debug_renderer_info extension not available:', extensionError);
+        } catch (e) {
+            console.warn('Error getting WebGL vendor/renderer strings:', e);
         }
 
-        return { vendor, renderer };
+        // Render scene for image hash
+        try {
+            const vsSource = `
+                attribute vec2 a_position;
+                attribute vec3 a_color;
+                varying vec3 v_color;
+                void main() {
+                    gl_Position = vec4(a_position, 0.0, 1.0);
+                    v_color = a_color;
+                }
+            `;
+            const fsSource = `
+                precision mediump float;
+                varying vec3 v_color;
+                void main() {
+                    gl_FragColor = vec4(v_color, 1.0);
+                }
+            `;
+
+            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            if (!vertexShader) throw new Error("Failed to create vertex shader");
+            gl.shaderSource(vertexShader, vsSource);
+            gl.compileShader(vertexShader);
+
+            const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            if (!fragmentShader) throw new Error("Failed to create fragment shader");
+            gl.shaderSource(fragmentShader, fsSource);
+            gl.compileShader(fragmentShader);
+
+            const program = gl.createProgram();
+            if (!program) throw new Error("Failed to create program");
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            // x, y, r, g, b
+            const vertices = new Float32Array([
+                // Triangle 1
+                -0.9, -0.9, 1.0, 0.0, 0.0, // V0 (red)
+                 0.9, -0.9, 0.0, 1.0, 0.0, // V1 (green)
+                -0.9,  0.9, 0.0, 0.0, 1.0, // V2 (blue)
+                // Triangle 2
+                 0.9, -0.9, 0.0, 1.0, 0.0, // V1 (green)
+                 0.9,  0.9, 1.0, 1.0, 0.0, // V3 (yellow)
+                -0.9,  0.9, 0.0, 0.0, 1.0, // V2 (blue)
+            ]);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+            const positionLocation = gl.getAttribLocation(program, 'a_position');
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 0);
+
+            const colorLocation = gl.getAttribLocation(program, 'a_color');
+            gl.enableVertexAttribArray(colorLocation);
+            gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
+            
+            gl.clearColor(0.5, 0.5, 0.5, 1.0); // Clear with a specific color
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.drawArrays(gl.TRIANGLES, 0, 6); // Draw 2 triangles (6 vertices)
+
+            const pixelData = new Uint8Array(canvas.width * canvas.height * 4);
+            gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixelData);
+            
+            const pixelString = Array.from(pixelData).join(',');
+            imageHash = await sha256(pixelString);
+
+        } catch (renderError) {
+            console.warn('Error rendering WebGL scene for hash:', renderError);
+            imageHash = 'webgl_render_error';
+        }
+
+        return { vendor, renderer, imageHash };
+
     } catch (error) {
         console.error('Error retrieving WebGL information:', error);
-        return { vendor: 'unknown', renderer: 'unknown' };
+        return { vendor: 'unknown', renderer: 'unknown', imageHash: 'webgl_overall_error' };
     }
 }
+
 /**
- * get canvas fingerprint of the device
- * @returns Canvas fingerprint of the device
- * explaination of the code
- * 		- The function creates a canvas element and gets the 2D context.
-	 * 		- It then draws a rectangle and text on the canvas.
-	 * 			- If an error occurs, it returns empty values.
+ * Generates a fingerprint of the device's canvas rendering capabilities.
+ *
+ * @returns An object containing the winding rule support, a data URL of the rendered canvas, and the font used.
  */
 export function getCanvasFingerprint(): CanvasInfo {
     try {
@@ -193,7 +252,6 @@ export function getCanvasFingerprint(): CanvasInfo {
         const ctx = canvas.getContext('2d');
         if (!ctx) return { winding: false, geometry: '', text: '' };
 
-        // Text with custom font
         ctx.textBaseline = 'top';
         ctx.font = '14px Arial';
         ctx.textBaseline = 'alphabetic';
@@ -215,24 +273,21 @@ export function getCanvasFingerprint(): CanvasInfo {
 }
 
 /**
- * get plugins information of the device
- * @returns Array of plugin information
- * explaination of the code
- * 		- The function gets the plugins from the navigator object.
-	 * 		- It then maps the plugins to an array of objects with name, description, and mimeTypes properties.
-	 * 			- If an error occurs, it returns an empty array.
+ * Returns an array of plugin information objects detected from the browser's `navigator.plugins`.
+ *
+ * Each object includes the plugin's name, description, and an array of supported MIME types with their suffixes.
+ * Returns an empty array if plugins are unavailable or an error occurs.
+ *
+ * @returns An array of plugin information objects, or an empty array if not available.
  */
 export function getPluginsInfo(): PluginInfo[] {
     if (!navigator.plugins) {
         console.warn('Navigator plugins not available');
         return [];
     }
-
     try {
         return Array.from(navigator.plugins).map(plugin => {
             if (!plugin) return null;
-            
-            // Get all properties that are MimeType instances
             const mimeTypes: MimeType[] = [];
             for (const key in plugin) {
                 const value = plugin[key];
@@ -243,7 +298,6 @@ export function getPluginsInfo(): PluginInfo[] {
                     });
                 }
             }
-
             return {
                 name: plugin.name || '',
                 description: plugin.description || '',
@@ -257,13 +311,9 @@ export function getPluginsInfo(): PluginInfo[] {
 }
 
 /**
- * get math constants of the device
- * @returns Math constants of the device
- * explaination of the code
- * 		- The function calculates various math constants using the Math object.
- * 			- If an error occurs, it returns default values.
- *  				- If no error occurs, it returns the calculated values.
- *  			 				
+ * Returns a fingerprint object containing the results of various Math functions applied to fixed input values.
+ *
+ * @returns An object with the results of `acos`, `acosh`, `asinh`, `atanh`, `expm1`, `sinh`, `cosh`, and `tanh` for specific numeric inputs.
  */
 export function getMathFingerprint(): MathInfo {
     return {
@@ -279,46 +329,111 @@ export function getMathFingerprint(): MathInfo {
 }
 
 /**
- * get font preferences of the device
- * @returns Font preferences of the device
- * explaination of the code
- * 		- The function creates a canvas element and gets the 2D context.
-	 * 		- It then measures the width of a test string using different font families.
-	 * 			- If an error occurs, it returns an empty array.
- * 				- If no error occurs, it returns an array of objects with name and width properties.
+ * Detects and returns a sorted list of fonts available on the user's system by comparing rendered text dimensions against generic font baselines.
+ *
+ * @returns An object containing the sorted array of detected font names under `detectedFonts`.
  */
-export function getFontPreferences(): FontInfo {
-    const baseFonts = ['monospace', 'sans-serif', 'serif'];
-    const testString = 'mmmmmmmmmmlli';
+export function getFontPreferences(): FontPreferencesInfo {
+    const fontList = [
+        // Common Windows fonts
+        'Arial', 'Arial Black', 'Calibri', 'Cambria', 'Candara', 'Comic Sans MS', 'Consolas', 'Constantia', 
+        'Corbel', 'Courier New', 'Ebrima', 'Franklin Gothic Medium', 'Gabriola', 'Gadugi', 'Georgia', 
+        'Impact', 'Javanese Text', 'Leelawadee UI', 'Lucida Console', 'Lucida Sans Unicode', 
+        'Malgun Gothic', 'Marlett', 'Microsoft Himalaya', 'Microsoft JhengHei', 'Microsoft New Tai Lue', 
+        'Microsoft PhagsPa', 'Microsoft Sans Serif', 'Microsoft Tai Le', 'Microsoft YaHei', 'Microsoft Yi Baiti', 
+        'MingLiU-ExtB', 'Mongolian Baiti', 'MS Gothic', 'MV Boli', 'Myanmar Text', 'Nirmala UI', 
+        'Palatino Linotype', 'Segoe Print', 'Segoe Script', 'Segoe UI', 'Segoe UI Historic', 
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'SimSun', 'Sitka', 'Sylfaen', 'Symbol', 'Tahoma', 
+        'Times New Roman', 'Trebuchet MS', 'Verdana', 'Webdings', 'Wingdings', 'Yu Gothic',
+        // Common macOS fonts
+        'American Typewriter', 'Andale Mono', 'Apple Chancery', 'AppleGothic', 'AppleMyungjo', 
+        'Baskerville', 'Big Caslon', 'Bodoni 72', 'Bradley Hand', 'Brush Script MT', 'Chalkboard', 
+        'Chalkduster', 'Charter', 'Cochin', 'Copperplate', 'Courier', 'Didot', 'Futura', 
+        'Geneva', 'Gill Sans', 'Helvetica', 'Helvetica Neue', 'Herculanum', 'Hoefler Text', 
+        'Lucida Grande', 'Marker Felt', 'Menlo', 'Monaco', 'Noteworthy', 'Optima', 'Palatino', 
+        'Papyrus', 'Rockwell', 'Savoye LET', 'Skia', 'Snell Roundhand', 'Thonburi', 'Trattatello', 
+        'Zapfino',
+        // Common Linux/Open Source fonts
+        'DejaVu Sans', 'DejaVu Serif', 'DejaVu Sans Mono', 'Liberation Sans', 'Liberation Serif', 
+        'Liberation Mono', 'Noto Sans', 'Noto Serif', 'Noto Mono', 'Roboto', 'Open Sans', 
+        'Ubuntu', 'Cantarell', 'Droid Sans', 'Source Sans Pro',
+        // Other popular fonts
+        'Century Gothic', 'Garamond'
+    ];
+
+    const testString = "abcdefghijklmnopqrstuvwxyz0123456789";
     const testSize = '72px';
-    let canvas = document.createElement('canvas');
-    let context = canvas.getContext('2d');
-    if (!context) return { fonts: [] };
+    const detectedFonts: string[] = [];
 
-    const getWidth = (fontFamily: string): number => {
-        context!.font = `${testSize} ${fontFamily}`;
-        return context!.measureText(testString).width;
-    };
+    try {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (!context) {
+            return { detectedFonts: [] };
+        }
 
-    const baseWidths = baseFonts.map(getWidth);
+        // Baseline measurement with generic 'sans-serif'
+        context.font = `${testSize} sans-serif`;
+        const baselineWidth = context.measureText(testString).width;
+        const baselineHeight = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
 
-    return {
-        fonts: baseFonts.map((font, index) => ({
-            name: font,
-            width: baseWidths[index]
-        }))
-    };
+        // Baseline measurement with generic 'serif'
+        context.font = `${testSize} serif`;
+        const baselineSerifWidth = context.measureText(testString).width;
+        const baselineSerifHeight = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
+
+        // Baseline measurement with generic 'monospace'
+        context.font = `${testSize} monospace`;
+        const baselineMonoWidth = context.measureText(testString).width;
+        const baselineMonoHeight = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
+
+
+        for (const font of fontList) {
+            // Test against sans-serif baseline
+            context.font = `${testSize} "${font}", sans-serif`;
+            const currentWidthSans = context.measureText(testString).width;
+            const currentHeightSans = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
+
+            if (currentWidthSans !== baselineWidth || currentHeightSans !== baselineHeight) {
+                detectedFonts.push(font);
+                continue; // Font detected, move to next font
+            }
+
+            // Test against serif baseline
+            context.font = `${testSize} "${font}", serif`;
+            const currentWidthSerif = context.measureText(testString).width;
+            const currentHeightSerif = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
+
+            if (currentWidthSerif !== baselineSerifWidth || currentHeightSerif !== baselineSerifHeight) {
+                detectedFonts.push(font);
+                continue; 
+            }
+            
+            // Test against monospace baseline
+            context.font = `${testSize} "${font}", monospace`;
+            const currentWidthMono = context.measureText(testString).width;
+            const currentHeightMono = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
+
+            if (currentWidthMono !== baselineMonoWidth || currentHeightMono !== baselineMonoHeight) {
+                detectedFonts.push(font);
+            }
+        }
+        
+        // Remove duplicates that might have been added if they differ from multiple baselines
+        const uniqueDetectedFonts = Array.from(new Set(detectedFonts));
+        return { detectedFonts: uniqueDetectedFonts.sort() };
+
+    } catch (error) {
+        console.warn('Error detecting font preferences:', error);
+        return { detectedFonts: [] };
+    }
 }
 
+
 /**
- * Retrieves the device's touch support details.
+ * Returns information about the device's touch support capabilities.
  *
- * This function checks the global window object for touch event support and returns an object with:
- * - **maxTouchPoints**: The number of simultaneous touch points supported, defaulting to 0 if unavailable.
- * - **touchEvent**: A boolean indicating whether touch events are supported.
- * - **touchStart**: A boolean indicating if the 'ontouchstart' event is supported.
- *
- * @returns An object containing touch support information.
+ * @returns An object containing the maximum number of touch points supported and boolean flags indicating the presence of touch event support.
  */
 export function getTouchSupportInfo(): TouchSupportInfo {
     return {
@@ -329,17 +444,9 @@ export function getTouchSupportInfo(): TouchSupportInfo {
 }
 
 /**
- * Retrieves operating system information by parsing the browser's navigator data.
+ * Detects and returns the operating system name and version based on the browser's user agent and platform.
  *
- * This function analyzes the user agent and platform strings to determine the OS name and version,
- * supporting detection of Windows, macOS, Android, iOS, Linux, Unix-like systems, and more.
- * If the navigator object is unavailable or parsing fails, it returns "unknown" values.
- * Note: When `navigator` is undefined, the returned object also includes a `platform` property.
- *
- * @returns An object containing:
- *   - os: The name of the detected operating system.
- *   - version: The operating system version or a generic descriptor if it cannot be specifically determined.
- *   - platform (optional): The platform value, present only when `navigator` is undefined.
+ * @returns An object containing the detected OS name and version.
  */
 export function getOSInfo() {
   if (typeof navigator === 'undefined') {
@@ -356,14 +463,12 @@ export function getOSInfo() {
   let version = 'unknown';
 
   try {
-    // Windows detection
-// Windows detection
     if (/Windows NT/.test(userAgent)) {
       os = 'Windows';
       const match = userAgent.match(/Windows NT ([\d.]+)/);
       if (match && match[1]) {
         const versionMapping:{[key:string]:string} = {
-          '10.0': '10/11', // Base mapping
+          '10.0': '10/11', 
           '6.3': '8.1',
           '6.2': '8',
           '6.1': '7',
@@ -372,8 +477,6 @@ export function getOSInfo() {
           '5.1': 'XP',
           '5.0': '2000'
         };
-        
-        // Check for Windows 11 specific patterns
         if (match[1] === '10.0' && /(Windows 11|WOW64|Win64|x64)/.test(userAgent)) {
           version = '11';
         } else if (match[1] === '10.0') {
@@ -383,7 +486,6 @@ export function getOSInfo() {
         }
       }
     }
-    // macOS detection
     else if (/Mac OS X/.test(userAgent)) {
       os = 'macOS';
       const match = userAgent.match(/Mac OS X ([\d_]+)/);
@@ -391,7 +493,6 @@ export function getOSInfo() {
         version = match[1].replace(/_/g, '.');
       }
     }
-    // Android detection
     else if (/Android/.test(userAgent)) {
       os = 'Android';
       const match = userAgent.match(/Android ([\d.]+)/);
@@ -399,7 +500,6 @@ export function getOSInfo() {
         version = match[1];
       }
     }
-    // iOS detection (using userAgent patterns)
     else if (/iPhone|iPad|iPod|CPU(?: iPhone)? OS|MacOS/.test(userAgent)) {
       os = 'iOS';
       const match = userAgent.match(/OS ([\d_]+)/);
@@ -407,7 +507,6 @@ export function getOSInfo() {
         version = match[1].replace(/_/g, '.');
       }
     }
-    // Linux detection
     else if (/Linux/.test(platform) || /Linux/.test(userAgent)) {
       os = 'Linux';
       if (/Ubuntu/.test(userAgent)) {
@@ -428,12 +527,10 @@ export function getOSInfo() {
         version = 'generic';
       }
     }
-    // Fallback for other Unix-based systems
     else if (/BSD/.test(userAgent) || /SunOS/.test(userAgent)) {
       os = 'Unix-like';
       version = 'generic';
     }
-    // Fallback for unknown OSes
     else {
       os = platform;
     }
@@ -445,22 +542,17 @@ export function getOSInfo() {
 }
 
 /**
- * Estimates the number of available logical cores on the device.
+ * Estimates the number of logical CPU cores available to the browser.
  *
- * This function spawns Web Worker instances to execute a compute‑intensive task in parallel,
- * simulating the workload across cores. Up to 16 workers are created sequentially, and each worker
- * performs a heavy calculation. If a worker takes longer than 1200ms to complete its task, it is
- * terminated, and the browser‑reported core count is returned. In case of an error, any active
- * workers are terminated and resources are cleaned up before returning the core count.
+ * Spawns multiple Web Workers to perform compute-intensive tasks and measures their execution times to infer the likely number of cores. Falls back to the browser-reported value or a capped estimate if workers are unavailable or if the test times out. The result is further limited for certain browsers to account for known reporting inconsistencies.
  *
- * @returns The estimated number of logical cores available on the device.
+ * @returns A promise that resolves to the estimated number of logical CPU cores, between 1 and 12 (or 8 for Firefox and some environments).
  */
 export async function estimateCores(): Promise<number> {
-  const MAX_TEST_TIME = 1200; // Extended budget for more reliable results
-  const TARGET_ITERATIONS = 30e6; // Adjusted for modern CPU performance
+  const MAX_TEST_TIME = 1200; 
+  const TARGET_ITERATIONS = 30e6; 
   const browserReportedCores = navigator.hardwareConcurrency || 4;
 
-  // Early exit for unsupported environments
   if (typeof Worker === 'undefined') {
     return Math.min(browserReportedCores, 12);
   }
@@ -469,7 +561,6 @@ export async function estimateCores(): Promise<number> {
     self.onmessage = (e) => {
       const start = performance.now();
       let result = 0;
-      // Mixed operations to prevent compiler optimizations
       for (let i = 0; i < ${TARGET_ITERATIONS}; i++) {
         result += Math.sin(i) * Math.log(i + 1) / (i % 23 + 1);
         if (i % 1e5 === 0) self.postMessage({ progress: i });
@@ -487,10 +578,8 @@ export async function estimateCores(): Promise<number> {
   const workers: Worker[] = [];
 
   try {
-    // Immediately invoke the async function so it returns a Promise<number>
     const corePromise = (async () => {
       const testConcurrency = Math.min(browserReportedCores * 2, 16);
-      // Create an array of Promises from concurrently running workers
       const promises = Array.from({ length: testConcurrency }, async () => {
         const worker = new Worker(workerUrl);
         workers.push(worker);
@@ -504,34 +593,28 @@ export async function estimateCores(): Promise<number> {
         });
       });
       const allDurations = await Promise.all(promises);
-      // Sort durations to find the median
       allDurations.sort((a, b) => a - b);
       const medianDuration = allDurations[Math.floor(allDurations.length / 2)];
       
-      // Calculate parallel efficiency
       const singleThreadTime = medianDuration * testConcurrency;
       const theoreticalTime = medianDuration * (testConcurrency / browserReportedCores);
       const efficiency = (singleThreadTime / theoreticalTime) * 100;
       
-      // Determine core count based on efficiency threshold
       let coreEstimate = Math.round(
-        (testConcurrency * 100) / Math.max(efficiency, 10) // 10% minimum efficiency floor
+        (testConcurrency * 100) / Math.max(efficiency, 10) 
       );
       
-      // Cross-validation with hardware report
       coreEstimate = Math.min(
         Math.max(coreEstimate, browserReportedCores - 2),
         browserReportedCores + 2
       );
       
-      // Architecture‑specific final check
       return Math.min(Math.max(coreEstimate, 1), 12);
     })().catch((err: any) => {
-      console.error("Core estimation failed:", err);
+      console.warn("Core estimation failed:", err); // Changed to warn
       return browserReportedCores;
     });
 
-    // Race the core estimation promise against a timeout promise
     const results = await Promise.race([
       corePromise,
       new Promise<number>(resolve =>
@@ -539,17 +622,16 @@ export async function estimateCores(): Promise<number> {
       )
     ]);
 
-    // Final adjustment for certain browsers
     if (navigator.userAgent.includes('Firefox') || performance.timing?.navigationStart) {
       return Math.min(results, 8);
     }
     return Math.min(results, 12);
     
   } catch (e) {
+    console.warn('Overall error in estimateCores:', e); // Changed to warn
     return browserReportedCores;
   } finally {
     workers.forEach(w => w.terminate());
     URL.revokeObjectURL(workerUrl);
   }
 }
-
