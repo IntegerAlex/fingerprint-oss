@@ -100,7 +100,7 @@ function replacer(key: string, value: any) {
   if (value instanceof ArrayBuffer) return '';
   // Numbers that are not already strings (like mathConstants or audioFingerprint if it was stringified)
   // will be processed here.
-  if (typeof value === 'number') return Number(value.toFixed(3)); 
+  if (typeof value === 'number') return Number(reliableRound(value, 3));
   if (typeof value === 'string') return value.replace(/\s+/g, ' ').trim();
   return value;
 }
