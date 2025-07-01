@@ -1,0 +1,13 @@
+{
+  "name": "fingerprint-oss-unit-tests",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "test": "npx vitest run",
+    "test:watch": "npx vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^23.0.0",
+    "vitest": "^3.0.9"
+  }
+} 

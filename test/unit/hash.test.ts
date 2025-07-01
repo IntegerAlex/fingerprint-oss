@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { generateId } from '../src/hash';
-import { SystemInfo, WebGLInfo, CanvasInfo, MathInfo, FontPreferencesInfo, PluginInfo, MimeType } from '../src/types'; // Updated FontInfo to FontPreferencesInfo
+import { generateId } from '../../src/hash';
+import { SystemInfo, WebGLInfo, CanvasInfo, MathInfo, FontPreferencesInfo, PluginInfo, MimeType } from '../../src/types'; // Updated FontInfo to FontPreferencesInfo
 
 // Utility for deep cloning to ensure test independence
 const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));

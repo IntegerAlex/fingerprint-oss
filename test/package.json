@@ -5,19 +5,16 @@
   "type": "module",
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "npx vitest run",
-    "test:unit:watch": "npx vitest",
-    "test:e2e": "npx playwright test",
-    "test:e2e:install": "npx playwright install"
+    "test:unit": "cd unit && npm install && npm test",
+    "test:e2e": "cd e2e && npm install && npm test",
+    "install:all": "cd unit && npm install && cd ../e2e && npm install"
   },
   "license": "BSD-3-Clause",
   "description": "This project contains tests for fingerprint-oss",
   "author": "Akshat Kotpalliwar",
   "devDependencies": {
     "@playwright/test": "^1.51.1",
-    "jsdom": "^23.0.0",
-    "playwright": "^1.51.1",
-    "vitest": "^3.0.9"
+    "playwright": "^1.51.1"
   },
   "dependencies": {
     "http-server": "^14.1.1"
