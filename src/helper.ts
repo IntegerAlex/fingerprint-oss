@@ -375,24 +375,24 @@ export function getFontPreferences(): FontPreferencesInfo {
         // Baseline measurement with generic 'sans-serif'
         context.font = `${testSize} sans-serif`;
         const baselineWidth = context.measureText(testString).width;
-        const baselineHeight = parseInt(context.font) || 72; // Estimate height from font size
+        const baselineHeight = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
 
         // Baseline measurement with generic 'serif'
         context.font = `${testSize} serif`;
         const baselineSerifWidth = context.measureText(testString).width;
-        const baselineSerifHeight = parseInt(context.font) || 72;
+        const baselineSerifHeight = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
 
         // Baseline measurement with generic 'monospace'
         context.font = `${testSize} monospace`;
         const baselineMonoWidth = context.measureText(testString).width;
-        const baselineMonoHeight = parseInt(context.font) || 72;
+        const baselineMonoHeight = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
 
 
         for (const font of fontList) {
             // Test against sans-serif baseline
             context.font = `${testSize} "${font}", sans-serif`;
             const currentWidthSans = context.measureText(testString).width;
-            const currentHeightSans = parseInt(context.font) || 72; // Re-parse in case it changed
+            const currentHeightSans = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
 
             if (currentWidthSans !== baselineWidth || currentHeightSans !== baselineHeight) {
                 detectedFonts.push(font);
@@ -402,7 +402,7 @@ export function getFontPreferences(): FontPreferencesInfo {
             // Test against serif baseline
             context.font = `${testSize} "${font}", serif`;
             const currentWidthSerif = context.measureText(testString).width;
-            const currentHeightSerif = parseInt(context.font) || 72;
+            const currentHeightSerif = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
 
             if (currentWidthSerif !== baselineSerifWidth || currentHeightSerif !== baselineSerifHeight) {
                 detectedFonts.push(font);
@@ -412,7 +412,7 @@ export function getFontPreferences(): FontPreferencesInfo {
             // Test against monospace baseline
             context.font = `${testSize} "${font}", monospace`;
             const currentWidthMono = context.measureText(testString).width;
-            const currentHeightMono = parseInt(context.font) || 72;
+            const currentHeightMono = context.measureText(testString).actualBoundingBoxAscent + context.measureText(testString).actualBoundingBoxDescent;
 
             if (currentWidthMono !== baselineMonoWidth || currentHeightMono !== baselineMonoHeight) {
                 detectedFonts.push(font);
