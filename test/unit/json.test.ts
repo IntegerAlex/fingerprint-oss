@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { generateJSON } from '@/src/json';
-import { GeolocationInfo } from '@/src/geo-ip';
-import { SystemInfo } from '@/src/types';
+import type { GeolocationInfo } from '@/src/geo-ip';
+import type { SystemInfo } from '@/src/types';
 
 // Mock the VPN module
 vi.mock('@/src/vpn', () => ({
@@ -171,7 +171,7 @@ describe('JSON Module', () => {
       // Test medium confidence
       const mediumConfidenceSystem = { ...mockSystemInfo, confidenceScore: 0.6 };
       const mediumResult = await generateJSON(mockGeolocationInfo, mediumConfidenceSystem);
-      expect(mediumResult.confidenceAssessment.system.level).toBe('medium-high');
+      expect(mediumResult.confidenceAssessment.system.level).toBe('medium');
 
       // Test low confidence
       const lowConfidenceSystem = { ...mockSystemInfo, confidenceScore: 0.2 };

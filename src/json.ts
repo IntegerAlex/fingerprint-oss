@@ -65,13 +65,13 @@ function interpretConfidenceScore(score: number): {
  *
  * The returned object includes interpreted confidence scores for both the system and an optional combined assessment, details about potential network threats (such as proxies, VPNs, Tor, or hosting providers), geolocation information with VPN status, and a unique hash derived from the system information.
  *
- * @param geolocationInfo - Geolocation data for the user (always available).
+ * @param geolocationInfo - Geolocation data for the user (can be null in test environments).
  * @param systemInfo - Information about the user's system, including confidence score and bot detection signals.
  * @param combinedConfidenceScore - An optional overall confidence score to be interpreted and included in the assessment.
  * @returns An object containing confidence assessments, geolocation details (with VPN status), system information, and a unique hash.
  */
 export async function generateJSON(
-    geolocationInfo: GeolocationInfo, 
+    geolocationInfo: GeolocationInfo | null, 
     systemInfo: SystemInfo, 
     combinedConfidenceScore?: number
 ) {
@@ -81,15 +81,16 @@ export async function generateJSON(
         interpretConfidenceScore(combinedConfidenceScore) : 
         { rating: '', description: '', reliability: '', level: 'medium' as const };
 
-    // Extract proxy-related flags from traits
-    const isProxy = geolocationInfo.traits.isAnonymousProxy;
-    const isVpn = geolocationInfo.traits.isAnonymousVpn;
-    const isHosting = geolocationInfo.traits.isHostingProvider;
-    const isTor = geolocationInfo.traits.isTorExitNode;
-    const vpnStatus = await getVpnStatus({
+    // Extract proxy-related flags from traits (handle null geolocation)
+    const isProxy = geolocationInfo?.traits?.isAnonymousProxy || false;
+    const isVpn = geolocationInfo?.traits?.isAnonymousVpn || false;
+    const isHosting = geolocationInfo?.traits?.isHostingProvider || false;
+    const isTor = geolocationInfo?.traits?.isTorExitNode || false;
+    const vpnStatus = geolocationInfo ? await getVpnStatus({
       geoip: geolocationInfo.location.timeZone,
       localtime: systemInfo.timezone
-    });
+    }) : undefined;
+    
     return {
         // Confidence assessments at the top of the returned object
         confidenceAssessment: {
@@ -115,7 +116,7 @@ export async function generateJSON(
         },
         
         // Geolocation information
-        geolocation: {
+        geolocation: geolocationInfo ? {
 	    vpnStatus,
             ip: geolocationInfo.ipAddress,
             city: geolocationInfo.city.name,
@@ -129,7 +130,7 @@ export async function generateJSON(
                 isAnonymousVpn: geolocationInfo.traits.isAnonymousVpn,
                 network: geolocationInfo.traits.network
             }
-        },
+        } : null,
         
         // System information
         systemInfo ,

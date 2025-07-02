@@ -45,15 +45,16 @@ declare global {
 }
 
 export async function detectIncognito(): Promise<{ isPrivate: boolean; browserName: string }> {
-  return await new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     let browserName = 'Unknown'
 
-    let callbackSettled = false
+    // Return early if not in browser environment
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      resolve({ isPrivate: false, browserName: 'Unknown' });
+      return;
+    }
+
     function __callback(isPrivate: boolean): void {
-      if (callbackSettled) {
-        return
-      }
-      callbackSettled = true
       resolve({
         isPrivate,
         browserName
@@ -61,6 +62,8 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function identifyChromium(): string {
+      if (typeof navigator === 'undefined') return 'Unknown';
+      
       const ua = navigator.userAgent
       if (ua.match(/Chrome/)) {
         if ((navigator as any).brave !== undefined) {
@@ -108,6 +111,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function isMSIE(): boolean {
+      if (typeof navigator === 'undefined') return false;
       return (
         (navigator as any).msSaveBlob !== undefined && assertEvalToString(39)
       )
@@ -118,6 +122,11 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
      **/
 
     async function currentSafariTest() {
+      if (typeof navigator === 'undefined' || !navigator.storage?.getDirectory) {
+        __callback(false);
+        return;
+      }
+      
       try {
         await navigator.storage.getDirectory();
         __callback(false)
@@ -143,6 +152,11 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function safari13to18Test(): void {
+      if (typeof indexedDB === 'undefined') {
+        __callback(false);
+        return;
+      }
+      
       const tmp = String(Math.random());
 
       try {
@@ -173,6 +187,11 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function oldSafariTest(): void {
+      if (typeof window === 'undefined') {
+        __callback(false);
+        return;
+      }
+      
       const openDB = (window as any).openDatabase
       const storage = window.localStorage
       try {
@@ -190,6 +209,11 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     async function safariPrivateTest(): Promise<void> {
+      if (typeof navigator === 'undefined') {
+        __callback(false);
+        return;
+      }
+      
       if (navigator.storage?.getDirectory !== undefined) {
         await currentSafariTest()
       } else if (navigator.maxTouchPoints !== undefined) {
@@ -204,6 +228,10 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
      **/
 
     function getQuotaLimit(): number {
+      if (typeof window === 'undefined' || typeof performance === 'undefined') {
+        return 1073741824;
+      }
+      
       const w = window as any
       if (
         w.performance !== undefined &&
@@ -217,6 +245,16 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
 
     // >= 76
     function storageQuotaChromePrivateTest(): void {
+      if (
+        typeof navigator === 'undefined' ||
+        !(navigator as any).webkitTemporaryStorage ||
+        typeof (navigator as any).webkitTemporaryStorage.queryUsageAndQuota !== 'function'
+      ) {
+        // Cannot run this check outside browser or required API not available
+        __callback(false);
+        return;
+      }
+      
       (navigator as any).webkitTemporaryStorage.queryUsageAndQuota(
         function (_: number, quota: number) {
           const quotaInMib = Math.round(quota / (1024 * 1024))
@@ -237,6 +275,11 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
 
     // 50 to 75
     function oldChromePrivateTest(): void {
+      if (typeof window === 'undefined' || !(window as any).webkitRequestFileSystem) {
+        __callback(false);
+        return;
+      }
+      
       const fs = (window as any).webkitRequestFileSystem
       const success = function () {
         __callback(false)
@@ -248,6 +291,11 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     }
 
     function chromePrivateTest(): void {
+      if (typeof self === 'undefined' || typeof Promise === 'undefined') {
+        __callback(false);
+        return;
+      }
+      
       if (self.Promise !== undefined && (self.Promise as any).allSettled !== undefined) {
         storageQuotaChromePrivateTest()
       } else {
@@ -260,6 +308,11 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
      **/
 
     function firefoxPrivateTest(): void {
+      if (typeof navigator === 'undefined') {
+        __callback(false);
+        return;
+      }
+      
       __callback(navigator.serviceWorker === undefined)
     }
 
@@ -268,10 +321,21 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
      **/
 
     function msiePrivateTest(): void {
+      if (typeof window === 'undefined') {
+        __callback(false);
+        return;
+      }
+      
       __callback(window.indexedDB === undefined)
     }
 
     async function main(): Promise<void> {
+      // Early return for non-browser environments
+      if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+        __callback(false);
+        return;
+      }
+      
       if (isSafari()) {
         browserName = 'Safari'
         await safariPrivateTest()

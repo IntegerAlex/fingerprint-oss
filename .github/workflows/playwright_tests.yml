@@ -53,17 +53,24 @@ jobs:
       - name: Start HTTP Server
         run: |
           cd test/e2e
-          npx http-server -p 8080 &
-          # Wait for server to start
-          sleep 3
-          # Verify server is running
+          npx http-server -p 8080 --cors &
+          # Wait for server to start and retry if needed
+          for i in {1..10}; do
+            if curl -f http://localhost:8080/ > /dev/null 2>&1; then
+              echo "Server is running"
+              break
+            fi
+            echo "Waiting for server to start... (attempt $i)"
+            sleep 2
+          done
+          # Final verification
           curl -f http://localhost:8080/ || exit 1
 
       # Step: Install Playwright Browsers
       - name: Install Playwright Browsers
         run: |
           cd test/e2e
-          npx playwright install --with-deps chromium firefox webkit
+          npx playwright install chromium firefox webkit
 
       # Step: Run Playwright tests
       - name: Run Playwright Tests
