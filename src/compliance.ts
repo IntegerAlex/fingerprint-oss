@@ -19,6 +19,12 @@ export class Toast {
    * @param duration Duration in milliseconds before auto-dismissal (default: 3000).
    */
   public static show(message: string, duration = 3000): void {
+    // Safety check for DOM availability
+    if (typeof document === 'undefined' || !document.body || !document.createElement) {
+      console.warn('Toast notification cannot be displayed: DOM not available');
+      return;
+    }
+
     if (!this.stylesInjected) {
       this.injectStyles();
       this.stylesInjected = true;
@@ -46,6 +52,12 @@ export class Toast {
    * Injects glassmorphic CSS styles for toasts.
    */
   private static injectStyles(): void {
+    // Safety check for DOM availability
+    if (typeof document === 'undefined' || !document.head || !document.createElement) {
+      console.warn('Toast styles cannot be injected: DOM not available');
+      return;
+    }
+
     const style = document.createElement('style');
     style.textContent = `
       .toast {

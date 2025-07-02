@@ -87,8 +87,8 @@ export async function generateJSON(
     const isHosting = geolocationInfo?.traits?.isHostingProvider || false;
     const isTor = geolocationInfo?.traits?.isTorExitNode || false;
     const vpnStatus = geolocationInfo ? await getVpnStatus({
-      geoip: geolocationInfo.location.timeZone,
-      localtime: systemInfo.timezone
+      geoip: geolocationInfo.location?.timeZone || 'UTC',
+      localtime: systemInfo?.timezone || 'UTC'
     }) : undefined;
     
     return {
@@ -97,8 +97,8 @@ export async function generateJSON(
             system: {
                 score: systemInfo.confidenceScore,
                 ...systemConfidenceInterpretation,
-                factors: systemInfo.bot.isBot ? 
-                    `Bot signals detected: ${systemInfo.bot.signals.join(', ')}` : 
+                factors: systemInfo?.bot?.isBot ? 
+                    `Bot signals detected: ${systemInfo.bot.signals?.join(', ') || 'unknown signals'}` : 
                     'No bot signals detected'
             },
             ...(combinedConfidenceScore ? {
@@ -118,17 +118,17 @@ export async function generateJSON(
         // Geolocation information
         geolocation: geolocationInfo ? {
 	    vpnStatus,
-            ip: geolocationInfo.ipAddress,
-            city: geolocationInfo.city.name,
-            region: geolocationInfo.subdivisions[0] || { isoCode: '', name: '' },
-            country: geolocationInfo.country,
-            continent: geolocationInfo.continent,
-            location: geolocationInfo.location,
+            ip: geolocationInfo.ipAddress || 'unknown',
+            city: geolocationInfo.city?.name || 'unknown',
+            region: geolocationInfo.subdivisions?.[0] || { isoCode: '', name: '' },
+            country: geolocationInfo.country || { isoCode: '', name: '' },
+            continent: geolocationInfo.continent || { code: '', name: '' },
+            location: geolocationInfo.location || { accuracyRadius: 0, latitude: 0, longitude: 0, timeZone: 'UTC' },
             traits: {
-                isAnonymous: geolocationInfo.traits.isAnonymous,
-                isAnonymousProxy: geolocationInfo.traits.isAnonymousProxy,
-                isAnonymousVpn: geolocationInfo.traits.isAnonymousVpn,
-                network: geolocationInfo.traits.network
+                isAnonymous: geolocationInfo.traits?.isAnonymous || false,
+                isAnonymousProxy: geolocationInfo.traits?.isAnonymousProxy || false,
+                isAnonymousVpn: geolocationInfo.traits?.isAnonymousVpn || false,
+                network: geolocationInfo.traits?.network || 'unknown'
             }
         } : null,
         

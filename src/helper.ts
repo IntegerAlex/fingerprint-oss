@@ -19,7 +19,7 @@ import { FontPreferencesInfo , MathInfo, PluginInfo, MimeType , TouchSupportInfo
  * @see https://developer.mozilla.org/en-US/docs/Web/CSS/@media/color-gamut
  */
 export function getColorGamut(): string {
-    if (!window.matchMedia) return 'unknown';
+    if (typeof window === 'undefined' || !window.matchMedia) return 'unknown';
     if (window.matchMedia('(color-gamut: rec2020)').matches) return 'rec2020';
     if (window.matchMedia('(color-gamut: p3)').matches) return 'p3';
     if (window.matchMedia('(color-gamut: srgb)').matches) return 'srgb';
@@ -33,6 +33,11 @@ export function getColorGamut(): string {
  */
 export async function getAudioFingerprint(): Promise<number | null> {
     try {
+        // Safety check for window and audio context availability
+        if (typeof window === 'undefined' || (!window.AudioContext && !(window as any).webkitAudioContext)) {
+            return null;
+        }
+        
         const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const analyser = audioContext.createAnalyser();
@@ -89,6 +94,9 @@ export function getVendorFlavors(): string[] {
  */
 export function isLocalStorageEnabled(): boolean {
     try {
+        if (typeof window === 'undefined' || !window.localStorage) {
+            return false;
+        }
         localStorage.setItem('test', 'test');
         localStorage.removeItem('test');
         return true;
@@ -104,6 +112,9 @@ export function isLocalStorageEnabled(): boolean {
  */
 export function isSessionStorageEnabled(): boolean {
     try {
+        if (typeof window === 'undefined' || !window.sessionStorage) {
+            return false;
+        }
         sessionStorage.setItem('test', 'test');
         sessionStorage.removeItem('test');
         return true;
@@ -118,7 +129,7 @@ export function isSessionStorageEnabled(): boolean {
  * @returns `true` if `window.indexedDB` is present; otherwise, `false`.
  */
 export function isIndexedDBEnabled(): boolean {
-    return !!window.indexedDB;
+    return typeof window !== 'undefined' && !!window.indexedDB;
 }
 
 /**
@@ -132,6 +143,11 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
     let imageHash: string | null = null;
 
     try {
+        // Safety check for DOM availability
+        if (typeof document === 'undefined' || !document.createElement) {
+            return { vendor, renderer, imageHash: 'dom_unavailable' };
+        }
+        
         const canvas = document.createElement('canvas');
         canvas.width = 64;
         canvas.height = 64;
@@ -175,17 +191,29 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
             `;
 
             const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-            if (!vertexShader) throw new Error("Failed to create vertex shader");
+            if (!vertexShader) {
+                console.warn('Failed to create vertex shader');
+                imageHash = 'shader_creation_error';
+                return { vendor, renderer, imageHash };
+            }
             gl.shaderSource(vertexShader, vsSource);
             gl.compileShader(vertexShader);
 
             const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-            if (!fragmentShader) throw new Error("Failed to create fragment shader");
+            if (!fragmentShader) {
+                console.warn('Failed to create fragment shader');
+                imageHash = 'shader_creation_error';
+                return { vendor, renderer, imageHash };
+            }
             gl.shaderSource(fragmentShader, fsSource);
             gl.compileShader(fragmentShader);
 
             const program = gl.createProgram();
-            if (!program) throw new Error("Failed to create program");
+            if (!program) {
+                console.warn('Failed to create program');
+                imageHash = 'program_creation_error';
+                return { vendor, renderer, imageHash };
+            }
             gl.attachShader(program, vertexShader);
             gl.attachShader(program, fragmentShader);
             gl.linkProgram(program);
@@ -245,6 +273,11 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
  */
 export function getCanvasFingerprint(): CanvasInfo {
     try {
+        // Safety check for DOM availability
+        if (typeof document === 'undefined' || !document.createElement) {
+            return { winding: false, geometry: '', text: '' };
+        }
+        
         const canvas = document.createElement('canvas');
         canvas.width = 200;
         canvas.height = 50;
@@ -281,23 +314,31 @@ export function getCanvasFingerprint(): CanvasInfo {
  * @returns An array of plugin information objects, or an empty array if not available.
  */
 export function getPluginsInfo(): PluginInfo[] {
-    if (!navigator.plugins) {
+    // Safety check for navigator availability
+    if (typeof navigator === 'undefined' || !navigator.plugins) {
         console.warn('Navigator plugins not available');
         return [];
     }
+    
     try {
         return Array.from(navigator.plugins).map(plugin => {
             if (!plugin) return null;
             const mimeTypes: MimeType[] = [];
-            for (const key in plugin) {
-                const value = plugin[key];
-                if (value && typeof value === 'object' && value.type && value.suffixes) {
-                    mimeTypes.push({
-                        type: value.type,
-                        suffixes: value.suffixes
-                    });
+            
+            try {
+                for (const key in plugin) {
+                    const value = plugin[key];
+                    if (value && typeof value === 'object' && value.type && value.suffixes) {
+                        mimeTypes.push({
+                            type: value.type || '',
+                            suffixes: value.suffixes || ''
+                        });
+                    }
                 }
+            } catch (mimeError) {
+                console.warn('Error enumerating mime types for plugin:', plugin.name, mimeError);
             }
+            
             return {
                 name: plugin.name || '',
                 description: plugin.description || '',
@@ -366,6 +407,11 @@ export function getFontPreferences(): FontPreferencesInfo {
     const detectedFonts: string[] = [];
 
     try {
+        // Safety check for DOM availability
+        if (typeof document === 'undefined' || !document.createElement) {
+            return { detectedFonts: [] };
+        }
+        
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         if (!context) {
