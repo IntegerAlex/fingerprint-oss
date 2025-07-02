@@ -83,6 +83,8 @@ export function checkBrowserConsistency(systemInfo: any): number {
         if (systemInfo.deviceMemory > 8 && systemInfo.hardwareConcurrency < 4) inconsistencies++;
     }
 
-    return Math.max(-0.3, Math.min(0.3, -inconsistencies * 0.1));
+    const score = Math.max(-0.3, Math.min(0.3, -inconsistencies * 0.1));
+    // Fix -0 vs 0 issue by converting -0 to 0
+    return score === 0 ? 0 : score;
 }
 

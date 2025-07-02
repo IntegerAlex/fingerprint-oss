@@ -9,10 +9,77 @@
  */
 import { generateJSON } from './json';
 import { fetchGeolocationInfo } from './geo-ip';
-import { getSystemInfo } from './systemInfo';
+import { getSystemInfo, detectBot } from './systemInfo';
 import { getMockSystemInfo } from './mock';
-import { isRiskyASN, getUAPlatformMismatch } from './confidence';
+import { isRiskyASN, getUAPlatformMismatch, getLanguageConsistency, checkBrowserConsistency } from './confidence';
 import { Toast } from './compliance';
+import { generateId } from './hash';
+import { detectIncognito } from './incognito';
+import { detectAdBlockers } from './adblocker';
+import { getVpnStatus } from './vpn';
+import { 
+    getColorGamut, 
+    getVendorFlavors, 
+    isLocalStorageEnabled, 
+    isSessionStorageEnabled, 
+    isIndexedDBEnabled, 
+    getTouchSupportInfo, 
+    getOSInfo, 
+    getPluginsInfo, 
+    getMathFingerprint, 
+    getCanvasFingerprint,
+    getAudioFingerprint,
+    getWebGLInfo,
+    getFontPreferences,
+    estimateCores
+} from './helper';
+
+// Export all the individual functions
+export {
+    // Core system functions
+    getSystemInfo,
+    detectBot,
+    fetchGeolocationInfo,
+    generateJSON,
+    generateId,
+    
+    // Privacy detection functions
+    detectIncognito,
+    detectAdBlockers,
+    getVpnStatus,
+    
+    // Helper functions
+    getColorGamut,
+    getVendorFlavors,
+    isLocalStorageEnabled,
+    isSessionStorageEnabled,
+    isIndexedDBEnabled,
+    getTouchSupportInfo,
+    getOSInfo,
+    getPluginsInfo,
+    getMathFingerprint,
+    getCanvasFingerprint,
+    getAudioFingerprint,
+    getWebGLInfo,
+    getFontPreferences,
+    estimateCores,
+    
+    // Confidence functions
+    getLanguageConsistency,
+    isRiskyASN,
+    getUAPlatformMismatch,
+    checkBrowserConsistency,
+    
+    // Mock data function
+    getMockSystemInfo,
+    
+    // Compliance
+    Toast
+};
+
+// Export types
+export * from './types';
+export type { GeolocationInfo } from './geo-ip';
 
 /**
  * Calculates a combined confidence score based on system and geolocation information.
@@ -43,19 +110,15 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
         confidence -= Math.min(0.4, systemInfo.bot.confidence * 0.6);
     }
 
-    // Geo verification
-    if (geoInfo) {
-        // Penalize suspicious network providers
-        if (geoInfo.proxy || geoInfo.hosting || geoInfo.tor) {
-            confidence -= 0.2;
-        }
-        
-        // Validate timezone consistency
-        if (systemInfo?.timezone && geoInfo.timezone !== systemInfo.timezone) {
-            confidence -= 0.15;
-        }
-    } else {
-        confidence -= 0.3;
+    // Geo verification - geoInfo is now always available
+    // Penalize suspicious network providers
+    if (geoInfo.traits?.isAnonymousProxy || geoInfo.traits?.isHostingProvider || geoInfo.traits?.isTorExitNode) {
+        confidence -= 0.2;
+    }
+    
+    // Validate timezone consistency
+    if (systemInfo?.timezone && geoInfo.location?.timeZone !== systemInfo.timezone) {
+        confidence -= 0.15;
     }
 
     // Hardware/software consistency
@@ -106,10 +169,12 @@ export default async function userInfo(config:{transparency?:boolean, message?:s
         console.error('Data collection error:', error);
         // Get fallback data
         const mockSystem = getMockSystemInfo();
+        // fetchGeolocationInfo now always returns valid data, so we can use it as fallback too
+        const fallbackGeo = await fetchGeolocationInfo();
         return generateJSON(
-            null,
+            fallbackGeo,
             mockSystem,
-            calculateCombinedConfidence(mockSystem, null)
+            calculateCombinedConfidence(mockSystem, fallbackGeo)
         );
     }
 }

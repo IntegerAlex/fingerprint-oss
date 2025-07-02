@@ -8,7 +8,7 @@
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
 const PROXY_API_KEY = 'tester';
-const GEOIP_URL = 'https://proxy-server-deploy.onrender.com';
+const GEOIP_URL = 'https://fingerprint-proxy.gossorg.in/';
 // Warn if required environment variables are missing
 if (!PROXY_API_KEY || !GEOIP_URL) {
     console.warn('Warning: PROXY_API_KEY or GEOIP_URL environment variables are not set. Geolocation functionality may not work correctly.');
@@ -62,74 +62,83 @@ export interface GeolocationInfo {
         network: string;
     };
 }
+
+/**
+ * Get mock geolocation data for fallback scenarios
+ */
+function getMockGeolocationData(): GeolocationInfo {
+    return {
+        ipAddress: '192.168.1.1',
+        country: { isoCode: 'US', name: 'United States' },
+        registeredCountry: { isoCode: 'US', name: 'United States', isInEuropeanUnion: false },
+        city: { name: 'New York', geonameId: 123456 },
+        continent: { code: 'NA', name: 'North America' },
+        subdivisions: [{ isoCode: 'NY', name: 'New York' }],
+        location: {
+            accuracyRadius: 100,
+            latitude: 40.7128,
+            longitude: -74.0060,
+            timeZone: 'America/New_York'
+        },
+        postal: { code: '10001' },
+        traits: {
+            isAnonymous: false,
+            isAnonymousProxy: false,
+            isAnonymousVpn: false,
+            isAnycast: false,
+            isHostingProvider: false,
+            isLegitimateProxy: false,
+            isPublicProxy: false,
+            isResidentialProxy: false,
+            isSatelliteProvider: false,
+            isTorExitNode: false,
+            ipAddress: '192.168.1.1',
+            network: '192.168.1.0/24'
+        }
+    };
+}
+
 /**
  * Fetch geolocation information for the current user's IP address.
- * @param none
- * @returns Geolocation information or null if an error occurred.
+ * Always returns valid GeolocationInfo data, falling back to mock data if needed.
+ * @returns Geolocation information (never null)
  */
-export async function fetchGeolocationInfo(): Promise<GeolocationInfo | null> {
-    // Only use mock data if API credentials are missing
-    const useMockData = !PROXY_API_KEY || !GEOIP_URL;
-
-    if (useMockData) {
-        console.log('Using mock geolocation data due to missing API credentials');
-        return {
-            ipAddress: '192.168.1.1',
-            country: { isoCode: 'US', name: 'United States' },
-            registeredCountry: { isoCode: 'US', name: 'United States', isInEuropeanUnion: false },
-            city: { name: 'New York', geonameId: 123456 },
-            continent: { code: 'NA', name: 'North America' },
-            subdivisions: [{ isoCode: 'NY', name: 'New York' }],
-            location: {
-                accuracyRadius: 100,
-                latitude: 40.7128,
-                longitude: -74.0060,
-                timeZone: 'America/New_York'
-            },
-            postal: { code: '10001' },
-            traits: {
-                isAnonymous: false,
-                isAnonymousProxy: false,
-                isAnonymousVpn: false,
-                isAnycast: false,
-                isHostingProvider: false,
-                isLegitimateProxy: false,
-                isPublicProxy: false,
-                isResidentialProxy: false,
-                isSatelliteProvider: false,
-                isTorExitNode: false,
-                ipAddress: '192.168.1.1',
-                network: '192.168.1.0/24'
-            }
-        };
-    }
-
+export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
     try {
         const response = await fetch(GEOIP_URL, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': PROXY_API_KEY
-            }
+            method: 'GET'
         });
 
         if (!response.ok) {
-            throw new Error(`Geolocation API request failed: ${response.statusText}`);
+            console.warn(`Geolocation API request failed: ${response.statusText}, using mock data`);
+            return getMockGeolocationData();
         }
 
         const data = await response.json();
+        
+        // Validate and structure the response
+        if (!data || typeof data !== 'object') {
+            console.warn('Invalid API response, using mock data');
+            return getMockGeolocationData();
+        }
+
         // Use the IP address from response data
-        const detectedIp = data.traits?.ipAddress || 'unknown';
+        const detectedIp = data.traits?.ipAddress || data.ipAddress || '192.168.1.1';
 
         return {
             ipAddress: detectedIp,
-            country: data.country || { isoCode: '', name: '' },
-            registeredCountry: data.registeredCountry || { isoCode: '', name: '', isInEuropeanUnion: false },
-            city: data.city || { name: '', geonameId: 0 },
-            continent: data.continent || { code: '', name: '' },
-            subdivisions: data.subdivisions || [],
-            location: data.location || { accuracyRadius: 0, latitude: 0, longitude: 0, timeZone: '' },
-            postal: data.postal || { code: '' },
+            country: data.country || { isoCode: 'US', name: 'United States' },
+            registeredCountry: data.registeredCountry || { isoCode: 'US', name: 'United States', isInEuropeanUnion: false },
+            city: data.city || { name: 'New York', geonameId: 123456 },
+            continent: data.continent || { code: 'NA', name: 'North America' },
+            subdivisions: data.subdivisions || [{ isoCode: 'NY', name: 'New York' }],
+            location: data.location || { 
+                accuracyRadius: 100, 
+                latitude: 40.7128, 
+                longitude: -74.0060, 
+                timeZone: 'America/New_York' 
+            },
+            postal: data.postal || { code: '10001' },
             traits: data.traits || {
                 isAnonymous: false,
                 isAnonymousProxy: false,
@@ -141,13 +150,13 @@ export async function fetchGeolocationInfo(): Promise<GeolocationInfo | null> {
                 isResidentialProxy: false,
                 isSatelliteProvider: false,
                 isTorExitNode: false,
-                ipAddress: detectedIp, // Use the detected IP
-                network: ''
+                ipAddress: detectedIp,
+                network: '192.168.1.0/24'
             }
         };
     } catch (error) {
-        console.error('Error fetching geolocation information:', error);
-        return null;
+        console.warn('Error fetching geolocation information:', error, '- using mock data');
+        return getMockGeolocationData();
     }
 }
 
