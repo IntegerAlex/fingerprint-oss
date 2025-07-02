@@ -34,52 +34,7 @@ import {
     estimateCores
 } from './helper';
 
-// Export all the individual functions
-export {
-    // Core system functions
-    getSystemInfo,
-    detectBot,
-    fetchGeolocationInfo,
-    generateJSON,
-    generateId,
-    
-    // Privacy detection functions
-    detectIncognito,
-    detectAdBlockers,
-    getVpnStatus,
-    
-    // Helper functions
-    getColorGamut,
-    getVendorFlavors,
-    isLocalStorageEnabled,
-    isSessionStorageEnabled,
-    isIndexedDBEnabled,
-    getTouchSupportInfo,
-    getOSInfo,
-    getPluginsInfo,
-    getMathFingerprint,
-    getCanvasFingerprint,
-    getAudioFingerprint,
-    getWebGLInfo,
-    getFontPreferences,
-    estimateCores,
-    
-    // Confidence functions
-    getLanguageConsistency,
-    isRiskyASN,
-    getUAPlatformMismatch,
-    checkBrowserConsistency,
-    
-    // Mock data function
-    getMockSystemInfo,
-    
-    // Compliance
-    Toast
-};
-
-// Export types
-export * from './types';
-export type { GeolocationInfo } from './geo-ip';
+// Note: All individual functions are available as properties of the default export
 
 /**
  * Calculates a combined confidence score based on system and geolocation information.
@@ -141,7 +96,7 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  *   - `message`: A custom message to log and display; defaults to "the software is gathering system data" if not specified.
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
-export default async function userInfo(config:{transparency?:boolean, message?:string}={}) {
+async function userInfo(config:{transparency?:boolean, message?:string}={}) {
     try {
         // Parallel data fetching
         const [systemInfo, geoInfo] = await Promise.all([
@@ -178,3 +133,48 @@ export default async function userInfo(config:{transparency?:boolean, message?:s
         );
     }
 }
+
+// Create default export with all functions as properties
+const fingerprintOSS = Object.assign(userInfo, {
+    // Core system functions
+    getSystemInfo,
+    detectBot,
+    fetchGeolocationInfo,
+    generateJSON,
+    generateId,
+    
+    // Privacy detection functions
+    detectIncognito,
+    detectAdBlockers,
+    getVpnStatus,
+    
+    // Helper functions
+    getColorGamut,
+    getVendorFlavors,
+    isLocalStorageEnabled,
+    isSessionStorageEnabled,
+    isIndexedDBEnabled,
+    getTouchSupportInfo,
+    getOSInfo,
+    getPluginsInfo,
+    getMathFingerprint,
+    getCanvasFingerprint,
+    getAudioFingerprint,
+    getWebGLInfo,
+    getFontPreferences,
+    estimateCores,
+    
+    // Confidence functions
+    getLanguageConsistency,
+    isRiskyASN,
+    getUAPlatformMismatch,
+    checkBrowserConsistency,
+    
+    // Mock data function
+    getMockSystemInfo,
+    
+    // Compliance
+    Toast
+});
+
+export default fingerprintOSS;
