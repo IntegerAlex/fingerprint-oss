@@ -19,8 +19,9 @@
   "files": [
     "dist",
     "LICENSE",
+    "NOTICE.md",
+    "COPYRIGHT.md",
     "README.md",
-    ".env",
     "package.json"
   ],
   "keywords": [
