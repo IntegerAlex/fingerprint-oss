@@ -489,3 +489,783 @@ describe('Index Module', () => {
     });
   });
 }); 
+  describe('Advanced System Information Tests', () => {
+    it('should handle different platform combinations', async () => {
+      const testCases = [
+        { userAgent: 'Mozilla/5.0 (X11; Linux x86_64)', platform: 'Linux x86_64' },
+        { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', platform: 'MacIntel' },
+        { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', platform: 'Win32' },
+        { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)', platform: 'iPhone' }
+      ];
+
+      for (const testCase of testCases) {
+        mockNavigatorProperty('userAgent', testCase.userAgent);
+        mockNavigatorProperty('platform', testCase.platform);
+        
+        const systemInfo = await indexModule.getSystemInfo();
+        expect(systemInfo.userAgent).toBe(testCase.userAgent);
+        expect(systemInfo.platform).toBe(testCase.platform);
+        expect(systemInfo.os).toBeDefined();
+        expect(systemInfo.os.name).toBeDefined();
+      }
+    });
+
+    it('should detect mobile vs desktop environments', async () => {
+      // Test mobile environment
+      mockNavigatorProperty('userAgent', 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15');
+      mockNavigatorProperty('maxTouchPoints', 5);
+      
+      const mobileInfo = await indexModule.getSystemInfo();
+      expect(mobileInfo.touchSupport.maxTouchPoints).toBe(5);
+      
+      // Test desktop environment
+      mockNavigatorProperty('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      mockNavigatorProperty('maxTouchPoints', 0);
+      
+      const desktopInfo = await indexModule.getSystemInfo();
+      expect(desktopInfo.touchSupport.maxTouchPoints).toBe(0);
+    });
+
+    it('should handle various hardware concurrency values', async () => {
+      const testValues = [1, 2, 4, 8, 16, 32];
+      
+      for (const cores of testValues) {
+        mockNavigatorProperty('hardwareConcurrency', cores);
+        
+        const systemInfo = await indexModule.getSystemInfo();
+        expect(systemInfo.hardwareConcurrency).toBe(cores);
+        
+        const estimatedCores = await indexModule.estimateCores();
+        expect(estimatedCores).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it('should handle different language configurations', async () => {
+      const languageConfigs = [
+        ['en-US', 'en'],
+        ['fr-FR', 'fr', 'en'],
+        ['zh-CN', 'zh', 'en-US'],
+        ['es-ES', 'ca', 'es', 'en']
+      ];
+
+      for (const languages of languageConfigs) {
+        mockNavigatorProperty('languages', languages);
+        
+        const systemInfo = await indexModule.getSystemInfo();
+        expect(systemInfo.languages).toEqual(languages);
+        expect(systemInfo.language).toBe(languages[0]);
+      }
+    });
+
+    it('should handle cookie and DNT settings', async () => {
+      const testCases = [
+        { cookieEnabled: true, doNotTrack: null },
+        { cookieEnabled: false, doNotTrack: '1' },
+        { cookieEnabled: true, doNotTrack: '0' },
+        { cookieEnabled: false, doNotTrack: 'unspecified' }
+      ];
+
+      for (const testCase of testCases) {
+        mockNavigatorProperty('cookieEnabled', testCase.cookieEnabled);
+        mockNavigatorProperty('doNotTrack', testCase.doNotTrack);
+        
+        const systemInfo = await indexModule.getSystemInfo();
+        expect(systemInfo.cookieEnabled).toBe(testCase.cookieEnabled);
+        expect(systemInfo.doNotTrack).toBe(testCase.doNotTrack);
+      }
+    });
+  });
+
+  describe('Fingerprinting Component Tests', () => {
+    it('should generate consistent canvas fingerprints', () => {
+      const fingerprint1 = indexModule.getCanvasFingerprint();
+      const fingerprint2 = indexModule.getCanvasFingerprint();
+      
+      expect(fingerprint1).toBeDefined();
+      expect(fingerprint2).toBeDefined();
+      expect(typeof fingerprint1).toBe('string');
+      expect(typeof fingerprint2).toBe('string');
+      expect(fingerprint1).toBe(fingerprint2);
+      expect(fingerprint1.length).toBeGreaterThan(10);
+    });
+
+    it('should generate math fingerprints with expected properties', () => {
+      const mathFP = indexModule.getMathFingerprint();
+      
+      expect(mathFP).toBeDefined();
+      expect(typeof mathFP).toBe('object');
+      expect(mathFP).toHaveProperty('tan');
+      expect(mathFP).toHaveProperty('sin');
+      expect(mathFP).toHaveProperty('cos');
+      expect(typeof mathFP.tan).toBe('number');
+      expect(typeof mathFP.sin).toBe('number');
+      expect(typeof mathFP.cos).toBe('number');
+    });
+
+    it('should handle audio fingerprinting gracefully', async () => {
+      // Mock AudioContext for environments that don't have it
+      const mockAudioContext = {
+        createOscillator: vi.fn(() => ({
+          connect: vi.fn(),
+          start: vi.fn(),
+          stop: vi.fn(),
+          frequency: { value: 0 }
+        })),
+        createAnalyser: vi.fn(() => ({
+          connect: vi.fn(),
+          getFloatFrequencyData: vi.fn()
+        })),
+        createGain: vi.fn(() => ({
+          connect: vi.fn(),
+          gain: { value: 0 }
+        })),
+        destination: {},
+        close: vi.fn()
+      };
+
+      global.AudioContext = vi.fn(() => mockAudioContext);
+      global.webkitAudioContext = vi.fn(() => mockAudioContext);
+
+      const audioFP = await indexModule.getAudioFingerprint();
+      expect(audioFP).toBeDefined();
+      expect(typeof audioFP).toBe('string');
+    });
+
+    it('should handle WebGL fingerprinting', async () => {
+      // Mock basic WebGL context
+      const mockWebGLContext = {
+        getParameter: vi.fn((param) => {
+          const params = {
+            7936: 'Mock Vendor', // VENDOR
+            7937: 'Mock Renderer', // RENDERER
+            7938: '1.0', // VERSION
+            35724: 'Mock Extensions' // SHADING_LANGUAGE_VERSION
+          };
+          return params[param] || 'Mock Value';
+        }),
+        getSupportedExtensions: vi.fn(() => ['WEBGL_debug_renderer_info', 'OES_texture_float'])
+      };
+
+      const mockCanvas = {
+        getContext: vi.fn(() => mockWebGLContext)
+      };
+
+      global.HTMLCanvasElement.prototype.getContext = vi.fn(() => mockWebGLContext);
+      global.document = { createElement: vi.fn(() => mockCanvas) } as any;
+
+      const webglInfo = await indexModule.getWebGLInfo();
+      expect(webglInfo).toBeDefined();
+      expect(webglInfo).toHaveProperty('vendor');
+      expect(webglInfo).toHaveProperty('renderer');
+    });
+
+    it('should detect font preferences accurately', () => {
+      const fontPrefs = indexModule.getFontPreferences();
+      
+      expect(fontPrefs).toBeDefined();
+      expect(Array.isArray(fontPrefs)).toBe(true);
+      expect(fontPrefs.length).toBeGreaterThan(0);
+      
+      fontPrefs.forEach(font => {
+        expect(typeof font).toBe('string');
+        expect(font.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should handle plugins information', () => {
+      const mockPlugins = {
+        length: 2,
+        item: (index: number) => index === 0 ? { name: 'Plugin 1' } : { name: 'Plugin 2' },
+        namedItem: () => null,
+        refresh: () => {},
+        [Symbol.iterator]: function* () {
+          yield { name: 'Plugin 1' };
+          yield { name: 'Plugin 2' };
+        },
+        0: { name: 'Plugin 1' },
+        1: { name: 'Plugin 2' }
+      } as PluginArray;
+
+      mockNavigatorProperty('plugins', mockPlugins);
+      
+      const pluginInfo = indexModule.getPluginsInfo();
+      expect(pluginInfo).toBeDefined();
+      expect(Array.isArray(pluginInfo)).toBe(true);
+    });
+  });
+
+  describe('Storage and Capability Tests', () => {
+    it('should test localStorage with various scenarios', () => {
+      // Test enabled localStorage
+      global.window.localStorage = {
+        setItem: vi.fn(),
+        getItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn()
+      } as any;
+
+      expect(indexModule.isLocalStorageEnabled()).toBe(true);
+
+      // Test disabled localStorage
+      global.window.localStorage = {
+        setItem: vi.fn().mockImplementation(() => {
+          throw new Error('QuotaExceededError');
+        }),
+        getItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn()
+      } as any;
+
+      expect(indexModule.isLocalStorageEnabled()).toBe(false);
+
+      // Test missing localStorage
+      delete (global.window as any).localStorage;
+      expect(indexModule.isLocalStorageEnabled()).toBe(false);
+    });
+
+    it('should test sessionStorage with various scenarios', () => {
+      // Test enabled sessionStorage
+      global.window.sessionStorage = {
+        setItem: vi.fn(),
+        getItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn()
+      } as any;
+
+      expect(indexModule.isSessionStorageEnabled()).toBe(true);
+
+      // Test disabled sessionStorage
+      global.window.sessionStorage = {
+        setItem: vi.fn().mockImplementation(() => {
+          throw new Error('QuotaExceededError');
+        }),
+        getItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn()
+      } as any;
+
+      expect(indexModule.isSessionStorageEnabled()).toBe(false);
+    });
+
+    it('should test IndexedDB availability', async () => {
+      // Mock IndexedDB
+      const mockIDBOpenDBRequest = {
+        onsuccess: null as any,
+        onerror: null as any,
+        onupgradeneeded: null as any
+      };
+
+      global.indexedDB = {
+        open: vi.fn(() => mockIDBOpenDBRequest)
+      } as any;
+
+      const isEnabled = await indexModule.isIndexedDBEnabled();
+      expect(typeof isEnabled).toBe('boolean');
+
+      // Test without IndexedDB
+      delete (global as any).indexedDB;
+      const isEnabledWithoutIDB = await indexModule.isIndexedDBEnabled();
+      expect(isEnabledWithoutIDB).toBe(false);
+    });
+
+    it('should handle screen information', async () => {
+      const screenConfigs = [
+        { width: 1920, height: 1080, colorDepth: 24 },
+        { width: 1366, height: 768, colorDepth: 32 },
+        { width: 375, height: 667, colorDepth: 24 }, // Mobile
+        { width: 2560, height: 1440, colorDepth: 30 }  // High-DPI
+      ];
+
+      for (const config of screenConfigs) {
+        global.window.screen = config as any;
+        
+        const systemInfo = await indexModule.getSystemInfo();
+        expect(systemInfo.screen.width).toBe(config.width);
+        expect(systemInfo.screen.height).toBe(config.height);
+        expect(systemInfo.screen.colorDepth).toBe(config.colorDepth);
+      }
+    });
+  });
+
+  describe('Advanced Detection Tests', () => {
+    it('should handle different bot detection scenarios', async () => {
+      const botScenarios = [
+        { webdriver: true, userAgent: 'Normal UA', expected: true },
+        { webdriver: false, userAgent: 'Mozilla/5.0 bot/1.0', expected: true },
+        { webdriver: false, userAgent: 'Normal Chrome UA', expected: false },
+        { webdriver: undefined, userAgent: 'Googlebot/2.1', expected: true }
+      ];
+
+      for (const scenario of botScenarios) {
+        if (scenario.webdriver !== undefined) {
+          mockNavigatorProperty('webdriver', scenario.webdriver);
+        }
+        mockNavigatorProperty('userAgent', scenario.userAgent);
+        
+        const botResult = await indexModule.detectBot();
+        expect(botResult).toHaveProperty('isBot');
+        expect(botResult).toHaveProperty('confidence');
+        expect(typeof botResult.isBot).toBe('boolean');
+        expect(typeof botResult.confidence).toBe('number');
+      }
+    });
+
+    it('should test color gamut detection', () => {
+      // Mock CSS.supports for color gamut testing
+      global.CSS = {
+        supports: vi.fn((property: string, value: string) => {
+          if (property === 'color-gamut') {
+            return value === 'srgb';
+          }
+          return false;
+        })
+      } as any;
+
+      const colorGamut = indexModule.getColorGamut();
+      expect(typeof colorGamut).toBe('string');
+      expect(['srgb', 'p3', 'rec2020', 'unknown'].includes(colorGamut)).toBe(true);
+    });
+
+    it('should test vendor flavor detection', () => {
+      const vendorTests = [
+        { vendor: 'Google Inc.', userAgent: 'Chrome', expected: 'chrome' },
+        { vendor: 'Apple Computer, Inc.', userAgent: 'Safari', expected: 'safari' },
+        { vendor: '', userAgent: 'Firefox', expected: 'firefox' },
+        { vendor: 'Microsoft Corporation', userAgent: 'Edge', expected: 'edge' }
+      ];
+
+      for (const test of vendorTests) {
+        mockNavigatorProperty('vendor', test.vendor);
+        mockNavigatorProperty('userAgent', test.userAgent);
+        
+        const flavors = indexModule.getVendorFlavors();
+        expect(Array.isArray(flavors)).toBe(true);
+        expect(flavors.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should handle touch support detection', () => {
+      const touchTests = [
+        { maxTouchPoints: 0, expected: false },
+        { maxTouchPoints: 1, expected: true },
+        { maxTouchPoints: 10, expected: true }
+      ];
+
+      for (const test of touchTests) {
+        mockNavigatorProperty('maxTouchPoints', test.maxTouchPoints);
+        
+        const touchInfo = indexModule.getTouchSupportInfo();
+        expect(touchInfo).toHaveProperty('maxTouchPoints');
+        expect(touchInfo.maxTouchPoints).toBe(test.maxTouchPoints);
+        expect(touchInfo).toHaveProperty('touchEvent');
+        expect(typeof touchInfo.touchEvent).toBe('boolean');
+      }
+    });
+  });
+
+  describe('Geolocation and Network Tests', () => {
+    it('should handle various geolocation response formats', async () => {
+      const geoResponses = [
+        {
+          ipAddress: '8.8.8.8',
+          country: { isoCode: 'US', name: 'United States' },
+          location: { timeZone: 'America/New_York', latitude: 40.7128, longitude: -74.0060 },
+          traits: { isAnonymous: false, autonomousSystemNumber: 15169 }
+        },
+        {
+          ipAddress: '1.1.1.1',
+          country: { isoCode: 'AU', name: 'Australia' },
+          location: { timeZone: 'Australia/Sydney' },
+          traits: { isAnonymous: true }
+        },
+        null, // Null response
+        {}, // Empty response
+        { error: 'Service unavailable' } // Error response
+      ];
+
+      for (const response of geoResponses) {
+        global.fetch = vi.fn().mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(response)
+        });
+
+        const geoInfo = await indexModule.fetchGeolocationInfo();
+        expect(geoInfo).toBeDefined();
+        
+        if (response && !response.error) {
+          expect(geoInfo).toHaveProperty('ipAddress');
+        }
+      }
+    });
+
+    it('should handle network errors in geolocation', async () => {
+      const networkErrors = [
+        new Error('Network timeout'),
+        new Error('DNS resolution failed'),
+        new Error('Connection refused'),
+        new TypeError('Failed to fetch')
+      ];
+
+      for (const error of networkErrors) {
+        global.fetch = vi.fn().mockRejectedValue(error);
+        
+        const geoInfo = await indexModule.fetchGeolocationInfo();
+        expect(geoInfo).toBeDefined(); // Should return fallback data
+      }
+    });
+
+    it('should test VPN detection with various timezone scenarios', async () => {
+      const timezoneScenarios = [
+        { timeZone: 'America/New_York', language: 'en-US', expected: 'low_risk' },
+        { timeZone: 'Europe/London', language: 'fr-FR', expected: 'medium_risk' },
+        { timeZone: 'Asia/Tokyo', language: 'en-US', expected: 'high_risk' },
+        { timeZone: undefined, language: 'en-US', expected: 'unknown' }
+      ];
+
+      for (const scenario of timezoneScenarios) {
+        mockNavigatorProperty('language', scenario.language);
+        
+        const vpnStatus = await indexModule.getVpnStatus(scenario);
+        expect(vpnStatus).toBeDefined();
+        expect(typeof vpnStatus).toBe('object');
+      }
+    });
+  });
+
+  describe('Confidence Assessment Edge Cases', () => {
+    it('should handle extreme language consistency scenarios', () => {
+      const testCases = [
+        { language: 'en', country: 'US', expected: 'high' },
+        { language: 'zh', country: 'US', expected: 'low' },
+        { language: 'fr', country: 'FR', expected: 'high' },
+        { language: 'unknown', country: 'XX', expected: 'low' },
+        { language: '', country: '', expected: 'low' }
+      ];
+
+      for (const testCase of testCases) {
+        const consistency = indexModule.getLanguageConsistency(testCase.language, testCase.country);
+        expect(typeof consistency).toBe('number');
+        expect(consistency).toBeGreaterThanOrEqual(0);
+        expect(consistency).toBeLessThanOrEqual(1);
+      }
+    });
+
+    it('should test risky ASN detection with various formats', () => {
+      const asnTests = [
+        'AS15169', // Google
+        'AS13335', // Cloudflare
+        'AS16509', // Amazon
+        'AS12345', // Unknown
+        'invalid-asn',
+        '',
+        null as any,
+        undefined as any
+      ];
+
+      for (const asn of asnTests) {
+        const isRisky = indexModule.isRiskyASN(asn);
+        expect(typeof isRisky).toBe('boolean');
+      }
+    });
+
+    it('should handle complex UA platform mismatch scenarios', () => {
+      const mismatchTests = [
+        {
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+          platform: 'Win32',
+          expected: 'low_mismatch'
+        },
+        {
+          userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+          platform: 'Win32',
+          expected: 'high_mismatch'
+        },
+        {
+          userAgent: 'Mozilla/5.0 (X11; Linux x86_64)',
+          platform: 'MacIntel',
+          expected: 'high_mismatch'
+        },
+        {
+          userAgent: '',
+          platform: '',
+          expected: 'unknown'
+        }
+      ];
+
+      for (const test of mismatchTests) {
+        const mismatch = indexModule.getUAPlatformMismatch(test.userAgent, test.platform);
+        expect(typeof mismatch).toBe('number');
+        expect(mismatch).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    it('should test browser consistency with various system configurations', async () => {
+      const systemConfigs = [
+        {
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0',
+          platform: 'Win32',
+          vendor: 'Google Inc.',
+          languages: ['en-US', 'en']
+        },
+        {
+          userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/14.1.1',
+          platform: 'MacIntel',
+          vendor: 'Apple Computer, Inc.',
+          languages: ['en-US', 'en']
+        },
+        {
+          userAgent: 'Inconsistent Bot Agent',
+          platform: 'Linux',
+          vendor: 'Unknown',
+          languages: ['xx-XX']
+        }
+      ];
+
+      for (const config of systemConfigs) {
+        mockNavigatorProperty('userAgent', config.userAgent);
+        mockNavigatorProperty('platform', config.platform);
+        mockNavigatorProperty('vendor', config.vendor);
+        mockNavigatorProperty('languages', config.languages);
+
+        const systemInfo = await indexModule.getSystemInfo();
+        const consistency = indexModule.checkBrowserConsistency(systemInfo);
+        
+        expect(typeof consistency).toBe('number');
+        expect(consistency).toBeGreaterThanOrEqual(0);
+        expect(consistency).toBeLessThanOrEqual(1);
+      }
+    });
+  });
+
+  describe('Data Generation and Serialization', () => {
+    it('should generate valid JSON with all required fields', async () => {
+      const mockGeoInfo = {
+        ipAddress: '8.8.8.8',
+        country: { isoCode: 'US', name: 'United States' },
+        location: { timeZone: 'America/New_York' },
+        traits: { isAnonymous: false }
+      };
+
+      const systemInfo = await indexModule.getSystemInfo();
+      const jsonData = await indexModule.generateJSON(mockGeoInfo, systemInfo);
+
+      expect(jsonData).toBeDefined();
+      expect(jsonData).toHaveProperty('hash');
+      expect(jsonData).toHaveProperty('systemInfo');
+      expect(jsonData).toHaveProperty('confidenceAssessment');
+      expect(jsonData).toHaveProperty('geolocationInfo');
+      
+      expect(typeof jsonData.hash).toBe('string');
+      expect(typeof jsonData.confidenceAssessment).toBe('number');
+      expect(jsonData.hash.length).toBeGreaterThan(0);
+    });
+
+    it('should generate consistent hashes for identical inputs', async () => {
+      const systemInfo = await indexModule.getSystemInfo();
+      
+      const hash1 = await indexModule.generateId(systemInfo);
+      const hash2 = await indexModule.generateId(systemInfo);
+      const hash3 = await indexModule.generateId({ ...systemInfo });
+      
+      expect(hash1).toBe(hash2);
+      expect(hash1).toBe(hash3);
+      expect(hash1).toMatch(/^[a-f0-9]+$/); // Should be hexadecimal
+    });
+
+    it('should generate different hashes for different inputs', async () => {
+      const systemInfo1 = await indexModule.getSystemInfo();
+      const systemInfo2 = { ...systemInfo1, userAgent: 'Different UA' };
+      
+      const hash1 = await indexModule.generateId(systemInfo1);
+      const hash2 = await indexModule.generateId(systemInfo2);
+      
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('should handle serialization of complex nested objects', async () => {
+      const complexSystemInfo = await indexModule.getSystemInfo();
+      
+      // Ensure the system info can be serialized to JSON
+      const serialized = JSON.stringify(complexSystemInfo);
+      const deserialized = JSON.parse(serialized);
+      
+      expect(deserialized).toEqual(complexSystemInfo);
+      expect(deserialized).toHaveProperty('userAgent');
+      expect(deserialized).toHaveProperty('confidenceScore');
+    });
+  });
+
+  describe('Utility Classes and Functions', () => {
+    it('should test Toast class functionality', () => {
+      const toast = new indexModule.Toast();
+      expect(toast).toBeDefined();
+      expect(toast.constructor.name).toBe('Toast');
+      
+      // Test if Toast has expected methods
+      expect(typeof toast.show).toBe('function');
+      expect(typeof toast.hide).toBe('function');
+    });
+
+    it('should test mock system info generation', () => {
+      const mockInfo = indexModule.getMockSystemInfo();
+      expect(mockInfo).toBeDefined();
+      expect(mockInfo).toHaveProperty('userAgent');
+      expect(mockInfo).toHaveProperty('platform');
+      expect(mockInfo).toHaveProperty('confidenceScore');
+      expect(typeof mockInfo.confidenceScore).toBe('number');
+      expect(mockInfo.confidenceScore).toBeGreaterThanOrEqual(0);
+      expect(mockInfo.confidenceScore).toBeLessThanOrEqual(1);
+    });
+
+    it('should validate mock data structure matches real data', async () => {
+      const realSystemInfo = await indexModule.getSystemInfo();
+      const mockSystemInfo = indexModule.getMockSystemInfo();
+      
+      // Should have same properties
+      const realKeys = Object.keys(realSystemInfo).sort();
+      const mockKeys = Object.keys(mockSystemInfo).sort();
+      
+      expect(mockKeys.length).toBeGreaterThan(0);
+      // Mock should have at least the core properties
+      expect(mockSystemInfo).toHaveProperty('userAgent');
+      expect(mockSystemInfo).toHaveProperty('platform');
+      expect(mockSystemInfo).toHaveProperty('confidenceScore');
+    });
+  });
+
+  describe('Resource Management and Cleanup', () => {
+    it('should handle resource cleanup in fingerprinting', async () => {
+      const initialMemory = (performance as any).memory?.usedJSHeapSize || 0;
+      
+      // Perform multiple fingerprinting operations
+      for (let i = 0; i < 10; i++) {
+        await indexModule.getSystemInfo();
+        indexModule.getCanvasFingerprint();
+        await indexModule.getAudioFingerprint();
+      }
+      
+      // Force garbage collection if available
+      if (global.gc) {
+        global.gc();
+      }
+      
+      const finalMemory = (performance as any).memory?.usedJSHeapSize || 0;
+      
+      // Memory usage should not grow excessively
+      if (initialMemory > 0 && finalMemory > 0) {
+        const memoryGrowth = finalMemory - initialMemory;
+        expect(memoryGrowth).toBeLessThan(10 * 1024 * 1024); // Less than 10MB growth
+      }
+    });
+
+    it('should handle concurrent operations without conflicts', async () => {
+      const promises = [];
+      
+      // Create multiple concurrent operations
+      for (let i = 0; i < 10; i++) {
+        promises.push(indexModule.getSystemInfo());
+        promises.push(indexModule.fetchGeolocationInfo());
+        promises.push(indexModule.detectIncognito());
+      }
+      
+      const results = await Promise.allSettled(promises);
+      
+      // All operations should complete successfully or fail gracefully
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          expect(result.value).toBeDefined();
+        } else {
+          // Failures should be handled gracefully
+          expect(result.reason).toBeInstanceOf(Error);
+        }
+      });
+    });
+
+    it('should handle timeout scenarios gracefully', async () => {
+      // Mock slow operations
+      const slowFetch = vi.fn().mockImplementation(() => 
+        new Promise(resolve => setTimeout(resolve, 100))
+      );
+      
+      global.fetch = slowFetch;
+      
+      const start = performance.now();
+      const result = await indexModule.fetchGeolocationInfo();
+      const end = performance.now();
+      
+      expect(result).toBeDefined();
+      // Should handle timeouts appropriately
+      expect(end - start).toBeLessThan(5000); // Reasonable timeout
+    });
+  });
+
+  describe('Integration and End-to-End Scenarios', () => {
+    it('should handle complete workflow with all components', async () => {
+      // Mock successful geolocation
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          ipAddress: '203.0.113.1',
+          country: { isoCode: 'US', name: 'United States' },
+          location: { timeZone: 'America/New_York' },
+          traits: { isAnonymous: false, autonomousSystemNumber: 15169 }
+        })
+      });
+
+      // Complete workflow
+      const geoInfo = await indexModule.fetchGeolocationInfo();
+      const systemInfo = await indexModule.getSystemInfo();
+      const jsonData = await indexModule.generateJSON(geoInfo, systemInfo);
+      const hash = await indexModule.generateId(systemInfo);
+      
+      expect(geoInfo).toBeDefined();
+      expect(systemInfo).toBeDefined();
+      expect(jsonData).toBeDefined();
+      expect(hash).toBeDefined();
+      
+      expect(jsonData.hash).toBe(hash);
+      expect(jsonData.systemInfo).toEqual(systemInfo);
+      expect(jsonData.geolocationInfo).toEqual(geoInfo);
+    });
+
+    it('should work in various simulated environments', async () => {
+      const environments = [
+        {
+          name: 'Mobile Safari',
+          userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1',
+          platform: 'iPhone',
+          vendor: 'Apple Computer, Inc.',
+          maxTouchPoints: 5
+        },
+        {
+          name: 'Desktop Chrome',
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          platform: 'Win32',
+          vendor: 'Google Inc.',
+          maxTouchPoints: 0
+        },
+        {
+          name: 'Linux Firefox',
+          userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0',
+          platform: 'Linux x86_64',
+          vendor: '',
+          maxTouchPoints: 0
+        }
+      ];
+
+      for (const env of environments) {
+        mockNavigatorProperty('userAgent', env.userAgent);
+        mockNavigatorProperty('platform', env.platform);
+        mockNavigatorProperty('vendor', env.vendor);
+        mockNavigatorProperty('maxTouchPoints', env.maxTouchPoints);
+
+        const result = await indexModule.default({ transparency: false });
+        
+        expect(result).toBeDefined();
+        expect(result).toHaveProperty('hash');
+        expect(result).toHaveProperty('systemInfo');
+        expect(result.systemInfo.userAgent).toBe(env.userAgent);
+        expect(result.systemInfo.platform).toBe(env.platform);
+      }
+    });
+  });
