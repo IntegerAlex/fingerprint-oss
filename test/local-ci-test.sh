@@ -41,13 +41,13 @@ elif command -v lsof &>/dev/null; then
     PID=$(lsof -ti :8080)
     if [ -n "$PID" ]; then
         echo "Killing process on port 8080 (PID: $PID)..."
-        kill "$PID"
+        kill "$PID" 
     fi
 elif command -v netstat &>/dev/null && command -v taskkill &>/dev/null; then
     PID=$(netstat -ano | grep :'8080' | awk '{print $5}' | head -n 1)
     if [-n "$PID "]; then
         echo "Killing Windows process on port 8080 (PID: $PID)..."
-        taskkill //PID "$PID" //F
+        taskkill /PID "$PID" /F || true
     fi
 else 
     echo "No suitable command found to free port 8080."

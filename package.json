@@ -58,6 +58,7 @@
     "node": ">=16.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
@@ -68,9 +69,11 @@
     "rollup-plugin-typescript2": "^0.36.0",
     "typedoc": "^0.27.9",
     "typescript": "^5.0.4",
-    "vite": "^4.3.5"
+    "vite": "^7.0.6"
   },
   "dependencies": {
-    "hash-wasm": "^4.12.0"
+    "hash-wasm": "^4.12.0",
+    "playwright": "^1.54.2",
+    "vitest": "^3.2.4"
   }
 }
