@@ -39,9 +39,9 @@ if command -v fuser &>/dev/null; then
 #Try lsof(macOs,some linux)
 elif command -v lsof &>/dev/null; then
     PID=$(lsof -ti :8080)
-    if [-n "$PID "]; then
+    if [ -n "$PID" ]; then
         echo "Killing process on port 8080 (PID: $PID)..."
-        kill "PID"
+        kill "$PID"
     fi
 elif command -v netstat &>/dev/null && command -v taskkill &>/dev/null; then
     PID=$(netstat -ano | grep :'8080' | awk '{print $5}' | head -n 1)
