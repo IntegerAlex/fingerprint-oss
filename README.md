@@ -24,17 +24,18 @@ This library is released under the LGPL-3.0 license and includes ethical guideli
 
 Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinting library that logs user information. Unlike commercial alternatives that are "source available" but not truly open, Fingerprint OSS is released under the LGPL-3.0 license, making it fully open source and free to use.
 
-<p align="center">
-  <img src="assets/neon-logo.png"
-       alt="Neon Logo"
-       width="200"
-       height="100">
+<p>
   <img src="https://cf-assets.www.cloudflare.com/slt3lc6tev37/fdh7MDcUlyADCr49kuUs2/5f780ced9677a05d52b05605be88bc6f/cf-logo-v-rgb.png" 
        alt="Cloudflare Logo"
        width="200"
        height="100">
+  <img src="assets/neon-logo.png"
+       alt="Neon Logo"
+       width="200"
+       height="100">
 </p>
-<p>Fingerprint-OSS is now backed by Neon and Cloudflare OSS.</p>
+<p>Fingerprint-OSS is now backed by Cloudflare OSS and Neon.</p>
+
 
 
 ## Demo
