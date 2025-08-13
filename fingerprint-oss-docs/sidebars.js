@@ -14,6 +14,11 @@ const sidebars = {
       label: 'Getting Started',
     },
     {
+      type: 'doc',
+      id: 'faq',
+      label: 'FAQs',
+    },
+    {
       type: 'category',
       label: 'Guides',
       items: [
