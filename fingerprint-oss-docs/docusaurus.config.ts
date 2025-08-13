@@ -55,21 +55,7 @@ const config: Config = {
           editUrl:
             'https://github.com/IntegerAlex/fingerprint-oss/tree/main/docs',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/IntegerAlex/fingerprint-oss/tree/main/docs',
-          // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -99,7 +85,6 @@ const config: Config = {
           position: 'left',
           label: 'Documentation',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
         {to: '/license', label: 'License', position: 'left'},
         {
           href: 'https://github.com/fingerprint-oss/fingerprint-oss',
@@ -120,11 +105,11 @@ const config: Config = {
             },
             {
               label: 'API Reference',
-              to: '/docs/api/',
+              to: '/docs/api/reference',
             },
             {
               label: 'Architecture',
-              to: '/docs/architecture/',
+              to: '/docs/architecture/overview',
             },
           ],
         },
@@ -148,10 +133,6 @@ const config: Config = {
         {
           title: 'More',
           items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
             {
               label: 'GitHub',
               href: 'https://github.com/fingerprint-oss/fingerprint-oss',
