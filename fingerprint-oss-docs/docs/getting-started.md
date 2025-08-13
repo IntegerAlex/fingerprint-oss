@@ -12,6 +12,11 @@ This guide will help you quickly integrate the fingerprint-oss library into your
 ### Using npm
 
 ```bash
+npm install fingerprint-oss@latest
+```
+
+### Alternatively, you can install without specifying the version tag:
+```bash
 npm install fingerprint-oss
 ```
 
@@ -30,6 +35,13 @@ yarn add fingerprint-oss
   const fingerprint = FingerprintOSS.userInfo();
 </script>
 ```
+
+### Package Structure
+The installed package provides multiple build formats for different environments package.json:5-7 :
+
+- CommonJS: dist/index.cjs.js for Node.js and older bundlers
+- ES Module: dist/index.esm.js for modern bundlers and browsers
+- TypeScript Types: dist/index.d.ts for type definitions
 
 ## Basic Usage
 
@@ -89,6 +101,34 @@ const config = {
 };
 
 const data = await userInfo(config);
+```
+## Configuration Parameters
+- transparency: When true, enables GDPR compliance logging and notifications index.ts:108-117
+- message: Custom message for transparency notifications, defaults to "the software is gathering system data".
+
+## Data Collection Process
+When called, userInfo performs parallel data collection using Promise.all() to fetch system information and geolocation data simultaneously index. The function then calculates a combined confidence score and generates a comprehensive JSON response.
+
+## Output Structure
+The function returns a comprehensive object containing API.md:3-5 :
+
+- System Information: Browser, hardware, and OS details
+- Geolocation Data: IP-based location and network characteristics API.md:30-60
+- Confidence Assessment: Reliability scores and factors API.md:7-27
+- Unique Hash: Device identifier for tracking purposes
+
+## Error Handling
+The library includes built-in error handling that automatically falls back to mock data if data collection fails index.ts:123-134 . This ensures the function always returns usable data even in adverse conditions.
+
+## Individual Function Access
+Beyond the main userInfo function, you can access individual fingerprinting functions directly
+```javascript
+import {   
+    getSystemInfo,   
+    detectIncognito,   
+    getCanvasFingerprint,  
+    getWebGLInfo   
+} from 'fingerprint-oss';
 ```
 
 ## React Integration
