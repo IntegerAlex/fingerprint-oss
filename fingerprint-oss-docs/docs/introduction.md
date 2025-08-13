@@ -44,4 +44,4 @@ const dataWithConfig = await userInfo(config);
 
 ## License
 
-This project is licensed under the LGPL-3.0 License - see the [LICENSE](/fingerprint-oss-docs/license) file for details.
+This project is licensed under the LGPL-3.0 License - see the [LICENSE](/license) file for details.

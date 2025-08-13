@@ -99,7 +99,6 @@ const config: Config = {
           position: 'left',
           label: 'Documentation',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
         {to: '/license', label: 'License', position: 'left'},
         {
           href: 'https://github.com/fingerprint-oss/fingerprint-oss',
@@ -120,11 +119,11 @@ const config: Config = {
             },
             {
               label: 'API Reference',
-              to: '/docs/api/',
+              to: '/docs/api/reference',
             },
             {
               label: 'Architecture',
-              to: '/docs/architecture/',
+              to: '/docs/architecture/overview',
             },
           ],
         },
@@ -148,10 +147,6 @@ const config: Config = {
         {
           title: 'More',
           items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
             {
               label: 'GitHub',
               href: 'https://github.com/fingerprint-oss/fingerprint-oss',
