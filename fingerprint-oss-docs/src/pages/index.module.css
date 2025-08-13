@@ -1,0 +1,65 @@
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroLogo {
+  height: 180px;
+  width: auto;
+  margin-bottom: 2rem;
+}
+
+.netlifyWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.docLabel {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.netlifyBadge {
+  height: 50px;
+  width: auto;
+  transition: transform 0.2s ease;
+}
+
+.netlifyBadge:hover {
+  transform: scale(1.05);
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+  .heroLogo {
+    height: 140px;
+    margin-bottom: 1.5rem;
+  }
+  .netlifyWrapper {
+    margin-bottom: 1.5rem;
+  }
+  .docLabel {
+    font-size: 1rem;
+  }
+  .netlifyBadge {
+    height: 40px;
+  }
+}

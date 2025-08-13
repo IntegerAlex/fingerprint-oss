@@ -1,0 +1,100 @@
+@keyframes gradient-animation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+:root {
+  --ifm-color-primary: #8a3ffc;
+  --ifm-color-primary-dark: #7a32e2;
+  --ifm-color-primary-darker: #6f2ccb;
+  --ifm-color-primary-darkest: #5e25a8;
+  --ifm-color-primary-light: #9e5cfd;
+  --ifm-color-primary-lighter: #b276fe;
+  --ifm-color-primary-lightest: #c690ff;
+
+  --ifm-background-color: #0c0c0f;
+  --ifm-font-color-base: #ffffff;
+  --ifm-card-background-color: #16161a;
+  --ifm-navbar-background-color: #101013;
+  --ifm-footer-background-color: #0c0c0f;
+  --ifm-link-color: #b276fe;
+  --ifm-link-hover-color: #c690ff;
+
+  --ifm-code-font-size: 95%;
+  --ifm-global-radius: 8px;
+  --ifm-card-border-radius: var(--ifm-global-radius);
+  --ifm-card-box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  --ifm-navbar-box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+html {
+  color-scheme: dark;
+}
+
+/* Hide color mode toggle */
+[data-theme='light'] {
+  display: none !important;
+}
+
+.colorModeToggle {
+  display: none !important;
+}
+
+.navbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.button--primary {
+  background: linear-gradient(45deg, var(--ifm-color-primary), var(--ifm-color-primary-dark));
+  border: none;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(138, 63, 252, 0.4);
+}
+
+.card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.hero--primary {
+  background: linear-gradient(135deg, #0c0c0f, #16161a);
+}
+
+.hero__title {
+  background: linear-gradient(45deg, #ffffff, #b276fe, #8a3ffc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: gradient-animation 8s ease infinite;
+}
+
+/* Improve hero subtitle contrast */
+.hero__subtitle {
+  color: #ffffff !important;
+  font-size: 1.25rem;
+  font-weight: 400;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 2rem;
+}
+
+.docusaurus-highlight-code-line {
+  background-color: rgba(138, 63, 252, 0.15);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+  border-left: 3px solid var(--ifm-color-primary);
+}
