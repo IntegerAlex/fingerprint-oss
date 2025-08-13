@@ -6,7 +6,7 @@
 }
 
 .heroLogo {
-  height: 120px;
+  height: 180px;
   width: auto;
   margin-bottom: 2rem;
 }
@@ -19,7 +19,7 @@
 }
 
 .docLabel {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: #ffffff;
@@ -29,7 +29,7 @@
 }
 
 .netlifyBadge {
-  height: 35px;
+  height: 50px;
   width: auto;
   transition: transform 0.2s ease;
 }
@@ -50,16 +50,16 @@
     padding: 2rem;
   }
   .heroLogo {
-    height: 100px;
+    height: 140px;
     margin-bottom: 1.5rem;
   }
   .netlifyWrapper {
     margin-bottom: 1.5rem;
   }
   .docLabel {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   .netlifyBadge {
-    height: 30px;
+    height: 40px;
   }
 }

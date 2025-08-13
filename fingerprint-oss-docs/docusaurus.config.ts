@@ -18,12 +18,12 @@ const config: Config = {
   url: 'https://fingerprint-oss.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/fingerprint-oss-docs/',
+  baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'fingerprint-oss', // Usually your GitHub org/user name.
-  projectName: 'fingerprint-oss-docs', // Usually your repo name.
+  projectName: 'fingerprint-oss', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -101,7 +101,7 @@ const config: Config = {
         },
         {to: '/license', label: 'License', position: 'left'},
         {
-          href: 'https://github.com/fingerprint-oss/fingerprint-oss',
+          href: 'https://github.com/IntegerAlex/fingerprint-oss',
           label: 'GitHub',
           position: 'right',
         },
@@ -128,43 +128,30 @@ const config: Config = {
           ],
         },
         {
-          title: 'Community',
-          items: [
-            {
-              label: 'Discord',
-              href: 'https://discord.gg/fingerprint-oss',
-            },
-            {
-              label: 'GitHub Discussions',
-              href: 'https://github.com/fingerprint-oss/fingerprint-oss/discussions',
-            },
-            {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/fingerprint-oss',
-            },
-          ],
-        },
-        {
           title: 'More',
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/fingerprint-oss/fingerprint-oss',
+              href: 'https://github.com/IntegerAlex/fingerprint-oss',
             },
             {
               label: 'License',
-              href: 'https://github.com/fingerprint-oss/fingerprint-oss/blob/main/LICENSE',
+              href: 'https://github.com/IntegerAlex/fingerprint-oss/blob/main/LICENSE',
+            },
+          ],
+        },
+        {
+          title: 'Our Supporters',
+          items: [
+            {
+              label: 'Netlify',
+              href: 'https://www.netlify.com',
+              description: 'Deploys by Netlify',
             },
           ],
         },
       ],
       copyright: `Copyright © ${new Date().getFullYear()} Fingerprint OSS`,
-      // Add Netlify badge
-      logo: {
-        alt: 'Deploys by Netlify',
-        src: 'https://www.netlify.com/assets/badges/netlify-badge-color-accent.svg',
-        href: 'https://www.netlify.com',
-      },
     },
     prism: {
       theme: prismThemes.github,
