@@ -208,7 +208,7 @@ if (hasConsent || requestConsent()) {
 
 ## Next Steps
 
-- Explore the [API Reference](/api/reference) for detailed documentation
-- Learn about [fingerprinting techniques](/guides/fingerprinting-techniques)
-- Check the [architecture](/architecture/overview) for a deeper understanding
+- Explore the [API Reference](/docs/api/reference) for detailed documentation
+- Learn about [fingerprinting techniques](/docs/guides/fingerprinting-techniques)
+- Check the [architecture](/docs/architecture/overview) for a deeper understanding
 - Review the [GitHub repository](https://github.com/your-org/fingerprint-oss) for examples and source code
