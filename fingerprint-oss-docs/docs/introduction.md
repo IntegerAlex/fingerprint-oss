@@ -3,11 +3,18 @@ title: Introduction
 description: Overview of the fingerprint-oss library, its purpose, and key features
 ---
 
-# Introduction to fingerprint-oss
+# # Introduction to Fingerprint-OSS
 
-## What is fingerprint-oss?
+## What is Fingerprint-oss?
 
-Fingerprint-oss is a free and open-source JavaScript library that performs comprehensive device and browser fingerprinting entirely on the client side. It operates under the LGPL-3.0 license, making it a truly open-source alternative to commercial fingerprinting solutions.
+Fingerprint OSS is a comprehensive JavaScript library for device fingerprinting and system information collection that provides robust, deterministic fingerprinting for web applications with privacy-conscious design. It's a free and open source fingerprinting service released under the LGPL-3.0 license, positioned as an alternative to commercial solutions like FingerprintJS.
+
+## Why Fingerprint-OSS?
+- Open Source Alternative to Commercial Solutions
+- Privacy-Conscious Design with GDPR Compliance
+- Deterministic and Reliable Fingerprinting
+- Easy Integration and Modern Architecture
+- Enterprise Backing and Active Development
 
 ## Key Features
 
