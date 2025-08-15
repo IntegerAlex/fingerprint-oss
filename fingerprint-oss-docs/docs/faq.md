@@ -28,10 +28,10 @@ A: The library collects comprehensive information including :
 - Bot detection capabilities
 
 **Q: Is it GDPR compliant?**  
-A: Yes, the library includes GDPR compliance support through transparency configuration options README.md:67-81 . You can enable transparency mode and custom messaging for data collection notifications.
+A: Yes, the library includes GDPR compliance support through transparency configuration options. You can enable transparency mode and custom messaging for data collection notifications.
 
 **Q: What's the current version?**  
-A: The current version is 0.9.0, marking the first stable canary release package.json:3
+A: The current version is 0.9.0, marking the first stable canary release
 
 **Q: What are the ethical considerations?**  
 A: The library includes ethical guidelines emphasizing transparency, user privacy protection, and compliance with privacy regulations. The project also includes a non-binding ethical contribution notice for substantial usage scenarios.

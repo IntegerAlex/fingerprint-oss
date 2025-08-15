@@ -37,11 +37,11 @@ yarn add fingerprint-oss
 ```
 
 ### Package Structure
-The installed package provides multiple build formats for different environments package.json:5-7 :
+The installed package provides multiple build formats for different environments. 
 
-- CommonJS: dist/index.cjs.js for Node.js and older bundlers
-- ES Module: dist/index.esm.js for modern bundlers and browsers
-- TypeScript Types: dist/index.d.ts for type definitions
+- CommonJS: `dist/index.cjs.js` for Node.js and older bundlers.
+- ES module: `dist/index.esm.js` for modern bundlers and browsers.
+- TypeScript types: `dist/index.d.ts` for type definitions.
 
 ## Basic Usage
 
