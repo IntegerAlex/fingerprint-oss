@@ -1,0 +1,81 @@
+# Page snapshot
+
+```yaml
+- heading "Index of /" [level=1]
+- table:
+  - rowgroup:
+    - row "(drw-rw-rw-) 01-Aug-2025 18:39 e2e/":
+      - cell
+      - cell "(drw-rw-rw-)":
+        - code: (drw-rw-rw-)
+      - cell "01-Aug-2025 18:39"
+      - cell:
+        - code
+      - cell "e2e/":
+        - link "e2e/":
+          - /url: ./e2e/
+    - row "(drw-rw-rw-) 31-Jul-2025 19:43 test-results/":
+      - cell
+      - cell "(drw-rw-rw-)":
+        - code: (drw-rw-rw-)
+      - cell "31-Jul-2025 19:43"
+      - cell:
+        - code
+      - cell "test-results/":
+        - link "test-results/":
+          - /url: ./test-results/
+    - row "(drw-rw-rw-) 01-Aug-2025 18:12 unit/":
+      - cell
+      - cell "(drw-rw-rw-)":
+        - code: (drw-rw-rw-)
+      - cell "01-Aug-2025 18:12"
+      - cell:
+        - code
+      - cell "unit/":
+        - link "unit/":
+          - /url: ./unit/
+    - row "(-rw-rw-rw-) 30-Jul-2025 23:52 3.6k FIXES_APPLIED.md":
+      - cell
+      - cell "(-rw-rw-rw-)":
+        - code: (-rw-rw-rw-)
+      - cell "30-Jul-2025 23:52"
+      - cell "3.6k":
+        - code: 3.6k
+      - cell "FIXES_APPLIED.md":
+        - link "FIXES_APPLIED.md":
+          - /url: ./FIXES_APPLIED.md
+    - row "(-rw-rw-rw-) 01-Aug-2025 18:10 1.9k local-ci-test.sh":
+      - cell
+      - cell "(-rw-rw-rw-)":
+        - code: (-rw-rw-rw-)
+      - cell "01-Aug-2025 18:10"
+      - cell "1.9k":
+        - code: 1.9k
+      - cell "local-ci-test.sh":
+        - link "local-ci-test.sh":
+          - /url: ./local-ci-test.sh
+    - row "(-rw-rw-rw-) 01-Aug-2025 18:26 709B package.json":
+      - cell
+      - cell "(-rw-rw-rw-)":
+        - code: (-rw-rw-rw-)
+      - cell "01-Aug-2025 18:26"
+      - cell "709B":
+        - code: 709B
+      - cell "package.json":
+        - link "package.json":
+          - /url: ./package.json
+    - row "(-rw-rw-rw-) 30-Jul-2025 23:52 1.1k README.md":
+      - cell
+      - cell "(-rw-rw-rw-)":
+        - code: (-rw-rw-rw-)
+      - cell "30-Jul-2025 23:52"
+      - cell "1.1k":
+        - code: 1.1k
+      - cell "README.md":
+        - link "README.md":
+          - /url: ./README.md
+- text: Node.js v22.17.0/
+- link "http-server":
+  - /url: https://github.com/http-party/http-server
+- text: server running @ localhost:8080
+```
