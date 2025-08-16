@@ -10,6 +10,11 @@ This guide will help you quickly integrate the fingerprint-oss library into your
 ## Installation
 
 ### Using npm
+```bash
+npm install fingerprint-oss@latest
+```
+
+### Alternatively, you can install without specifying the version tag:
 
 ```bash
 npm install fingerprint-oss
@@ -30,6 +35,13 @@ yarn add fingerprint-oss
   const fingerprint = FingerprintOSS.userInfo();
 </script>
 ```
+
+### Package Structure
+The installed package provides multiple build formats for different environments. 
+
+- CommonJS: `dist/index.cjs.js` for Node.js and older bundlers.
+- ES module: `dist/index.esm.js` for modern bundlers and browsers.
+- TypeScript types: `dist/index.d.ts` for type definitions.
 
 ## Basic Usage
 

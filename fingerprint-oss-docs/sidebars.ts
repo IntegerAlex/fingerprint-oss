@@ -17,6 +17,7 @@ const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'introduction',
     'getting-started',
+    'faq',
     {
       type: 'category',
       label: 'Guides',
