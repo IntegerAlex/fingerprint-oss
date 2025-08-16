@@ -13,20 +13,30 @@ import { getSystemInfo, detectBot } from './systemInfo';
 import { getMockSystemInfo } from './mock';
 import { isRiskyASN, getUAPlatformMismatch, getLanguageConsistency, checkBrowserConsistency } from './confidence';
 import { Toast } from './compliance';
-import { generateId } from './hash';
+import { 
+    generateId, 
+    generateIdWithDebug, 
+    compareInputs,
+    HashGeneratorConfig,
+    HashGenerationResult,
+    InputComparisonResult,
+    InputDifference,
+    HashDebugInfo
+} from './hash';
 import { detectIncognito } from './incognito';
 import { detectAdBlockers } from './adblocker';
 import { getVpnStatus } from './vpn';
-import { 
-    getColorGamut, 
-    getVendorFlavors, 
-    isLocalStorageEnabled, 
-    isSessionStorageEnabled, 
-    isIndexedDBEnabled, 
-    getTouchSupportInfo, 
-    getOSInfo, 
-    getPluginsInfo, 
-    getMathFingerprint, 
+import { ErrorHandler, ErrorCategory, DEFAULT_ERROR_CONFIG } from './errorHandler';
+import {
+    getColorGamut,
+    getVendorFlavors,
+    isLocalStorageEnabled,
+    isSessionStorageEnabled,
+    isIndexedDBEnabled,
+    getTouchSupportInfo,
+    getOSInfo,
+    getPluginsInfo,
+    getMathFingerprint,
     getCanvasFingerprint,
     getAudioFingerprint,
     getWebGLInfo,
@@ -59,7 +69,7 @@ import {
 function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
     // Base confidence from system info
     let confidence = systemInfo?.confidenceScore || 0.5;
-    
+
     // Bot detection impact
     if (systemInfo?.bot?.isBot) {
         confidence -= Math.min(0.4, systemInfo.bot.confidence * 0.6);
@@ -70,7 +80,7 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
     if (geoInfo.traits?.isAnonymousProxy || geoInfo.traits?.isHostingProvider || geoInfo.traits?.isTorExitNode) {
         confidence -= 0.2;
     }
-    
+
     // Validate timezone consistency
     if (systemInfo?.timezone && geoInfo.location?.timeZone !== systemInfo.timezone) {
         confidence -= 0.15;
@@ -94,31 +104,37 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  * @param config - Optional configuration with:
  *   - `transparency`: When true, enables logging and Toast notifications for data collection transparency.
  *   - `message`: A custom message to log and display; defaults to "the software is gathering system data" if not specified.
+ *   - `hashConfig`: Optional configuration for hash generation behavior (debugMode, strictMode, etc.)
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
-async function userInfo(config:{transparency?:boolean, message?:string}={}) {
+async function userInfo(config: { 
+    transparency?: boolean, 
+    message?: string,
+    hashConfig?: HashGeneratorConfig 
+} = {}) {
     try {
         // Parallel data fetching
         const [systemInfo, geoInfo] = await Promise.all([
             getSystemInfo(),
             fetchGeolocationInfo()
         ]);
-	
 
- if(config.transparency) {
-   const message = config.message || 'the software is gathering system data';
-   console.log(`\u00A9 fingerprint-oss  ${message}`);
-	Toast.show(`\u00A9 fingerprint-oss`); 
-   if(config.message) {
-     Toast.show(`\u00A9 fingerprint-oss  ${message}`);
-   }
- } else if(config.message) {
-   Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
- }
+
+        if (config.transparency) {
+            const message = config.message || 'the software is gathering system data';
+            console.log(`\u00A9 fingerprint-oss  ${message}`);
+            Toast.show(`\u00A9 fingerprint-oss`);
+            if (config.message) {
+                Toast.show(`\u00A9 fingerprint-oss  ${message}`);
+            }
+        } else if (config.message) {
+            Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
+        }
         return generateJSON(
             geoInfo,
             systemInfo,
-            calculateCombinedConfidence(systemInfo, geoInfo)
+            calculateCombinedConfidence(systemInfo, geoInfo),
+            config.hashConfig
         );
     } catch (error) {
         console.error('Data collection error:', error);
@@ -129,7 +145,8 @@ async function userInfo(config:{transparency?:boolean, message?:string}={}) {
         return generateJSON(
             fallbackGeo,
             mockSystem,
-            calculateCombinedConfidence(mockSystem, fallbackGeo)
+            calculateCombinedConfidence(mockSystem, fallbackGeo),
+            config.hashConfig
         );
     }
 }
@@ -142,12 +159,14 @@ const fingerprintOSS = Object.assign(userInfo, {
     fetchGeolocationInfo,
     generateJSON,
     generateId,
-    
+    generateIdWithDebug,
+    compareInputs,
+
     // Privacy detection functions
     detectIncognito,
     detectAdBlockers,
     getVpnStatus,
-    
+
     // Helper functions
     getColorGamut,
     getVendorFlavors,
@@ -163,18 +182,69 @@ const fingerprintOSS = Object.assign(userInfo, {
     getWebGLInfo,
     getFontPreferences,
     estimateCores,
-    
+
     // Confidence functions
     getLanguageConsistency,
     isRiskyASN,
     getUAPlatformMismatch,
     checkBrowserConsistency,
-    
+
     // Mock data function
     getMockSystemInfo,
-    
+
     // Compliance
-    Toast
+    Toast,
+
+    // Error handling
+    ErrorHandler,
+    ErrorCategory,
+    DEFAULT_ERROR_CONFIG
 });
 
 export default fingerprintOSS;
+
+// Named exports for types and interfaces
+export type {
+    HashGeneratorConfig,
+    HashGenerationResult,
+    InputComparisonResult,
+    InputDifference,
+    HashDebugInfo
+} from './hash';
+
+// Named exports for functions (for those who prefer named imports)
+export {
+    getSystemInfo,
+    detectBot,
+    fetchGeolocationInfo,
+    generateJSON,
+    generateId,
+    generateIdWithDebug,
+    compareInputs,
+    detectIncognito,
+    detectAdBlockers,
+    getVpnStatus,
+    getColorGamut,
+    getVendorFlavors,
+    isLocalStorageEnabled,
+    isSessionStorageEnabled,
+    isIndexedDBEnabled,
+    getTouchSupportInfo,
+    getOSInfo,
+    getPluginsInfo,
+    getMathFingerprint,
+    getCanvasFingerprint,
+    getAudioFingerprint,
+    getWebGLInfo,
+    getFontPreferences,
+    estimateCores,
+    getLanguageConsistency,
+    isRiskyASN,
+    getUAPlatformMismatch,
+    checkBrowserConsistency,
+    getMockSystemInfo,
+    Toast,
+    ErrorHandler,
+    ErrorCategory,
+    DEFAULT_ERROR_CONFIG
+};

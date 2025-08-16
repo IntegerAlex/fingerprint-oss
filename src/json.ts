@@ -9,7 +9,7 @@
  */
 import { SystemInfo } from './types.js';
 import { GeolocationInfo } from './geo-ip.js';
-import { generateId } from './hash.js';
+import { generateId, HashGeneratorConfig } from './hash.js';
 import { getVpnStatus } from './vpn.js';
 /**
  * Interpret a confidence score and return a human-readable description
@@ -73,7 +73,8 @@ function interpretConfidenceScore(score: number): {
 export async function generateJSON(
     geolocationInfo: GeolocationInfo | null, 
     systemInfo: SystemInfo, 
-    combinedConfidenceScore?: number
+    combinedConfidenceScore?: number,
+    hashConfig?: HashGeneratorConfig
 ) {
     // Get interpretations for confidence scores
     const systemConfidenceInterpretation = interpretConfidenceScore(systemInfo.confidenceScore);
@@ -134,7 +135,7 @@ export async function generateJSON(
         
         // System information
         systemInfo ,
-	hash: await generateId(systemInfo),
+	hash: await generateId(systemInfo, hashConfig),
     };
 }
 
