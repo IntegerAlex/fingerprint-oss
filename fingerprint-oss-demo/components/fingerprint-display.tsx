@@ -110,6 +110,15 @@ const SectionHeader = ({
   </div>
 );
 
+/**
+ * Renders a multi-section dashboard summarizing a visitor fingerprint.
+ *
+ * Renders overview, security analysis, system information, geolocation details, and confidence assessment panels based on the provided fingerprint `data`. Returns `null` when `data` is falsy. Fields fall back to sensible defaults when properties are missing. Certain fields (visitor hash, IP, user agent, network) expose copy-to-clipboard actions. A demo-mode banner is shown when the fingerprint hash is missing or starts with `"demo"`.
+ *
+ * @param data - Fingerprint data object used to populate the dashboard (may be any shape; missing fields are tolerated).
+ * @param visitCount - Number of visits for this fingerprint, displayed in the overview.
+ * @returns A React element containing the fingerprint dashboard, or `null` when `data` is falsy.
+ */
 export default function FingerprintDisplay({
   data,
   visitCount,

@@ -3,6 +3,15 @@ import Link from "next/link"
 import { Fingerprint } from "lucide-react"
 import Image from "next/image"
 
+/**
+ * Top navigation bar for the demo app with branding and responsive navigation links.
+ *
+ * Renders a sticky header containing the project logo, a Cloudflare logo, the brand label,
+ * and navigation actions. On medium and larger screens it shows "Docs", "GitHub", and a
+ * "Buy Me A Coffee" button; on small screens it shows a hamburger button (no click handler).
+ *
+ * @returns The navbar as a JSX element.
+ */
 export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -44,6 +53,16 @@ export default function Navbar() {
   )
 }
 
+/**
+ * Renders a styled navigation link using Next.js' Link.
+ *
+ * Renders the provided `children` inside a Next.js `Link` with consistent navbar styling.
+ *
+ * @param href - Destination URL or path for the link.
+ * @param children - Visible link content (text or elements).
+ * @param target - Optional target attribute (e.g. `"_blank"` to open in a new tab).
+ * @returns A Next.js `Link` element styled for use in the navbar.
+ */
 function NavLink({ href, children, target }: { href: string; children: React.ReactNode; target?: string }) {
   return (
     <Link

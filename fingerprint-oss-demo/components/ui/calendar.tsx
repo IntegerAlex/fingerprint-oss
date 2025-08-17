@@ -9,6 +9,18 @@ import { buttonVariants } from "@/components/ui/button"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
+/**
+ * Calendar — a styled wrapper around react-day-picker's DayPicker.
+ *
+ * Renders a DayPicker with project-specific styling, navigation icons, and sensible defaults.
+ * - Merges `className` with the internal container padding.
+ * - Extends/overrides the internal DayPicker `classNames` with the provided `classNames` prop.
+ * - Provides left/right chevron icons and a set of preconfigured day, navigation, and layout styles.
+ *
+ * @param className - Additional container class names that are appended to the component's base padding.
+ * @param classNames - Partial DayPicker `classNames` map used to extend or override the component's internal styles.
+ * @param showOutsideDays - Whether to show days from adjacent months in the current month view. Defaults to `true`.
+ */
 function Calendar({
   className,
   classNames,

@@ -38,6 +38,14 @@ type SidebarContext = {
 
 const SidebarContext = React.createContext<SidebarContext | null>(null)
 
+/**
+ * Returns the current Sidebar context.
+ *
+ * Accesses the SidebarContext and returns its value for use inside components.
+ *
+ * @returns The sidebar context object containing state, open flags, setters, `isMobile`, and `toggleSidebar`.
+ * @throws Error if called outside of a SidebarProvider.
+ */
 function useSidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {

@@ -126,6 +126,14 @@ export const viewport: Viewport = {
   colorScheme: "dark light",
 };
 
+/**
+ * Root HTML layout for the app that sets up global document shell, performance hints, and structured data.
+ *
+ * Renders the top-level <html>, <head>, and <body> for every page: applies `lang="en"` and a dark root class, preconnects and DNS-prefetches external font/CDN origins for performance, injects JSON-LD SoftwareApplication structured data, and applies global font and UI classes to the body before rendering `children`.
+ *
+ * @param children - The page content to render inside the document body.
+ * @returns The root HTML element tree for the application.
+ */
 export default function RootLayout({
   children,
 }: {
