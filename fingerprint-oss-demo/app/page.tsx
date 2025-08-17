@@ -8,6 +8,13 @@ import Footer from "@/components/footer";
 import FingerprintDisplay from "@/components/fingerprint-display";
 import InstallationGuide from "@/components/installation-guide";
 
+/**
+ * Client-side React page that displays a Fingerprint OSS demo.
+ *
+ * Fetches browser fingerprint data on mount using the `fingerprint-oss` helper, maintains loading/error state, and persists a per-fingerprint visit count in localStorage. If fetching fails, a synthetic demo fingerprint is used and an error message is shown. Renders a loading spinner while fetching and passes fetched/demo data and the visit count to the FingerprintDisplay component; also renders Navbar, InstallationGuide, and Footer.
+ *
+ * @returns The Home page React element.
+ */
 export default function Home() {
   const [fingerprintData, setFingerprintData] = useState<any>(null);
   const [loading, setLoading] = useState(true);

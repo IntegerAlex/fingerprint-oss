@@ -24,6 +24,14 @@ type ChartContextProps = {
 
 const ChartContext = React.createContext<ChartContextProps | null>(null)
 
+/**
+ * React hook to access the current chart context (ChartConfig).
+ *
+ * Returns the value provided by ChartContext from the nearest enclosing <ChartContainer />.
+ *
+ * @returns The chart context object containing the `config: ChartConfig`.
+ * @throws Error if called outside of a <ChartContainer /> (no ChartContext is available).
+ */
 function useChart() {
   const context = React.useContext(ChartContext)
 
@@ -316,7 +324,21 @@ const ChartLegendContent = React.forwardRef<
 )
 ChartLegendContent.displayName = "ChartLegend"
 
-// Helper to extract item config from a payload.
+/**
+ * Resolve the ChartConfig entry for a given tooltip/legend payload item.
+ *
+ * Looks up a label key for the payload item using, in order:
+ * 1. the provided `key` argument,
+ * 2. a string value at `payload[key]` if present,
+ * 3. a string value at `payload.payload[key]` if present.
+ * If the resolved label exists in `config` the corresponding entry is returned;
+ * otherwise `config[key]` is returned. If `payload` is not an object, returns `undefined`.
+ *
+ * @param config - The chart configuration map to resolve against.
+ * @param payload - A Recharts payload object (may contain a nested `payload` object).
+ * @param key - The property name used to find the label/key inside the payload.
+ * @returns The matching ChartConfig entry, `config[key]` fallback, or `undefined` when `payload` is not an object.
+ */
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,

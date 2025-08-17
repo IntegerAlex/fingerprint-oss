@@ -1,6 +1,15 @@
 import Link from "next/link"
 import Image from "next/image"
 
+/**
+ * Site footer component displaying branding, partner logos, external links, and copyright.
+ *
+ * Renders a responsive footer with a left-aligned cluster of logos (site, GOSS, Cloudflare) plus a "Buy Me A Coffee" button,
+ * and a right-aligned information block that shows the current year, external links (GitHub profile and Enterprise Solution),
+ * and an attribution line. All external links open in new tabs; images include alt text for accessibility.
+ *
+ * @returns JSX element representing the site footer.
+ */
 export default function Footer() {
   return (
     <footer className="bg-background border-t border-border/40">

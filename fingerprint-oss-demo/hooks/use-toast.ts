@@ -27,6 +27,13 @@ const actionTypes = {
 
 let count = 0
 
+/**
+ * Generate a new unique (within process) string ID.
+ *
+ * Increments an internal counter modulo Number.MAX_SAFE_INTEGER and returns the resulting value as a string.
+ *
+ * @returns A new ID string.
+ */
 function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER
   return count.toString()
@@ -133,6 +140,14 @@ const listeners: Array<(state: State) => void> = []
 
 let memoryState: State = { toasts: [] }
 
+/**
+ * Apply an action to the in-memory toast store and notify all subscribers.
+ *
+ * Updates the module-level `memoryState` by running the reducer with the provided `action`,
+ * then calls each registered listener with the new state.
+ *
+ * @param action - The action to apply (e.g., ADD_TOAST, UPDATE_TOAST, DISMISS_TOAST, REMOVE_TOAST)
+ */
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
   listeners.forEach((listener) => {
@@ -142,6 +157,18 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
+/**
+ * Create and show a new toast and return controls for it.
+ *
+ * Creates a toast with a generated `id`, dispatches an `ADD_TOAST` action to show it (sets `open: true`),
+ * and wires the toast's `onOpenChange` to automatically dismiss when closed.
+ *
+ * @param props - Toast properties (all fields of `Toast`; `id` is generated and should not be provided)
+ * @returns An object with:
+ *  - `id`: the generated toast id,
+ *  - `dismiss()`: dismisses this toast (dispatches `DISMISS_TOAST` for the id),
+ *  - `update(props)`: updates this toast (dispatches `UPDATE_TOAST` merging provided fields with the id)
+ */
 function toast({ ...props }: Toast) {
   const id = genId()
 
@@ -171,6 +198,19 @@ function toast({ ...props }: Toast) {
   }
 }
 
+/**
+ * React hook exposing the in-memory toast state and helpers.
+ *
+ * Subscribes to the module-level toast store and returns the current toasts plus utilities:
+ * `toast` — factory to create/update/dismiss a toast, and `dismiss(toastId?)` — dismisses a specific toast or all toasts when no id is provided.
+ *
+ * The hook registers a listener on mount to keep local React state in sync with the global in-memory store and removes that listener on unmount.
+ *
+ * @returns The current toast state merged with helper functions:
+ *  - `toasts`: array of toasts (most recent first)
+ *  - `toast`: factory to create a new toast
+ *  - `dismiss(toastId?)`: dismiss a single toast by id or all toasts when omitted
+ */
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 

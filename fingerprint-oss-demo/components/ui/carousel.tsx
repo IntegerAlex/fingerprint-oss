@@ -32,6 +32,17 @@ type CarouselContextProps = {
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
 
+/**
+ * Returns the current Carousel context value.
+ *
+ * Use inside components rendered within a <Carousel /> to access the carousel ref, Embla API (if available),
+ * orientation, navigation helpers (scrollPrev/scrollNext), and flags indicating whether prev/next scrolling is possible.
+ *
+ * @returns The Carousel context object containing: `carouselRef`, `api`, `orientation`, `scrollPrev`, `scrollNext`,
+ * `canScrollPrev`, `canScrollNext`, and any provided `opts`/`setApi`.
+ *
+ * @throws Error if called outside of a <Carousel /> provider.
+ */
 function useCarousel() {
   const context = React.useContext(CarouselContext)
 
