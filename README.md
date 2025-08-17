@@ -33,8 +33,14 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
        alt="Neon Logo"
        width="200"
        height="100">
+  <img src="assets/netlify-logo.png"
+       alt="Netlify Logo"
+       width="200"
+       height="100">
 </p>
-<p>Fingerprint-OSS is now backed by Cloudflare OSS and Neon.</p>
+
+<p>Fingerprint-OSS is now backed by Cloudflare OSS, Neon, and Netlify.</p>
+
 
 
 
