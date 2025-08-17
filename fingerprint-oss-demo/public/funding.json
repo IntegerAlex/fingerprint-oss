@@ -1,0 +1,65 @@
+{
+    "version": "v1.0.0",
+    "entity": {
+        "type": "organisation",
+        "role": "owner",
+        "name": "Global Open Source Softwares (GOSS)",
+        "email": "inquiry.akshatkotpalliwar@gmail.com",
+        "phone": "",
+        "description": "Global Open Source Softwares (GOSS) is an organization backing the Fingerprint OSS project, which provides a free and open-source client-side fingerprinting library.",
+        "webpageUrl": {
+            "url": "https://fingerprint-oss.gossorg.in",
+            "wellKnown": "https://fingerprint-oss.gossorg.in/.well-known/funding-manifest-urls"
+        }
+    },
+    "projects": [{
+        "guid": "fingerprint-oss",
+        "name": "Fingerprint OSS",
+        "description": "A free and open source client-side fingerprinting library that logs user information and identifies unique visitors with high accuracy. It is backed by Cloudflare OSS.",
+        "webpageUrl": {
+            "url": "https://fingerprint-oss.gossorg.in",
+            "wellKnown": "https://fingerprint-oss.gossorg.in/.well-known/funding-manifest-urls"
+        },
+        "repositoryUrl": {
+            "url": "https://github.com/IntegerAlex/fingerprint-oss",
+            "wellKnown": "https://github.com/IntegerAlex/fingerprint-oss/blob/main/.well-known/funding-manifest-urls"
+        },
+        "licenses": ["spdx:LGPL-3.0"],
+        "tags": ["security", "fraud-prevention", "javascript", "demo", "cloudflare", "fingerprinting"]
+    }],
+    "funding": {
+        "channels": [{
+            "guid": "bank-transfer-channel",
+            "type": "bank",
+            "address": "CRN: 470359713, Account Number: 7045199058, IFSC Code: KKBK0000691, UPI Handle: 9370491726@kotak",
+            "description": "For direct bank transfers and UPI payments."
+        }],
+        "plans": [{
+            "guid": "one-time-support",
+            "status": "active",
+            "name": "One-time Support",
+            "description": "Make a one-time donation of any amount to support our project.",
+            "amount": 50,
+            "currency": "USD",
+            "frequency": "one-time",
+            "channels": ["bank-transfer-channel"]
+        }, {
+            "guid": "monthly-contributor",
+            "status": "active",
+            "name": "Monthly Contributor",
+            "description": "Become a monthly contributor and help us sustain our development efforts.",
+            "amount": 20,
+            "currency": "USD",
+            "frequency": "monthly",
+            "channels": ["bank-transfer-channel"]
+        }],
+        "history": [{
+            "year": 2025,
+            "income": 0,
+            "expenses": 0,
+            "taxes": 0,
+            "currency": "USD",
+            "description": "Initial year, no significant financial activity."
+        }]
+    }
+} 

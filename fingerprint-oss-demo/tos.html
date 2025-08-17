@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy & Terms | Fingerprint Demo</title>
+    <link rel="stylesheet" href="./src/style.css">
+    <style>
+        .privacy-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+        
+        .privacy-header {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .privacy-section {
+            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--card-shadow);
+        }
+        
+        .privacy-section h2 {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .privacy-section h2 i {
+            font-size: 1.2rem;
+        }
+        
+        .data-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--spacing-sm);
+            margin: var(--spacing-sm) 0;
+        }
+        
+        .data-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .data-item i {
+            color: var(--success-color);
+        }
+        
+        .highlight-box {
+            background-color: var(--bg-accent);
+            border-left: 4px solid var(--primary-color);
+            padding: var(--spacing-sm);
+            margin: var(--spacing-md) 0;
+            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-md);
+            color: var(--primary-color);
+            font-weight: var(--font-weight-medium);
+        }
+        
+        .last-updated {
+            margin-top: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            text-align: center;
+        }
+    </style>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="top-nav">
+            <div class="logo-wrapper">
+                <a href="./index.html">
+                    <img src="./goss.png" alt="Fingerprint Logo" class="brand-logo">
+                </a>
+            </div>
+            <div class="nav-actions">
+                <!-- Theme toggle button -->
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+                
+                <a href="./index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Back to Demo
+                </a>
+            </div>
+        </nav>
+        
+        <div class="privacy-container">
+            <div class="privacy-header">
+                <h1>Privacy Policy & Terms</h1>
+                <p>We believe in complete transparency about how we identify devices</p>
+            </div>
+            
+            <div class="privacy-section">
+                <h2><i class="fas fa-shield-alt"></i> Our Privacy Commitment</h2>
+                <p>At Fingerprint OSS, we're committed to providing a transparent and privacy-focused approach to device identification. Our demo showcases technology that can help protect websites from fraud while respecting user privacy.</p>
+                
+                <div class="highlight-box">
+                    <strong>Important:</strong> This is a demonstration website. The data displayed is shown to you only and is not stored, shared, or sold to any third parties.
+                </div>
+            </div>
+            
+            <div class="privacy-section">
+                <h2><i class="fas fa-info-circle"></i> What Information We Collect</h2>
+                <p>The demo shows you what technical information can be collected from your browser and device. This may include:</p>
+                
+                <div class="data-list">
+                    <div class="data-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Browser type & version</span>
+                    </div>
+                    <div class="data-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Operating system</span>
+                    </div>
+                    <div class="data-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Screen resolution</span>
+                    </div>
+                    <div class="data-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Time zone</span>
+                    </div>
+                    <div class="data-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Language settings</span>
+                    </div>
+                    <div class="data-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Hardware capabilities</span>
+                    </div>
+                </div>
+                
+                <p>None of this information personally identifies you. It's a digital "fingerprint" that helps distinguish between different devices.</p>
+            </div>
+            
+            <div class="privacy-section">
+                <h2><i class="fas fa-user-shield"></i> How This Information Is Used</h2>
+                <p>In real-world applications, this technology can be used to:</p>
+                <ul>
+                    <li>Detect and prevent fraud and account takeovers</li>
+                    <li>Protect users from bots and automated attacks</li>
+                    <li>Improve security without requiring personal information</li>
+                    <li>Create a safer online experience</li>
+                </ul>
+                
+                <div class="highlight-box">
+                    <strong>Your control:</strong> Most browsers offer settings to limit tracking. While this may affect the accuracy of fingerprinting, we respect your choice to use these settings.
+                </div>
+            </div>
+            
+            <div class="privacy-section">
+                <h2><i class="fas fa-handshake"></i> Terms of Service</h2>
+                <p>By using this demo website, you agree to the following terms:</p>
+                <ul>
+                    <li>You will use this demo for lawful and educational purposes only</li>
+                    <li>You understand that the technology displayed here is for demonstration purposes</li>
+                    <li>You acknowledge that in real applications, fingerprinting may be used to identify devices across visits</li>
+                </ul>
+                <p>The demo is provided "as is" without warranties of any kind. We are not liable for any damages arising from the use of this website.</p>
+            </div>
+            
+            <div class="privacy-section">
+                <h2><i class="fas fa-question-circle"></i> Questions or Concerns?</h2>
+                <p>If you have any questions about this privacy policy or terms, please contact us through <a href="https://github.com/IntegerAlex/fingerprint-oss/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>.</p>
+                <a href="./index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Return to Demo
+                </a>
+            </div>
+            
+            <div class="last-updated">
+                <p>Last updated: March 13, 2023</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme switcher functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('themeToggle');
+            const htmlElement = document.documentElement;
+            
+            // Function to set theme
+            function setTheme(theme) {
+                htmlElement.setAttribute('data-theme', theme);
+                
+                // Update icon
+                if (theme === 'dark') {
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                } else {
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                }
+            }
+            
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                setTheme(prefersDark ? 'dark' : 'light');
+            }
+            
+            // Toggle theme on button click
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                setTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        });
+    </script>
+</body>
+</html>
+
+
