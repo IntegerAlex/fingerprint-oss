@@ -7,6 +7,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import FingerprintDisplay from "@/components/fingerprint-display";
 import InstallationGuide from "@/components/installation-guide";
+import BackToTop from "@/components/back-to-top";
 
 /**
  * Client-side React page that displays a Fingerprint OSS demo.
@@ -261,6 +262,7 @@ export default function Home() {
         <InstallationGuide />
       </main>
       <Footer />
+      <BackToTop />
     </div>
   );
 }

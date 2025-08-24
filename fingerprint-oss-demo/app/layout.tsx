@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import BackToTop from "@/components/back-to-top";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -200,6 +201,7 @@ export default function RootLayout({
         className={`bg-background text-foreground font-sans antialiased ${inter.className}`}
       >
         {children}
+        <BackToTop />
       </body>
     </html>
   );
