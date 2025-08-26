@@ -17,6 +17,7 @@ import { generateId } from './hash';
 import { detectIncognito } from './incognito';
 import { detectAdBlockers } from './adblocker';
 import { getVpnStatus } from './vpn';
+import { setConfig, getConfig, logger } from './config';
 import { 
     getColorGamut, 
     getVendorFlavors, 
@@ -96,36 +97,49 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  *   - `message`: A custom message to log and display; defaults to "the software is gathering system data" if not specified.
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
-async function userInfo(config:{transparency?:boolean, message?:string}={}) {
+async function userInfo(config:{transparency?:boolean, message?:string, env?: 'TEST' | 'PROD'}={}) {
+    // Update configuration if env is provided
+    if (config.env) {
+        setConfig({ env: config.env });
+    }
+
     try {
+        logger.log('Starting data collection...');
+        
         // Parallel data fetching
         const [systemInfo, geoInfo] = await Promise.all([
             getSystemInfo(),
             fetchGeolocationInfo()
         ]);
-	
 
- if(config.transparency) {
-   const message = config.message || 'the software is gathering system data';
-   console.log(`\u00A9 fingerprint-oss  ${message}`);
-	Toast.show(`\u00A9 fingerprint-oss`); 
-   if(config.message) {
-     Toast.show(`\u00A9 fingerprint-oss  ${message}`);
-   }
- } else if(config.message) {
-   Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
- }
+        logger.log('System info:', systemInfo);
+        logger.log('Geo info:', geoInfo);
+
+        if(config.transparency) {
+            const message = config.message || 'the software is gathering system data';
+            logger.log(`\u00A9 fingerprint-oss  ${message}`);
+            Toast.show(`\u00A9 fingerprint-oss`); 
+            if(config.message) {
+                Toast.show(`\u00A9 fingerprint-oss  ${message}`);
+            }
+        } else if(config.message) {
+            Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
+        }
         return generateJSON(
             geoInfo,
             systemInfo,
             calculateCombinedConfidence(systemInfo, geoInfo)
         );
     } catch (error) {
-        console.error('Data collection error:', error);
+        logger.error('Data collection error:', error);
         // Get fallback data
         const mockSystem = getMockSystemInfo();
+        logger.warn('Using mock system data:', mockSystem);
+        
         // fetchGeolocationInfo now always returns valid data, so we can use it as fallback too
         const fallbackGeo = await fetchGeolocationInfo();
+        logger.warn('Using fallback geo data:', fallbackGeo);
+        
         return generateJSON(
             fallbackGeo,
             mockSystem,
@@ -136,6 +150,9 @@ async function userInfo(config:{transparency?:boolean, message?:string}={}) {
 
 // Create default export with all functions as properties
 const fingerprintOSS = Object.assign(userInfo, {
+    // Configuration
+    setConfig,
+    getConfig,
     // Core system functions
     getSystemInfo,
     detectBot,
