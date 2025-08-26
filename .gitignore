@@ -4,3 +4,6 @@ node_modules
 proxy_server/asn
 proxy_server/city
 proxy_server/country
+
+# Local Netlify folder
+.netlify
