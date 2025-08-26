@@ -5,7 +5,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@/src': path.resolve(__dirname, '../../src'),
-      '@/test': path.resolve(__dirname, '../'),
       '@': path.resolve(__dirname, '../../'),
     },
   },
@@ -13,7 +12,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     include: ['**/*.test.ts'],
-    setupFiles: ['./test-setup.ts'],
+    setupFiles: ['../../test-setup.ts'],
     isolate: true,
     sequence: {
       concurrent: false // Prevent race conditions in enterprise environments
@@ -32,4 +31,4 @@ export default defineConfig({
       ]
     }
   },
-}); 
+});
