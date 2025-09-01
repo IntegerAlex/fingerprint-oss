@@ -21,7 +21,8 @@
     "framer-motion": "^12.23.12",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "typewriter-effect": "^2.22.0"
   },
   "devDependencies": {
     "@docusaurus/core": "3.8.1",

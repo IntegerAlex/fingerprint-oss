@@ -47,6 +47,7 @@ html {
 
 .footer {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(to bottom, #0c0c0f, #0f0f0f, #a36cf7) !important;
 }
 
 .button--primary {
@@ -80,15 +81,21 @@ html {
   -webkit-text-fill-color: transparent;
   background-size: 200% 200%;
   animation: gradient-animation 8s ease infinite;
+  z-index: 10px !important;
 }
 
+.heroLogo_U6bI{
+  margin-bottom: 0px !important;
+  z-index: 10px !important;
+}
 /* Improve hero subtitle contrast */
 .hero__subtitle {
   color: #ffffff !important;
-  font-size: 1.25rem;
+  font-size: 16px !important;
   font-weight: 400;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem !important;
+  z-index: 10px !important;
 }
 
 .docusaurus-highlight-code-line {
@@ -97,4 +104,55 @@ html {
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);
   border-left: 3px solid var(--ifm-color-primary);
+}
+
+
+.heroBanner_qdFl {
+  position: relative; /* Needed so ::before stays inside */
+  background-image: url('https://media.istockphoto.com/id/1299730469/photo/fingerprint-biometric-authentication-button-digital-security-concept.jpg?s=612x612&w=0&k=20&c=5N69O1YqbcAw2ZHV1oVeItoagXth9YNxF_Dnfn_pwUI=') !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+.heroBanner_qdFl::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.5) !important; /* darker overlay for contrast */
+  backdrop-filter: blur(6px) !important;
+  z-index: 0 !important; /* put overlay behind */
+}
+
+/* Ensure content stays above */
+.heroBanner_qdFl .container,
+.heroBanner_qdFl .hero__subtitle * {
+  position: relative !important;
+  z-index: 5 !important;
+}
+
+.netlifyBadge_pnHK:hover{
+  z-index: 5px !important;
+  transform: scale(1.4) !important;
+  transition: transform 0.2s ease-in-out !important;
+}
+
+.netlifyWrapper_sEdH{
+  margin-bottom: 10px !important;
+  z-index: 10px !important;
+}
+
+.getStartedButton{
+  z-index: 10px !important;
+}
+
+.button.button--secondary:hover{
+  background-color: #8a3ffc !important; 
+  color: white !important;
+  border: none !important;
+  border-radius: 12px !important;
+  z-index: 5px !important;
 }
