@@ -1,12 +1,11 @@
 [build]
   base = "fingerprint-oss-docs"
-  publish = "fingerprint-oss-docs/build"
-  command = "npm ci --force && npm run build"
+  publish = "build"
+  command = "npm install && npm run build"
 
 [build.environment]
-  NODE_VERSION = "20.18.0"
-  NPM_VERSION = "10.2.4"
-  NPM_FLAGS = "--force"
+  NODE_VERSION = "18.19.0"
+  NPM_VERSION = "9.8.1"
   NODE_OPTIONS = "--max-old-space-size=4096"
   
 # Handle redirects for SPA routing

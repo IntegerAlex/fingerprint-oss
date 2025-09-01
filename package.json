@@ -55,7 +55,8 @@
   },
   "homepage": "https://github.com/IntegerAlex/fingerprint-oss#readme",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",
