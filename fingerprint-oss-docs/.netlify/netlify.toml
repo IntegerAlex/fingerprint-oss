@@ -1,0 +1,28 @@
+plugins = []
+headers = []
+redirects = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "/home/akshat/projects/fingerprint-oss/fingerprint-oss-docs/build"
+publishOrigin = "ui"
+commandOrigin = "ui"
+base = "/home/akshat/projects/fingerprint-oss/fingerprint-oss-docs"
+command = "pnpm run build"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
