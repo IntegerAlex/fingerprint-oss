@@ -13,10 +13,13 @@
   "description": "This project contains tests for fingerprint-oss",
   "author": "Akshat Kotpalliwar",
   "devDependencies": {
-    "@playwright/test": "^1.51.1",
-    "playwright": "^1.51.1"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
-    "http-server": "^14.1.1"
+     "@playwright/test": "^1.54.2",
+    "http-server": "^14.1.1",
+    "playwright": "^1.54.2"
   }
 }
