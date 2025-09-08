@@ -60,6 +60,7 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
 - AdBlocker detection
 - Bot detection
 - GDPR compliance support
+- **OpenTelemetry integration for observability and error tracking**
 
 ## Installation
 
@@ -89,9 +90,34 @@ const config = {
 const data = await userInfo(config);
 ```
 
+## Configuration for OpenTelemetry
+
+```javascript
+const config = {
+    transparency: true,
+    message: 'Custom message about data collection',
+    telemetry: {
+        enabled: true,
+        serviceName: 'my-app',
+        serviceVersion: '1.0.0',
+        sampleRate: 0.1, // Collect 10% of events
+        debug: false
+    }
+};
+
+const data = await userInfo(config);
+```
+
 Configuration options:
 - `transparency`: If true, logs a message to the console about data collection
 - `message`: Custom message to be logged to the console
+- `telemetry`: OpenTelemetry configuration object with the following options:
+  - `enabled`: Enable/disable telemetry collection (default: false)
+  - `serviceName`: Custom service name for telemetry (default: 'fingerprint-oss')
+  - `serviceVersion`: Custom service version (default: '0.9.0')
+  - `endpoint`: Custom endpoint for telemetry data export
+  - `sampleRate`: Sample rate for telemetry collection (0.0 to 1.0, default: 0.1)
+  - `debug`: Enable debug logging (default: false)
 
 ## Documentation
 

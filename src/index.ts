@@ -17,6 +17,7 @@ import { generateId } from './hash';
 import { detectIncognito } from './incognito';
 import { detectAdBlockers } from './adblocker';
 import { getVpnStatus } from './vpn';
+import { Telemetry, TelemetryConfig, withTelemetry } from './telemetry';
 import { 
     getColorGamut, 
     getVendorFlavors, 
@@ -94,10 +95,26 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  * @param config - Optional configuration with:
  *   - `transparency`: When true, enables logging and Toast notifications for data collection transparency.
  *   - `message`: A custom message to log and display; defaults to "the software is gathering system data" if not specified.
+ *   - `telemetry`: Configuration for OpenTelemetry data collection.
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
-async function userInfo(config:{transparency?:boolean, message?:string}={}) {
+async function userInfo(config:{transparency?:boolean, message?:string, telemetry?: TelemetryConfig}={}) {
+    const startTime = Date.now();
+    let span = null;
+    
     try {
+        // Initialize telemetry if configuration is provided
+        if (config.telemetry) {
+            Telemetry.initialize(config.telemetry);
+        }
+        
+        // Start telemetry span for this operation
+        span = Telemetry.startSpan('userInfo', {
+            'operation.type': 'fingerprint_collection',
+            'config.transparency': config.transparency || false,
+            'config.telemetry.enabled': config.telemetry?.enabled || false
+        });
+
         // Parallel data fetching
         const [systemInfo, geoInfo] = await Promise.all([
             getSystemInfo(),
@@ -115,22 +132,60 @@ async function userInfo(config:{transparency?:boolean, message?:string}={}) {
  } else if(config.message) {
    Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
  }
-        return generateJSON(
+
+        const result = generateJSON(
             geoInfo,
             systemInfo,
             calculateCombinedConfidence(systemInfo, geoInfo)
         );
+
+        // Record successful execution
+        const executionTime = Date.now() - startTime;
+        const confidence = calculateCombinedConfidence(systemInfo, geoInfo);
+        Telemetry.recordFunctionCall('userInfo', executionTime, true, {
+            'data.systemInfo.available': !!systemInfo,
+            'data.geoInfo.available': !!geoInfo,
+            'data.confidence': confidence
+        });
+
+        Telemetry.endSpan(span, {
+            'result.success': true,
+            'result.confidence': confidence,
+            'execution.time': executionTime
+        });
+
+        return result;
     } catch (error) {
         console.error('Data collection error:', error);
+        
+        // Record error in telemetry
+        const executionTime = Date.now() - startTime;
+        Telemetry.recordError(error as Error, {
+            'function.name': 'userInfo',
+            'execution.time': executionTime
+        });
+        Telemetry.recordFunctionCall('userInfo', executionTime, false);
+        Telemetry.endSpanWithError(span, error as Error);
+
         // Get fallback data
         const mockSystem = getMockSystemInfo();
         // fetchGeolocationInfo now always returns valid data, so we can use it as fallback too
         const fallbackGeo = await fetchGeolocationInfo();
-        return generateJSON(
+        
+        const fallbackResult = generateJSON(
             fallbackGeo,
             mockSystem,
             calculateCombinedConfidence(mockSystem, fallbackGeo)
         );
+
+        // Record fallback usage
+        Telemetry.incrementCounter('function_calls', 1, {
+            'function.name': 'userInfo',
+            'function.success': true,
+            'data.source': 'fallback'
+        });
+
+        return fallbackResult;
     }
 }
 
@@ -174,7 +229,11 @@ const fingerprintOSS = Object.assign(userInfo, {
     getMockSystemInfo,
     
     // Compliance
-    Toast
+    Toast,
+    
+    // Telemetry
+    Telemetry,
+    withTelemetry
 });
 
 export default fingerprintOSS;

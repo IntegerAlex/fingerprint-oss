@@ -1,0 +1,437 @@
+/*!
+ * Copyright (c) 2025 Akshat Kotpalliwar (alias IntegerAlex on GitHub)
+ * This software is licensed under the GNU Lesser General Public License (LGPL) v3 or later.
+ *
+ * Telemetry module for fingerprint-oss
+ * Provides minimal OpenTelemetry integration for error tracking and usage analytics
+ */
+
+import { 
+    trace, 
+    context, 
+    metrics, 
+    SpanKind, 
+    SpanStatusCode,
+    Span 
+} from '@opentelemetry/api';
+
+/**
+ * Telemetry configuration interface
+ */
+export interface TelemetryConfig {
+    /** Enable/disable telemetry collection */
+    enabled?: boolean;
+    /** Custom service name for telemetry */
+    serviceName?: string;
+    /** Custom service version */
+    serviceVersion?: string;
+    /** Endpoint for telemetry data export */
+    endpoint?: string;
+    /** Sample rate (0.0 to 1.0) for telemetry collection */
+    sampleRate?: number;
+    /** Enable debug logging */
+    debug?: boolean;
+}
+
+/**
+ * Default telemetry configuration
+ */
+const DEFAULT_CONFIG: TelemetryConfig = {
+    enabled: false,
+    serviceName: 'fingerprint-oss',
+    serviceVersion: '0.9.0',
+    sampleRate: 0.1, // Collect 10% of events by default for minimal impact
+    debug: false
+};
+
+/**
+ * Internal telemetry state
+ */
+class TelemetryManager {
+    private config: TelemetryConfig;
+    private tracer: any = null;
+    private meter: any = null;
+    private initialized = false;
+    private counters: Map<string, any> = new Map();
+    private histograms: Map<string, any> = new Map();
+
+    constructor() {
+        this.config = { ...DEFAULT_CONFIG };
+    }
+
+    /**
+     * Initialize telemetry with configuration
+     */
+    public initialize(config: TelemetryConfig = {}): void {
+        this.config = { ...DEFAULT_CONFIG, ...config };
+        
+        if (!this.config.enabled) {
+            return;
+        }
+
+        try {
+            // Only initialize if running in browser environment
+            if (typeof window === 'undefined') {
+                return;
+            }
+
+            // Initialize tracer
+            this.tracer = trace.getTracer(
+                this.config.serviceName!,
+                this.config.serviceVersion!
+            );
+
+            // Initialize meter
+            this.meter = metrics.getMeter(
+                this.config.serviceName!,
+                this.config.serviceVersion!
+            );
+
+            // Create common metrics
+            this.initializeMetrics();
+            
+            this.initialized = true;
+
+            if (this.config.debug) {
+                console.log('[Telemetry] Initialized with config:', this.config);
+            }
+        } catch (error) {
+            console.warn('[Telemetry] Failed to initialize:', error);
+        }
+    }
+
+    /**
+     * Initialize common metrics
+     */
+    private initializeMetrics(): void {
+        try {
+            // Function execution counter
+            this.counters.set('function_calls', 
+                this.meter.createCounter('fingerprint_function_calls', {
+                    description: 'Number of fingerprint function calls'
+                })
+            );
+
+            // Error counter
+            this.counters.set('errors', 
+                this.meter.createCounter('fingerprint_errors', {
+                    description: 'Number of errors encountered'
+                })
+            );
+
+            // Execution time histogram
+            this.histograms.set('execution_time', 
+                this.meter.createHistogram('fingerprint_execution_time', {
+                    description: 'Execution time of fingerprint operations',
+                    unit: 'ms'
+                })
+            );
+
+            // Data collection metrics
+            this.counters.set('data_points', 
+                this.meter.createCounter('fingerprint_data_points', {
+                    description: 'Number of data points collected'
+                })
+            );
+
+        } catch (error) {
+            console.warn('[Telemetry] Failed to initialize metrics:', error);
+        }
+    }
+
+    /**
+     * Check if telemetry should be collected based on sample rate
+     */
+    private shouldSample(): boolean {
+        return Math.random() < (this.config.sampleRate || 0.1);
+    }
+
+    /**
+     * Start a new span for operation tracking
+     */
+    public startSpan(name: string, attributes: Record<string, any> = {}): Span | null {
+        if (!this.initialized || !this.tracer || !this.shouldSample()) {
+            return null;
+        }
+
+        try {
+            const span = this.tracer.startSpan(name, {
+                kind: SpanKind.INTERNAL,
+                attributes: {
+                    'service.name': this.config.serviceName,
+                    'service.version': this.config.serviceVersion,
+                    ...attributes
+                }
+            });
+
+            return span;
+        } catch (error) {
+            if (this.config.debug) {
+                console.warn('[Telemetry] Failed to start span:', error);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * End a span with success status
+     */
+    public endSpan(span: Span | null, attributes: Record<string, any> = {}): void {
+        if (!span) return;
+
+        try {
+            span.setAttributes(attributes);
+            span.setStatus({ code: SpanStatusCode.OK });
+            span.end();
+        } catch (error) {
+            if (this.config.debug) {
+                console.warn('[Telemetry] Failed to end span:', error);
+            }
+        }
+    }
+
+    /**
+     * End a span with error status
+     */
+    public endSpanWithError(span: Span | null, error: Error, attributes: Record<string, any> = {}): void {
+        if (!span) return;
+
+        try {
+            span.setAttributes({
+                'error.name': error.name,
+                'error.message': error.message,
+                ...attributes
+            });
+            span.setStatus({ 
+                code: SpanStatusCode.ERROR, 
+                message: error.message 
+            });
+            span.end();
+        } catch (err) {
+            if (this.config.debug) {
+                console.warn('[Telemetry] Failed to end span with error:', err);
+            }
+        }
+    }
+
+    /**
+     * Record a metric counter
+     */
+    public incrementCounter(name: string, value: number = 1, attributes: Record<string, any> = {}): void {
+        if (!this.initialized || !this.shouldSample()) {
+            return;
+        }
+
+        try {
+            const counter = this.counters.get(name);
+            if (counter) {
+                counter.add(value, attributes);
+            }
+        } catch (error) {
+            if (this.config.debug) {
+                console.warn('[Telemetry] Failed to increment counter:', error);
+            }
+        }
+    }
+
+    /**
+     * Record a histogram value
+     */
+    public recordHistogram(name: string, value: number, attributes: Record<string, any> = {}): void {
+        if (!this.initialized || !this.shouldSample()) {
+            return;
+        }
+
+        try {
+            const histogram = this.histograms.get(name);
+            if (histogram) {
+                histogram.record(value, attributes);
+            }
+        } catch (error) {
+            if (this.config.debug) {
+                console.warn('[Telemetry] Failed to record histogram:', error);
+            }
+        }
+    }
+
+    /**
+     * Record an error event
+     */
+    public recordError(error: Error, context: Record<string, any> = {}): void {
+        if (!this.initialized) {
+            return;
+        }
+
+        try {
+            this.incrementCounter('errors', 1, {
+                'error.name': error.name,
+                'error.type': error.constructor.name,
+                ...context
+            });
+
+            if (this.config.debug) {
+                console.log('[Telemetry] Recorded error:', error.name, context);
+            }
+        } catch (err) {
+            if (this.config.debug) {
+                console.warn('[Telemetry] Failed to record error:', err);
+            }
+        }
+    }
+
+    /**
+     * Record function execution
+     */
+    public recordFunctionCall(functionName: string, executionTime: number, success: boolean, context: Record<string, any> = {}): void {
+        if (!this.initialized) {
+            return;
+        }
+
+        try {
+            this.incrementCounter('function_calls', 1, {
+                'function.name': functionName,
+                'function.success': success,
+                ...context
+            });
+
+            this.recordHistogram('execution_time', executionTime, {
+                'function.name': functionName,
+                ...context
+            });
+
+            if (this.config.debug) {
+                console.log('[Telemetry] Recorded function call:', functionName, executionTime + 'ms', success);
+            }
+        } catch (error) {
+            if (this.config.debug) {
+                console.warn('[Telemetry] Failed to record function call:', error);
+            }
+        }
+    }
+
+    /**
+     * Get current configuration
+     */
+    public getConfig(): TelemetryConfig {
+        return { ...this.config };
+    }
+
+    /**
+     * Check if telemetry is enabled and initialized
+     */
+    public isEnabled(): boolean {
+        return this.config.enabled === true && this.initialized;
+    }
+}
+
+// Singleton instance
+const telemetryManager = new TelemetryManager();
+
+/**
+ * Public API for telemetry
+ */
+export const Telemetry = {
+    /**
+     * Initialize telemetry
+     */
+    initialize: (config: TelemetryConfig = {}) => telemetryManager.initialize(config),
+
+    /**
+     * Start a span
+     */
+    startSpan: (name: string, attributes?: Record<string, any>) => telemetryManager.startSpan(name, attributes),
+
+    /**
+     * End a span
+     */
+    endSpan: (span: Span | null, attributes?: Record<string, any>) => telemetryManager.endSpan(span, attributes),
+
+    /**
+     * End a span with error
+     */
+    endSpanWithError: (span: Span | null, error: Error, attributes?: Record<string, any>) => telemetryManager.endSpanWithError(span, error, attributes),
+
+    /**
+     * Record an error
+     */
+    recordError: (error: Error, context?: Record<string, any>) => telemetryManager.recordError(error, context),
+
+    /**
+     * Record function execution
+     */
+    recordFunctionCall: (functionName: string, executionTime: number, success: boolean, context?: Record<string, any>) => 
+        telemetryManager.recordFunctionCall(functionName, executionTime, success, context),
+
+    /**
+     * Increment a counter
+     */
+    incrementCounter: (name: string, value?: number, attributes?: Record<string, any>) => 
+        telemetryManager.incrementCounter(name, value, attributes),
+
+    /**
+     * Record histogram value
+     */
+    recordHistogram: (name: string, value: number, attributes?: Record<string, any>) => 
+        telemetryManager.recordHistogram(name, value, attributes),
+
+    /**
+     * Check if enabled
+     */
+    isEnabled: () => telemetryManager.isEnabled(),
+
+    /**
+     * Get configuration
+     */
+    getConfig: () => telemetryManager.getConfig()
+};
+
+/**
+ * Decorator for automatic function telemetry
+ */
+export function withTelemetry<T extends (...args: any[]) => any>(
+    functionName: string,
+    originalFunction: T
+): T {
+    return ((...args: any[]) => {
+        const startTime = Date.now();
+        const span = Telemetry.startSpan(`function.${functionName}`, {
+            'function.name': functionName,
+            'function.args.count': args.length
+        });
+
+        try {
+            const result = originalFunction(...args);
+
+            // Handle both sync and async functions
+            if (result && typeof result.then === 'function') {
+                return result
+                    .then((value: any) => {
+                        const executionTime = Date.now() - startTime;
+                        Telemetry.recordFunctionCall(functionName, executionTime, true);
+                        Telemetry.endSpan(span, { 'function.result': 'success' });
+                        return value;
+                    })
+                    .catch((error: Error) => {
+                        const executionTime = Date.now() - startTime;
+                        Telemetry.recordFunctionCall(functionName, executionTime, false);
+                        Telemetry.recordError(error, { 'function.name': functionName });
+                        Telemetry.endSpanWithError(span, error);
+                        throw error;
+                    });
+            } else {
+                const executionTime = Date.now() - startTime;
+                Telemetry.recordFunctionCall(functionName, executionTime, true);
+                Telemetry.endSpan(span, { 'function.result': 'success' });
+                return result;
+            }
+        } catch (error) {
+            const executionTime = Date.now() - startTime;
+            Telemetry.recordFunctionCall(functionName, executionTime, false);
+            Telemetry.recordError(error as Error, { 'function.name': functionName });
+            Telemetry.endSpanWithError(span, error as Error);
+            throw error;
+        }
+    }) as T;
+}
+
+export default Telemetry;

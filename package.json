@@ -72,6 +72,11 @@
     "vite": "^4.3.5"
   },
   "dependencies": {
-    "hash-wasm": "^4.12.0"
+    "hash-wasm": "^4.12.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/sdk-web": "^1.28.0",
+    "@opentelemetry/auto-instrumentations-web": "^0.41.0",
+    "@opentelemetry/exporter-jaeger": "^1.28.0",
+    "@opentelemetry/exporter-zipkin": "^1.28.0"
   }
 }
