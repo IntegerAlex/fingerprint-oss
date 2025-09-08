@@ -122,6 +122,7 @@ Configuration options:
 ## Documentation
 
 - [API Documentation](./API.md) - Detailed API reference and output structure
+- [Telemetry Guide](./TELEMETRY.md) - OpenTelemetry integration and usage examples
 - [Wiki](https://deepwiki.com/IntegerAlex/fingerprint-oss)
 - [Changelog](./CHANGELOG.md)
 - [Ethical Contribution Notice](./NOTICE.md)
