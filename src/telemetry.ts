@@ -8,7 +8,6 @@
 
 import { 
     trace, 
-    context, 
     metrics, 
     SpanKind, 
     SpanStatusCode,
