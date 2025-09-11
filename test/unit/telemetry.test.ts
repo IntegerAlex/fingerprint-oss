@@ -157,12 +157,12 @@ describe('Telemetry Module', () => {
       
       expect(mockSpan.setAttributes).toHaveBeenCalledWith({
         'error.name': 'Error',
-        'error.message': 'Test error',
+        'error.type': 'Error',
         'error.context': 'test'
       });
       expect(mockSpan.setStatus).toHaveBeenCalledWith({ 
         code: 'error', 
-        message: 'Test error' 
+        message: 'Error: Error' 
       });
       expect(mockSpan.end).toHaveBeenCalled();
     });

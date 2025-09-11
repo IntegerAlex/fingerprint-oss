@@ -11,7 +11,11 @@ import {
     metrics, 
     SpanKind, 
     SpanStatusCode,
-    Span 
+    Span,
+    Tracer,
+    Meter,
+    Counter,
+    Histogram
 } from '@opentelemetry/api';
 
 /**
@@ -48,11 +52,11 @@ const DEFAULT_CONFIG: TelemetryConfig = {
  */
 class TelemetryManager {
     private config: TelemetryConfig;
-    private tracer: any = null;
-    private meter: any = null;
+    private tracer: Tracer | null = null;
+    private meter: Meter | null = null;
     private initialized = false;
-    private counters: Map<string, any> = new Map();
-    private histograms: Map<string, any> = new Map();
+    private counters: Map<string, Counter> = new Map();
+    private histograms: Map<string, Histogram> = new Map();
 
     constructor() {
         this.config = { ...DEFAULT_CONFIG };
@@ -103,6 +107,10 @@ class TelemetryManager {
      * Initialize common metrics
      */
     private initializeMetrics(): void {
+        if (!this.meter) {
+            return;
+        }
+
         try {
             // Function execution counter
             this.counters.set('function_calls', 
@@ -142,7 +150,8 @@ class TelemetryManager {
      * Check if telemetry should be collected based on sample rate
      */
     private shouldSample(): boolean {
-        return Math.random() < (this.config.sampleRate || 0.1);
+        const rate = this.config.sampleRate ?? 0.1;
+        return Math.random() < rate;
     }
 
     /**
@@ -198,12 +207,12 @@ class TelemetryManager {
         try {
             span.setAttributes({
                 'error.name': error.name,
-                'error.message': error.message,
+                'error.type': error.constructor.name,
                 ...attributes
             });
             span.setStatus({ 
                 code: SpanStatusCode.ERROR, 
-                message: error.message 
+                message: `Error: ${error.name}` 
             });
             span.end();
         } catch (err) {
@@ -391,7 +400,7 @@ export function withTelemetry<T extends (...args: any[]) => any>(
     functionName: string,
     originalFunction: T
 ): T {
-    return ((...args: any[]) => {
+    return (function (this: any, ...args: any[]) {
         const startTime = Date.now();
         const span = Telemetry.startSpan(`function.${functionName}`, {
             'function.name': functionName,
@@ -399,7 +408,7 @@ export function withTelemetry<T extends (...args: any[]) => any>(
         });
 
         try {
-            const result = originalFunction(...args);
+            const result = originalFunction.apply(this, args);
 
             // Handle both sync and async functions
             if (result && typeof result.then === 'function') {

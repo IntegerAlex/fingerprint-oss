@@ -2,6 +2,34 @@
 
 This document provides examples of how to use the new OpenTelemetry integration in fingerprint-oss.
 
+## Important: OpenTelemetry Exporter Configuration
+
+**⚠️ Note**: The fingerprint-oss library provides telemetry data collection but **does not include an exporter**. To actually send telemetry data to your monitoring system, you must configure an OpenTelemetry exporter in your application:
+
+```javascript
+// Example: Configure exporter in your application
+import { NodeSDK } from '@opentelemetry/auto-instrumentation-node';
+import { Resource } from '@opentelemetry/resources';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
+
+// Configure your own exporter
+const sdk = new NodeSDK({
+  resource: new Resource({
+    [SemanticResourceAttributes.SERVICE_NAME]: 'your-app',
+    [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
+  }),
+  traceExporter: new OTLPTraceExporter({
+    url: 'https://your-jaeger-or-otel-endpoint/v1/traces',
+  }),
+});
+
+sdk.start();
+
+// Now fingerprint-oss telemetry will be exported to your system
+import userInfo from 'fingerprint-oss';
+```
+
 ## Basic Usage
 
 ```javascript
@@ -197,3 +225,40 @@ Telemetry.initialize({
 ```
 
 This will log telemetry operations to the browser console for debugging purposes.
+
+## Environment Compatibility
+
+### Browser vs Server-Side Rendering (SSR)
+
+The fingerprint-oss telemetry system is designed primarily for browser environments and uses browser-specific OpenTelemetry packages:
+
+- `@opentelemetry/sdk-trace-web` - Browser-optimized tracing
+- `@opentelemetry/core` - Core OpenTelemetry functionality
+- `@opentelemetry/resources` - Resource detection
+
+### Node.js/SSR Considerations
+
+When using fingerprint-oss in Server-Side Rendering (SSR) environments like Next.js or Nuxt.js:
+
+1. **Client-Side Only**: Initialize telemetry only on the client-side to avoid SSR hydration mismatches:
+
+```javascript
+// Next.js example
+import { useEffect } from 'react';
+import { Telemetry } from 'fingerprint-oss';
+
+function MyApp() {
+  useEffect(() => {
+    // Only initialize on client-side
+    if (typeof window !== 'undefined') {
+      Telemetry.initialize({
+        enabled: true,
+        serviceName: 'my-nextjs-app',
+        sampleRate: 0.1
+      });
+    }
+  }, []);
+}
+```
+
+2. **Server-Side Telemetry**: If you need telemetry in server environments, configure your application's OpenTelemetry instrumentation separately using Node.js-specific packages like `@opentelemetry/sdk-node` rather than relying on fingerprint-oss telemetry.

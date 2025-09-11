@@ -125,15 +125,12 @@ async function userInfo(config:{transparency?:boolean, message?:string, telemetr
  if(config.transparency) {
    const message = config.message || 'the software is gathering system data';
    console.log(`\u00A9 fingerprint-oss  ${message}`);
-	Toast.show(`\u00A9 fingerprint-oss`); 
-   if(config.message) {
-     Toast.show(`\u00A9 fingerprint-oss  ${message}`);
-   }
+   Toast.show(`\u00A9 fingerprint-oss  ${message}`);
  } else if(config.message) {
    Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
  }
 
-        const result = generateJSON(
+        const result = await generateJSON(
             geoInfo,
             systemInfo,
             calculateCombinedConfidence(systemInfo, geoInfo)
@@ -172,7 +169,7 @@ async function userInfo(config:{transparency?:boolean, message?:string, telemetr
         // fetchGeolocationInfo now always returns valid data, so we can use it as fallback too
         const fallbackGeo = await fetchGeolocationInfo();
         
-        const fallbackResult = generateJSON(
+        const fallbackResult = await generateJSON(
             fallbackGeo,
             mockSystem,
             calculateCombinedConfidence(mockSystem, fallbackGeo)
