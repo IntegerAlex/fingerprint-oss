@@ -234,3 +234,9 @@ const fingerprintOSS = Object.assign(userInfo, {
 });
 
 export default fingerprintOSS;
+
+// Named exports to match docs and allow tree-shaking
+export { Telemetry, withTelemetry };
+export type { TelemetryConfig };
+
+export default fingerprintOSS;
