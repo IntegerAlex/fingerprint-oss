@@ -139,3 +139,30 @@ export interface PluginInfo {
     description: string;
     mimeTypes: MimeType[];
 }
+
+// Configuration system types for environment-aware logging
+export type Environment = 'TEST' | 'DEV' | 'STAGING' | 'PROD';
+export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
+
+export interface FingerprintConfig {
+    environment: Environment;
+    verbose: boolean;
+    transparency: boolean;
+    message?: string;
+    logLevel: LogLevel;
+    enableConsoleLogging: boolean;
+    enablePerformanceLogging: boolean;
+}
+
+export interface UserInfoConfig {
+    // Legacy configuration options (for backward compatibility)
+    transparency?: boolean;
+    message?: string;
+    
+    // New environment-aware configuration options
+    environment?: Environment;
+    verbose?: boolean;
+    logLevel?: LogLevel;
+    enableConsoleLogging?: boolean;
+    enablePerformanceLogging?: boolean;
+}

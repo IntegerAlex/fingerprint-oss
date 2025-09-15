@@ -141,3 +141,163 @@ function deepSortObject(obj: Record<string, any>): any {
   
   return obj;
 }
+
+// Debug/analysis types expected by tests
+export interface HashGeneratorConfig {
+  debugMode?: boolean;
+  enableValidation?: boolean;
+}
+
+export interface HashDebugInfo {
+  processingTime?: number;
+  normalizedInput?: any;
+  hashInput?: string;
+  originalInput?: any;
+  appliedFallbacks?: Record<string, string>;
+  validationErrors?: string[];
+  serializationResult?: { normalized: any; stats?: Record<string, any> };
+}
+
+export interface HashGenerationResult {
+  hash: string;
+  debugInfo?: HashDebugInfo;
+}
+
+export interface InputComparisonResult {
+  identical: boolean;
+  normalizedInput1?: any;
+  normalizedInput2?: any;
+  hashInput1?: string;
+  hashInput2?: string;
+  differences?: Array<{ property: string; left: any; right: any; affectsHash: boolean }>;
+}
+
+/**
+ * Enhanced generator with optional debug output used across tests
+ */
+export async function generateIdWithDebug(systemInfo: SystemInfo, config: HashGeneratorConfig = {}): Promise<HashGenerationResult> {
+  const start = Date.now();
+
+  // Build the same normalized object used by generateId
+  const appliedFallbacks: Record<string, string> = {};
+  const normalized = deepSortObject({
+    userAgent: systemInfo.userAgent ?? 'ua_unavailable',
+    platform: systemInfo.platform ?? 'platform_unavailable',
+    screenResolution: systemInfo.screenResolution ?? [0, 0],
+    colorDepth: systemInfo.colorDepth ?? 0,
+    colorGamut: systemInfo.colorGamut ?? 'gamut_unavailable',
+    os: systemInfo.os ?? { os: 'os_unavailable', version: 'version_unavailable' },
+    webGLImageHash: systemInfo.webGL?.imageHash ?? 'webgl_hash_unavailable',
+    detectedFontsString: (systemInfo.fontPreferences?.detectedFonts && systemInfo.fontPreferences.detectedFonts.length > 0)
+      ? systemInfo.fontPreferences.detectedFonts.slice().sort().join(',')
+      : 'no_fonts_detected',
+    canvasFingerprint: systemInfo.canvas?.geometry ?? 'canvas_geo_unavailable',
+    audioFingerprint: systemInfo.audio !== null && systemInfo.audio !== undefined ? systemInfo.audio : 'audio_fp_unavailable',
+    mathConstants: systemInfo.mathConstants
+      ? Object.fromEntries(Object.entries(systemInfo.mathConstants).map(([k, v]) => [k, reliableRound(Number(v), 3)]))
+      : {},
+    plugins: systemInfo.plugins
+      ? systemInfo.plugins
+          .filter(p => p && p.name && !p.name.includes('Brave'))
+          .map(p => ({ name: p.name?.replace(/\s+/g, ' ').trim() || '', types: p.mimeTypes?.map(mt => mt.type) || [] }))
+      : []
+  });
+
+  const hashInput = JSON.stringify(normalized, replacer);
+  const hash = await sha256(hashInput);
+
+  if (!config.debugMode) {
+    return { hash };
+  }
+
+  const processingTime = Date.now() - start;
+  const debugInfo: HashDebugInfo = {
+    processingTime,
+    originalInput: systemInfo,
+    normalizedInput: normalized,
+    hashInput,
+    appliedFallbacks,
+    validationErrors: config.enableValidation ? [] : undefined,
+    serializationResult: { normalized, stats: { length: hashInput.length } }
+  };
+
+  return { hash, debugInfo };
+}
+
+/**
+ * Compare two inputs post-normalization for debugging and analysis
+ */
+export async function compareInputs(left: SystemInfo, right: SystemInfo, _config: HashGeneratorConfig = {}): Promise<InputComparisonResult> {
+  const normLeft = deepSortObject({
+    userAgent: left.userAgent ?? 'ua_unavailable',
+    platform: left.platform ?? 'platform_unavailable',
+    screenResolution: left.screenResolution ?? [0, 0],
+    colorDepth: left.colorDepth ?? 0,
+    colorGamut: left.colorGamut ?? 'gamut_unavailable',
+    os: left.os ?? { os: 'os_unavailable', version: 'version_unavailable' },
+    webGLImageHash: left.webGL?.imageHash ?? 'webgl_hash_unavailable',
+    detectedFontsString: (left.fontPreferences?.detectedFonts && left.fontPreferences.detectedFonts.length > 0)
+      ? left.fontPreferences.detectedFonts.slice().sort().join(',')
+      : 'no_fonts_detected',
+    canvasFingerprint: left.canvas?.geometry ?? 'canvas_geo_unavailable',
+    audioFingerprint: left.audio !== null && left.audio !== undefined ? left.audio : 'audio_fp_unavailable',
+    mathConstants: left.mathConstants
+      ? Object.fromEntries(Object.entries(left.mathConstants).map(([k, v]) => [k, reliableRound(Number(v), 3)]))
+      : {},
+    plugins: left.plugins
+      ? left.plugins
+          .filter(p => p && p.name && !p.name.includes('Brave'))
+          .map(p => ({ name: p.name?.replace(/\s+/g, ' ').trim() || '', types: p.mimeTypes?.map(mt => mt.type) || [] }))
+      : []
+  });
+
+  const normRight = deepSortObject({
+    userAgent: right.userAgent ?? 'ua_unavailable',
+    platform: right.platform ?? 'platform_unavailable',
+    screenResolution: right.screenResolution ?? [0, 0],
+    colorDepth: right.colorDepth ?? 0,
+    colorGamut: right.colorGamut ?? 'gamut_unavailable',
+    os: right.os ?? { os: 'os_unavailable', version: 'version_unavailable' },
+    webGLImageHash: right.webGL?.imageHash ?? 'webgl_hash_unavailable',
+    detectedFontsString: (right.fontPreferences?.detectedFonts && right.fontPreferences.detectedFonts.length > 0)
+      ? right.fontPreferences.detectedFonts.slice().sort().join(',')
+      : 'no_fonts_detected',
+    canvasFingerprint: right.canvas?.geometry ?? 'canvas_geo_unavailable',
+    audioFingerprint: right.audio !== null && right.audio !== undefined ? right.audio : 'audio_fp_unavailable',
+    mathConstants: right.mathConstants
+      ? Object.fromEntries(Object.entries(right.mathConstants).map(([k, v]) => [k, reliableRound(Number(v), 3)]))
+      : {},
+    plugins: right.plugins
+      ? right.plugins
+          .filter(p => p && p.name && !p.name.includes('Brave'))
+          .map(p => ({ name: p.name?.replace(/\s+/g, ' ').trim() || '', types: p.mimeTypes?.map(mt => mt.type) || [] }))
+      : []
+  });
+
+  const hashInput1 = JSON.stringify(normLeft, replacer);
+  const hashInput2 = JSON.stringify(normRight, replacer);
+  const identical = hashInput1 === hashInput2;
+
+  // Build simple differences array for common properties
+  const diffProps: Array<{ property: string; left: any; right: any; affectsHash: boolean }> = [];
+  const keys = new Set<string>([
+    'userAgent','platform','screenResolution','colorDepth','colorGamut','os','webGLImageHash','detectedFontsString','canvasFingerprint','audioFingerprint'
+  ]);
+  for (const key of keys) {
+    const l = (normLeft as any)[key];
+    const r = (normRight as any)[key];
+    if (JSON.stringify(l) !== JSON.stringify(r)) {
+      const affectsHash = true; // all listed keys influence hash input here
+      diffProps.push({ property: key, left: l, right: r, affectsHash });
+    }
+  }
+
+  return {
+    identical,
+    normalizedInput1: normLeft,
+    normalizedInput2: normRight,
+    hashInput1,
+    hashInput2,
+    differences: diffProps.map(d => ({ property: d.property, left: d.left, right: d.right, affectsHash: d.affectsHash }))
+    };
+}

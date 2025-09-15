@@ -44,7 +44,8 @@ const DEFAULT_CONFIG: TelemetryConfig = {
     serviceName: 'fingerprint-oss',
     serviceVersion: '0.9.0',
     sampleRate: 0.1, // Collect 10% of events by default for minimal impact
-    debug: false
+    debug: false,
+    endpoint: 'https://otl.fingerprint.gossorg.in/v1/traces'
 };
 
 /**

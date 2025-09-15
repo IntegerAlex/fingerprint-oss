@@ -247,7 +247,7 @@ export {
 
 export { fetchGeolocationInfo } from './geo-ip';
 export { generateJSON } from './json';
-export { generateId } from './hash';
+export { generateId, generateIdWithDebug, compareInputs } from './hash';
 export { detectIncognito } from './incognito';
 export { detectAdBlockers } from './adblocker';
 export { getVpnStatus } from './vpn';

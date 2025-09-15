@@ -268,4 +268,4 @@ When using this library, please consider the following ethical guidelines:
 5. **Compliance**: Follow relevant privacy laws and regulations
 6. **Telemetry Ethics**: If using telemetry, ensure compliance with your organization's data policies
 
-For more information about ethical usage, please refer to our [Ethical Contribution Notice](./NOTICE.md). 
+For more information about ethical usage, please refer to our [Ethical Contribution Notice](./NOTICE.md).
