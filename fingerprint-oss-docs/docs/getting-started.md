@@ -103,6 +103,21 @@ const config = {
 const data = await userInfo(config);
 ```
 
+## Telemetry (OpenTelemetry)
+
+To enable telemetry, pass the telemetry config. The default OTLP HTTP endpoint is:
+
+- `domain/v1/traces` (no auth required)
+
+```javascript
+Telemetry.initialize({
+  enabled: true,
+  serviceName: 'your-app',
+  serviceVersion: '0.9.1',
+  sampleRate: 0.1
+});
+```
+
 ## React Integration
 
 Here's how to use fingerprint-oss in a React application:

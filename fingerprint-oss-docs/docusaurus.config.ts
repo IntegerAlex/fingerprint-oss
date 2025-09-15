@@ -144,10 +144,21 @@ const config: Config = {
           title: 'Our Supporters',
           items: [
             {
-              label: 'Netlify',
+              label: 'Documentation Hosted by Netlify',
               href: 'https://www.netlify.com',
-              description: 'Deploys by Netlify',
+              description: 'Documentation Hosted on Netlify',
             },
+            {
+              label: 'GEO-IP Hosted by Cloudflare',
+              href: 'https://www.cloudflare.com',
+              description: 'GEO-IP Hosted on Cloudflare',
+            },
+            {
+              label: 'Open-telemetry Data Hosted on Neon',
+              href: 'https://neon.tech',
+              description: 'Open-telemetry Data Hosted on Neon',
+            }
+            
           ],
         },
       ],

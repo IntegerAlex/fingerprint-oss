@@ -31,7 +31,10 @@ A: The library collects comprehensive information including :
 A: Yes, the library includes GDPR compliance support through transparency configuration options. You can enable transparency mode and custom messaging for data collection notifications.
 
 **Q: What's the current version?**  
-A: The current version is 0.9.0, marking the first stable canary release
+A: The current version is 0.9.1.
+
+**Q: How does telemetry export work?**  
+A: When telemetry is enabled, the library sends OTLP/HTTP traces to `domain/v1/traces` by default (no auth required). You can override the endpoint in your telemetry config if needed.
 
 **Q: What are the ethical considerations?**  
 A: The library includes ethical guidelines emphasizing transparency, user privacy protection, and compliance with privacy regulations. The project also includes a non-binding ethical contribution notice for substantial usage scenarios.
