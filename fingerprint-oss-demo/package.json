@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && cp public/funding.json .open-next/assets/ && cp -r public/.well-known .open-next/assets/",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },

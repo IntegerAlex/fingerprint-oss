@@ -1,6 +1,6 @@
 # Fingerprint OSS
 
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://opensource.org/licenses/GPL-3.0)
+[![License: LGPL-2.1](https://img.shields.io/badge/License-LGPL--2.1-blue.svg)](https://opensource.org/licenses/LGPL-2.1)
 [![npm version](https://img.shields.io/npm/v/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
 [![GitHub stars](https://img.shields.io/github/stars/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/stargazers)
 [![npm downloads](https://img.shields.io/npm/dy/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
@@ -60,6 +60,7 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
 - AdBlocker detection
 - Bot detection
 - GDPR compliance support
+- **OpenTelemetry integration for observability and error tracking**
 
 ## Installation
 
@@ -89,13 +90,39 @@ const config = {
 const data = await userInfo(config);
 ```
 
+## Configuration for OpenTelemetry
+
+```javascript
+const config = {
+    transparency: true,
+    message: 'Custom message about data collection',
+    telemetry: {
+        enabled: true,
+        serviceName: 'my-app',
+        serviceVersion: '1.0.0',
+        sampleRate: 0.1, // Collect 10% of events
+        debug: false
+    }
+};
+
+const data = await userInfo(config);
+```
+
 Configuration options:
 - `transparency`: If true, logs a message to the console about data collection
 - `message`: Custom message to be logged to the console
+- `telemetry`: OpenTelemetry configuration object with the following options:
+  - `enabled`: Enable/disable telemetry collection (default: false)
+  - `serviceName`: Custom service name for telemetry (default: 'fingerprint-oss')
+  - `serviceVersion`: Custom service version (default: '0.9.0')
+  - `endpoint`: Custom endpoint for telemetry data export
+  - `sampleRate`: Sample rate for telemetry collection (0.0 to 1.0, default: 0.1)
+  - `debug`: Enable debug logging (default: false)
 
 ## Documentation
 
 - [API Documentation](./API.md) - Detailed API reference and output structure
+- [Telemetry Guide](./TELEMETRY.md) - OpenTelemetry integration and usage examples
 - [Wiki](https://deepwiki.com/IntegerAlex/fingerprint-oss)
 - [Changelog](./CHANGELOG.md)
 - [Ethical Contribution Notice](./NOTICE.md)

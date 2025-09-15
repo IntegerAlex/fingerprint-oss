@@ -7,6 +7,8 @@
 # Generated files
 .docusaurus
 .cache-loader
+/v3
+/v10
 
 # Misc
 .DS_Store

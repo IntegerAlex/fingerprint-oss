@@ -1,0 +1,25 @@
+[build]
+  base = "fingerprint-oss-docs"
+  publish = "build"
+  command = "npm install && npm run build"
+
+[build.environment]
+  NODE_VERSION = "18.19.0"
+  NPM_VERSION = "9.8.1"
+  NODE_OPTIONS = "--max-old-space-size=4096"
+  
+# Handle redirects for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:;"

@@ -1,0 +1,54 @@
+headersOrigin = "config"
+redirectsOrigin = "config"
+plugins = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "/home/akshat/projects/fingerprint-oss/fingerprint-oss-docs/fingerprint-oss-docs/build"
+publishOrigin = "config"
+commandOrigin = "config"
+base = "/home/akshat/projects/fingerprint-oss/fingerprint-oss-docs"
+command = "npm ci --force && npm run build"
+
+[build.environment]
+NODE_VERSION = "20.18.0"
+NPM_VERSION = "10.2.4"
+NPM_FLAGS = "--force"
+NODE_OPTIONS = "--max-old-space-size=4096"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[headers]]
+for = "/*"
+
+[headers.values]
+X-Frame-Options = "DENY"
+X-XSS-Protection = "1; mode=block"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:;"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

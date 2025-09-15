@@ -1,0 +1,5749 @@
+
+--- 1 Overview Of Fingerprint Oss ---
+
+Overview of fingerprint-oss
+Relevant source files
+Purpose and Scope
+This document provides a comprehensive overview of the fingerprint-oss repository, a free and open-source client-side browser fingerprinting library. The system collects browser and device characteristics to generate unique identifiers while maintaining privacy-conscious design principles and GDPR compliance capabilities.
+For detailed API usage and configuration, see API Reference. For specific detection techniques, see Detection Components. For build and development information, see Development and Testing.
+What is fingerprint-oss
+Fingerprint-oss is a JavaScript library that performs comprehensive device and browser fingerprinting entirely on the client side. Unlike commercial alternatives, it operates under the LGPL-3.0 license, making it truly open source. The library generates deterministic hashes from collected system information to create unique device identifiers.
+Core Architecture Overview
+The system follows a modular architecture centered around the main userInfo function, which orchestrates data collection, processing, and output generation.
+Browser APIs
+External Services
+fingerprint-oss Library
+Client Application
+import userInfo
+JSON Response
+Application Code
+userInfo Function
+Data Collection Layer
+Processing Layer
+Output Layer
+GeoIP Proxy Server
+MaxMind Database
+Navigator APIs
+Canvas/WebGL
+Audio Context
+Storage APIs
+Sources:
+README.md
+1-125
+package.json
+1-76
+Package Structure and Distribution
+The library is distributed as an npm package with multiple output formats to ensure compatibility across different environments.
+Component File Path Purpose
+CommonJS Build dist/index.cjs.js Node.js and older bundlers
+ES Module Build dist/index.esm.js Modern bundlers and browsers
+TypeScript Types dist/index.d.ts Type definitions
+Main Entry src/index.ts Source implementation
+Package Registry
+Distribution
+Build Process
+Source
+src/index.ts
+TypeScript Sources
+Rollup Bundler
+TypeScript Compiler
+dist/index.cjs.js
+dist/index.esm.js
+dist/index.d.ts
+NPM Registry
+Sources:
+package.json
+5-7
+package.json
+60-76
+Key Features and Capabilities
+Fingerprint-oss provides comprehensive fingerprinting capabilities through multiple detection mechanisms:
+Data Collection Categories
+Category Components Purpose
+System Information Browser type, OS, hardware specs Device identification
+Fingerprinting Canvas, WebGL, Audio, Math constants Unique signatures
+Privacy Detection Incognito mode, AdBlocker, VPN Privacy tool identification
+Network Analysis Geolocation, Timezone, ASN Location and network traits
+Behavioral Analysis Bot detection, consistency checks Authenticity assessment
+Main Entry Point and Usage
+The library exposes a single primary function userInfo that serves as the main interface:
+import userInfo from 'fingerprint-oss';
+const data = await userInfo();
+The function accepts optional configuration for GDPR compliance:
+const config = {
+    transparency: true,
+    message: 'Custom message about data collection'
+};
+const data = await userInfo(config);
+Sources:
+README.md
+62-76
+README.md
+89-108
+Output Structure
+The userInfo function returns a structured JSON object containing four main sections:
+confidenceAssessment
+geolocation Details
+systemInfo Details
+userInfo Response
+JSON Output
+systemInfo
+geolocation
+confidenceAssessment
+hash
+Browser Information
+Hardware Details
+Screen Properties
+Plugin Information
+Fingerprint Data
+IP Address Info
+Geographic Location
+Network Provider
+VPN Detection
+System Confidence
+Bot Detection
+Privacy Tool Detection
+Consistency Scores
+Sources:
+README.md
+89-108
+Dependencies and External Services
+Core Dependencies
+The library has minimal external dependencies to maintain lightweight operation:
+Dependency Purpose Usage
+hash-wasm SHA-256 hashing Deterministic hash generation
+Built-in Browser APIs Data collection Canvas, WebGL, Audio, Navigator
+External Service Integration
+Fingerprint-oss integrates with external services for enhanced functionality:
+GeoIP Proxy Server: Provides IP-based geolocation data through a custom proxy service
+MaxMind Database: Powers geographic and network information lookup
+Cloudflare OSS: Project backing and infrastructure support
+Sources:
+package.json
+73-75
+README.md
+27-31
+Privacy and Compliance Features
+The library includes built-in privacy protection mechanisms:
+GDPR Compliance Support
+Transparency Mode: Optional console logging of data collection activities
+Custom Messaging: Configurable privacy notices
+Ethical Guidelines: Documented usage recommendations
+Privacy-Conscious Design
+Client-Side Operation: No server-side data storage (except geolocation lookup)
+Transparent Source Code: Full source availability under LGPL-3.0
+Ethical Usage Guidelines: Documentation promoting responsible implementation
+Sources:
+README.md
+67-81
+README.md
+14-22
+NOTICE.md
+1-5
+Development Status and Community
+Current Status
+Fingerprint-oss is under active development with regular updates and improvements. The project maintains:
+Version 0.9.0: Current stable release
+Active Maintenance: Regular updates and bug fixes
+Community Contributions: Open to pull requests and contributions
+Cloudflare Backing: Infrastructure support for sustainability
+Licensing and Legal Framework
+License: LGPL-3.0-only for maximum openness
+Copyright: Akshat Kotpalliwar (IntegerAlex)
+Contributor Agreement: CLA required for contributions
+Ethical Guidelines: Non-binding contribution recommendations
+Sources:
+package.json
+2-3
+package.json
+48
+COPYRIGHT.md
+1-24
+CLA.md
+1-17
+NOTICE.md
+1-5
+
+
+--- 1.1 System Architecture ---
+
+System Architecture
+Relevant source files
+This document describes the high-level architecture of the fingerprint-oss library, focusing on how the major components interact, data flows through the system, and the modular design that enables comprehensive browser fingerprinting. For specific implementation details of individual detection techniques, see Fingerprinting Techniques. For information about the main API interface, see userInfo Function.
+Architecture Overview
+The fingerprint-oss library follows a modular, client-side architecture with optional external service integration. The system is designed around a central orchestration function that coordinates parallel data collection from multiple sources, applies confidence scoring, and generates deterministic output.
+High-Level System Flow
+Yes
+Yes
+Client Application
+userInfo()
+Promise.all([getSystemInfo(), fetchGeolocationInfo()])
+getSystemInfo()
+fetchGeolocationInfo()
+Browser Detection
+Hardware Detection
+Canvas/WebGL/Audio Fingerprinting
+Privacy Tool Detection
+fingerprint-proxy.gossorg.in
+MaxMind GeoIP2 Database
+calculateCombinedConfidence()
+generateJSON()
+generateId()
+JSON Response
+config.transparency?
+Toast.show()
+console.log()
+Sources:
+src/index.ts
+99-135
+src/index.ts
+59-87
+Core Component Architecture
+Compliance & UI
+Output Generation
+Confidence & Validation
+Fingerprinting Modules
+Privacy Detection
+Geolocation Services
+System Information Layer
+Core Entry Point
+src/index.ts
+userInfo()
+calculateCombinedConfidence()
+src/systemInfo.ts
+getSystemInfo()
+detectBot()
+src/helper.ts
+src/mock.ts
+src/geo-ip.ts
+fetchGeolocationInfo()
+fingerprint-proxy.gossorg.in/geoip
+src/incognito.ts
+src/adblocker.ts
+src/vpn.ts
+detectIncognito()
+detectAdBlockers()
+getVpnStatus()
+Canvas/WebGL/Audio Fingerprinting
+getMathFingerprint()
+getCanvasFingerprint()
+getAudioFingerprint()
+getWebGLInfo()
+src/confidence.ts
+isRiskyASN()
+getUAPlatformMismatch()
+getLanguageConsistency()
+src/json.ts
+src/hash.ts
+generateJSON()
+generateId()
+src/compliance.ts
+Toast
+Sources:
+src/index.ts
+10-35
+src/index.ts
+138-178
+Data Collection Architecture
+The system employs a parallel data collection strategy where system information and geolocation data are fetched concurrently to minimize latency.
+System Information Collection Flow
+getSystemInfo()
+Browser & OS Detection
+Hardware Characteristics
+Fingerprinting Data
+Privacy Tool Detection
+navigator.userAgent
+navigator.platform
+getOSInfo()
+estimateCores()
+Screen Resolution & Color
+getTouchSupportInfo()
+getCanvasFingerprint()
+getAudioFingerprint()
+getWebGLInfo()
+getMathFingerprint()
+detectIncognito()
+detectAdBlockers()
+getVpnStatus()
+detectBot()
+System Confidence Score
+Sources:
+src/index.ts
+12
+src/index.ts
+20-35
+Geolocation and Network Analysis
+Risk Assessment
+fetchGeolocationInfo()
+HTTP Request
+fingerprint-proxy.gossorg.in
+MaxMind GeoIP2 Database
+Geographic Location
+Network Characteristics
+ASN Information
+Time Zone
+Latitude/Longitude
+Country/Region
+isAnonymousProxy
+isHostingProvider
+isTorExitNode
+ASN Number
+ISP Organization
+isRiskyASN()
+Sources:
+src/index.ts
+11
+Confidence Scoring System
+The library implements a multi-factor confidence scoring system that evaluates the reliability and consistency of collected data.
+Confidence Calculation Pipeline
+Hardware Consistency
+getUAPlatformMismatch()
+systemInfo.userAgent, systemInfo.platform
+Variable penalty
+Timezone Validation
+systemInfo.timezone
+!== comparison
+geoInfo.location.timeZone
+-0.15 penalty
+Network Risk Assessment
+geoInfo.traits.isAnonymousProxy
+-0.2 penalty
+geoInfo.traits.isHostingProvider
+geoInfo.traits.isTorExitNode
+Bot Assessment
+systemInfo.bot.isBot
+Math.min(0.4, confidence * 0.6)
+systemInfo.bot.confidence
+calculateCombinedConfidence()
+systemInfo.confidenceScore || 0.5
+Bot Detection Penalty
+Network Risk Penalty
+Timezone Consistency Penalty
+Hardware/Software Mismatch Penalty
+Math.max(0.1, Math.min(0.9, confidence))
+Sources:
+src/index.ts
+59-87
+src/index.ts
+14
+Output Generation and Hashing
+The system generates deterministic, structured output with unique device identifiers.
+JSON Generation and Hash Creation
+Component Function Purpose
+JSON Generator generateJSON() Aggregates all collected data into structured output
+Hash Generator generateId() Creates deterministic device identifier
+Compliance Handler Toast.show() Displays transparency notifications
+generateJSON()
+systemInfo aggregation
+geoInfo aggregation
+confidence score
+Structured JSON Object
+generateId()
+Data Normalization
+SHA-256 Hash
+Unique Device ID
+Complete JSON Response
+Sources:
+src/index.ts
+10
+src/index.ts
+16
+src/index.ts
+118-122
+External Dependencies and Services
+Key External Integrations
+Service Purpose Implementation
+MaxMind GeoIP2 IP geolocation and network analysis Via proxy server
+hash-wasm Cryptographic hash generation Direct dependency
+Browser APIs Fingerprinting data collection Direct browser integration
+Proxy Server Architecture
+The system uses an external proxy server to handle geolocation requests, providing separation of concerns and enabling centralized IP analysis.
+Proxy Server Infrastructure
+Client Browser
+fingerprint-oss Library
+HTTPS Request
+fingerprint-proxy.gossorg.in
+Express.js Server
+MaxMind GeoIP2 Integration
+Response Caching
+Geolocation Response
+Sources:
+src/index.ts
+11
+Error Handling and Fallback Systems
+The architecture includes robust error handling with fallback mechanisms to ensure consistent operation even when external services are unavailable.
+Fallback Data Flow
+userInfo()
+try { Promise.all() }
+Normal Data Collection
+catch (error)
+console.error()
+getMockSystemInfo()
+fetchGeolocationInfo() (retry)
+generateJSON() with real data
+generateJSON() with fallback data
+JSON Response
+Sources:
+src/index.ts
+123-134
+The fingerprint-oss library's architecture prioritizes modularity, reliability, and extensibility while maintaining a clean separation between data collection, processing, and output generation components.
+
+
+--- 1.2 Key Concepts And Terminology ---
+
+Key Concepts and Terminology
+Relevant source files
+Purpose and Scope
+This document defines the essential concepts, data structures, and terminology used throughout the fingerprint-oss library. It serves as a reference for understanding the core abstractions that enable browser fingerprinting, detection systems, and privacy compliance features.
+For implementation details of the main entry point, see userInfo Function. For detailed fingerprinting techniques, see Fingerprinting Techniques. For privacy and compliance mechanisms, see GDPR Compliance and Privacy.
+Core Data Structures
+The fingerprint-oss library operates on several key data structures that represent different aspects of browser and system information collection.
+Primary Data Container
+The SystemInfo interface serves as the primary container for all collected fingerprinting data. This structure aggregates information from multiple detection modules into a single, comprehensive data object.
+SystemInfo
+incognito: IncognitoInfo
+bot: BotInfo
+userAgent: string
+platform: string
+languages: string[]
+screenResolution: [number, number]
+webGL: WebGLInfo
+canvas: CanvasInfo
+plugins: PluginInfo[]
+mathConstants: MathInfo
+fontPreferences: FontPreferencesInfo
+touchSupport: TouchSupportInfo
+confidenceScore: number
+Core Data Structure Components
+Component Type Purpose
+incognito { isPrivate: boolean; browserName: string } Private browsing mode detection
+bot { isBot: boolean; signals: string[]; confidence: number } Automated client detection
+userAgent string Browser identification string
+platform string Operating system platform
+languages string[] Browser language preferences
+screenResolution [number, number] Display dimensions
+webGL WebGLInfo Graphics rendering capabilities
+canvas CanvasInfo Canvas fingerprinting results
+plugins PluginInfo[] Installed browser plugins
+mathConstants MathInfo Mathematical constant variations
+fontPreferences FontPreferencesInfo Font availability detection
+touchSupport TouchSupportInfo Touch interface capabilities
+confidenceScore number Overall data reliability assessment
+Sources:
+src/types.ts
+58-94
+Fingerprinting-Specific Data Types
+WebGL Information Structure
+The WebGLInfo interface captures graphics subsystem characteristics used for device fingerprinting.
+WebGLInfo
+vendor: string
+renderer: string
+imageHash: string | null
+Graphics Card Vendor
+Specific GPU Model
+Rendered Image Fingerprint
+Field Type Description
+vendor string Graphics hardware vendor identifier
+renderer string Specific graphics processor model
+imageHash string | null Hash of rendered WebGL content
+Sources:
+src/types.ts
+96-100
+Canvas Fingerprinting Data
+The CanvasInfo interface stores results from HTML5 Canvas-based fingerprinting techniques.
+Field Type Description
+winding boolean Canvas path winding behavior
+geometry string Geometric shape rendering characteristics
+text string Text rendering fingerprint
+Sources:
+src/types.ts
+102-106
+Mathematical Constants Fingerprinting
+The MathInfo interface captures browser-specific variations in mathematical constant implementations.
+Constant Type Purpose
+acos number Arccosine implementation variation
+acosh number Hyperbolic arccosine variation
+asinh number Hyperbolic arcsine variation
+atanh number Hyperbolic arctangent variation
+expm1 number Exponential minus one variation
+sinh number Hyperbolic sine variation
+cosh number Hyperbolic cosine variation
+tanh number Hyperbolic tangent variation
+Sources:
+src/types.ts
+108-117
+Detection System Concepts
+Privacy Tool Detection
+The system implements several detection mechanisms for privacy-enhancing tools and browsing modes.
+PrivacyDetection
+IncognitoDetection
+VPNDetection
+AdBlockerDetection
+BotDetection
+isPrivate: boolean
+browserName: string
+timezone comparison
+geolocation analysis
+element blocking detection
+Brave browser identification
+isBot: boolean
+signals: string[]
+confidence: number
+Bot Detection Framework
+The bot detection system uses multiple signals to identify automated clients:
+Signal Type Detection Method Confidence Impact
+User Agent Automated client patterns High
+Behavioral Interaction timing analysis Medium
+Hardware Unusual hardware configurations Medium
+WebDriver Automation framework detection High
+Sources:
+src/types.ts
+60-64
+Browser-Specific Detection
+Brave Browser Detection
+The system includes specialized detection for the Brave browser through the BraveInfo interface:
+Field Type Purpose
+userAgentData { brands: Array<{brand: string, version: string}> } Client hints API data
+userAgent string Traditional user agent string
+brands string[] Extracted brand identifiers
+Sources:
+src/types.ts
+47-56
+Hardware and System Capabilities
+Touch Support Detection
+The TouchSupportInfo interface captures touch interface capabilities:
+Field Type Description
+maxTouchPoints number Maximum simultaneous touch points
+touchEvent boolean Touch event API availability
+touchStart boolean Touch start event support
+Sources:
+src/types.ts
+126-130
+Plugin System Information
+Browser plugin detection uses the PluginInfo interface:
+Field Type Description
+name string Plugin identification name
+description string Plugin description text
+mimeTypes MimeType[] Supported MIME type associations
+The associated MimeType interface defines:
+Field Type Description
+type string MIME type identifier
+suffixes string File extension associations
+Sources:
+src/types.ts
+137-141
+src/types.ts
+132-135
+Configuration and Compliance Concepts
+GDPR Compliance Framework
+The library implements transparency and compliance through configuration options:
+Configuration Type Purpose
+transparency boolean Enable console logging of data collection
+message string Custom privacy notice message
+GDPRConfig
+transparency: boolean
+message: string
+ConsoleNotification
+CustomPrivacyMessage
+Data collection disclosure
+User-defined privacy notice
+Sources:
+README.md
+69-76
+Technical Implementation Concepts
+Global Type Extensions
+The library extends global browser interfaces to access vendor-specific features:
+Navigator Extensions
+Extension Type Purpose
+brave { isBrave: () => Promise<boolean> } Brave browser API access
+userAgentData { brands: Array<{brand: string, version: string}> } Client hints API
+Window Extensions
+Extension Type Purpose
+webkitRequestFileSystem any WebKit filesystem API
+TEMPORARY number Temporary storage constant
+TouchEvent any Touch event constructor
+AudioContext any Web Audio API
+webkitAudioContext any WebKit Audio API
+Sources:
+src/types.ts
+11-45
+Data Flow and Processing Architecture
+userInfo
+DataCollection
+SystemInfoBuilder
+ConfidenceAssessment
+HashGeneration
+JSONSerialization
+BrowserAPIs
+GeoIPService
+PrivacyDetection
+BotDetection
+FinalOutput
+License and Legal Framework
+The project operates under the LGPL-3.0 (Lesser General Public License) which permits:
+Commercial use with proper attribution
+Modification and redistribution
+Linking from proprietary applications
+Distribution under compatible licenses
+Key legal concepts:
+Concept Definition
+Copyleft Modifications must remain under LGPL
+Library Exception Applications using the library retain their license
+Source Availability Modified versions must provide source code
+Attribution Original copyright notices must be preserved
+Sources:
+LICENSE.md
+1-166
+COPYRIGHT.md
+1-25
+Sources:
+README.md
+1-125
+src/types.ts
+1-142
+LICENSE.md
+1-166
+COPYRIGHT.md
+1-25
+NOTICE.md
+1-5
+
+
+--- 2 Core Functionality ---
+
+Core Functionality
+Relevant source files
+This document covers the main functional components that provide fingerprinting capabilities in the fingerprint-oss library. The core functionality encompasses data collection from browser APIs, fingerprinting techniques, confidence assessment, and output generation.
+For implementation details on specific detection methods, see Detection Components. For usage instructions and API reference, see Usage and Integration.
+Main Entry Point and Data Flow
+The core functionality centers around the userInfo function, which orchestrates all fingerprinting operations and returns a comprehensive JSON response containing system information, geolocation data, and confidence metrics.
+getSystemInfo()
+fetchGeolocationInfo()
+userInfo()
+System Data Collection
+Geolocation Data
+detectBot()
+Browser Detection
+Hardware Detection
+Fingerprinting Methods
+getCanvasFingerprint()
+getWebGLInfo()
+getAudioFingerprint()
+getFontPreferences()
+getMathFingerprint()
+Network Analysis
+VPN Detection
+calculateCombinedConfidence()
+generateJSON()
+Final JSON Response
+generateId()
+Sources:
+src/index.ts
+99-135
+src/index.ts
+138-178
+System Information Collection
+The system information collection process gathers data from multiple browser APIs and environment characteristics. This forms the foundation for device identification and fingerprinting.
+Component Function Data Collected
+Browser Detection getVendorFlavors() Chrome, Firefox, Safari detection
+Operating System getOSInfo() OS name, version from user agent
+Hardware estimateCores() CPU core estimation via Web Workers
+Touch Support getTouchSupportInfo() Touch capabilities and max touch points
+Storage APIs isLocalStorageEnabled(), isSessionStorageEnabled(), isIndexedDBEnabled() Storage availability
+Display getColorGamut() Color gamut support (rec2020, p3, srgb)
+Plugins getPluginsInfo() Browser plugins and MIME types
+getSystemInfo()
+Browser APIs
+navigator.userAgent
+navigator.platform
+navigator.plugins
+navigator.maxTouchPoints
+navigator.hardwareConcurrency
+window.localStorage
+window.sessionStorage
+window.indexedDB
+window.matchMedia
+getOSInfo()
+estimateCores()
+getTouchSupportInfo()
+getVendorFlavors()
+getColorGamut()
+Sources:
+src/helper.ts
+484-490
+src/helper.ts
+497-588
+src/helper.ts
+597-683
+src/helper.ts
+75-87
+src/helper.ts
+21-27
+src/helper.ts
+316-352
+Fingerprinting Techniques
+The library employs multiple fingerprinting techniques to create unique device signatures. Each technique exploits different browser capabilities and hardware characteristics.
+Canvas and WebGL Fingerprinting
+Canvas and WebGL fingerprinting generate unique signatures based on how graphics are rendered on different devices and graphics drivers.
+Graphics Fingerprinting
+getCanvasFingerprint()
+getWebGLInfo()
+Canvas 2D Context
+Text Rendering
+Shape Drawing
+Winding Rule Test
+WebGL Context
+Vendor Info
+Renderer Info
+Shader Compilation
+Triangle Rendering
+Font Metrics
+Geometry Hash
+GPU Signature
+Pixel Data Hash
+Canvas Fingerprint
+WebGL Fingerprint
+Sources:
+src/helper.ts
+274-306
+src/helper.ts
+140-267
+Audio and Mathematical Fingerprinting
+Audio and mathematical fingerprinting techniques exploit differences in audio processing and floating-point arithmetic implementations.
+Specialized Fingerprinting
+getAudioFingerprint()
+getMathFingerprint()
+getFontPreferences()
+AudioContext
+Oscillator + Analyser
+Frequency Analysis
+Audio Signature
+Math Functions
+acos(), acosh(), asinh()
+atanh(), expm1(), sinh()
+cosh(), tanh()
+Float Precision Signature
+Canvas Text Measurement
+Font List Testing
+Dimension Comparison
+Available Fonts
+Sources:
+src/helper.ts
+34-67
+src/helper.ts
+359-370
+src/helper.ts
+377-476
+Confidence Assessment System
+The confidence assessment system evaluates the reliability and authenticity of collected data through multiple validation mechanisms.
+calculateCombinedConfidence()
+Base System Confidence
+Bot Detection Impact
+Geolocation Verification
+Hardware/Software Consistency
+systemInfo.bot.isBot
+systemInfo.bot.confidence
+geoInfo.traits.isAnonymousProxy
+geoInfo.traits.isHostingProvider
+geoInfo.traits.isTorExitNode
+Timezone Consistency Check
+getUAPlatformMismatch()
+Score Reduction
+Network Risk Penalty
+Timezone Mismatch Penalty
+Platform Inconsistency Penalty
+Final Confidence Score
+Clamped to [0.1, 0.9]
+Sources:
+src/index.ts
+59-87
+Hash Generation and Unique Identifiers
+The system generates deterministic hash values from collected fingerprinting data to create unique device identifiers.
+Fingerprint Data
+generateId()
+Data Normalization
+Deterministic Sorting
+SHA-256 Hashing
+Unique Device ID
+Canvas Data
+WebGL Data
+Audio Data
+Math Data
+Font Data
+System Data
+hash-wasm
+Sources:
+src/index.ts
+16
+src/helper.ts
+13
+Output Format and JSON Generation
+The final output is structured JSON containing organized system information, geolocation data, confidence scores, and unique identifiers.
+generateJSON()
+systemInfo Section
+geolocation Section
+confidenceAssessment Section
+hash Section
+Browser Detection Results
+Hardware Information
+Fingerprinting Data
+Privacy Tool Detection
+IP Geolocation
+Network Provider Info
+Risk Assessment
+Combined Confidence Score
+Individual Component Scores
+Unique Device Identifier
+Hash Algorithm Info
+Final JSON Response
+Sources:
+src/index.ts
+118-122
+src/index.ts
+129-133
+Integration and Exports
+The library provides a comprehensive default export that includes the main userInfo function alongside all individual component functions for granular access.
+Category Functions Purpose
+Core System getSystemInfo, detectBot, generateId Primary data collection and identification
+Privacy Detection detectIncognito, detectAdBlockers, getVpnStatus Privacy tool and VPN detection
+Fingerprinting getCanvasFingerprint, getWebGLInfo, getAudioFingerprint, getFontPreferences, getMathFingerprint Unique device signature generation
+Hardware Detection estimateCores, getTouchSupportInfo, getOSInfo Hardware capability assessment
+Storage Detection isLocalStorageEnabled, isSessionStorageEnabled, isIndexedDBEnabled Storage API availability
+Utilities getColorGamut, getVendorFlavors, getPluginsInfo Browser capability detection
+Confidence getLanguageConsistency, isRiskyASN, getUAPlatformMismatch, checkBrowserConsistency Data validation and scoring
+Sources:
+src/index.ts
+138-178
+
+
+--- 2.1 Userinfo Function ---
+
+userInfo Function
+Relevant source files
+This document provides comprehensive documentation for the userInfo function, which serves as the main entry point for the fingerprint-oss library. The function orchestrates the collection of browser, system, and geolocation data to generate a comprehensive fingerprint and confidence assessment.
+For information about the specific data collection mechanisms used by this function, see System Information Collection. For details about the confidence scoring algorithms, see Confidence Assessment System. For GDPR compliance features, see GDPR Compliance.
+Function Overview
+The userInfo function is the primary interface for collecting browser fingerprinting data. It coordinates parallel data collection from multiple sources, calculates confidence scores, and returns a structured JSON response containing system information, geolocation data, and reliability assessments.
+Function Signature:
+async function userInfo(config: {
+  transparency?: boolean, 
+  message?: string
+} = {}): Promise<object>
+Sources:
+src/index.ts
+81-115
+Core Architecture and Data Flow
+The following diagram illustrates the internal architecture and data flow of the userInfo function:
+Yes
+Yes
+No
+Error
+userInfo()
+Promise.all()
+getSystemInfo()
+fetchGeolocationInfo()
+System Data
+Geo Data
+calculateCombinedConfidence()
+Combined Confidence Score
+generateJSON()
+Final JSON Output
+config.transparency?
+console.log()
+Toast.show()
+Skip Transparency
+catch block
+getMockSystemInfo()
+Mock System Data
+Sources:
+src/index.ts
+81-115
+src/index.ts
+37-69
+Function Dependencies and Module Integration
+This diagram shows how the userInfo function integrates with other modules in the codebase:
+Compliance Module
+Processing Modules
+Data Collection Modules
+src/index.ts
+userInfo()
+calculateCombinedConfidence()
+getSystemInfo() from systemInfo.ts
+fetchGeolocationInfo() from geo-ip.ts
+getMockSystemInfo() from mock.ts
+generateJSON() from json.ts
+isRiskyASN() from confidence.ts
+getUAPlatformMismatch() from confidence.ts
+Toast.show() from compliance.ts
+Sources:
+src/index.ts
+10-15
+src/index.ts
+37-69
+src/index.ts
+81-115
+Configuration Parameters
+The userInfo function accepts an optional configuration object with the following properties:
+Parameter Type Default Description
+transparency boolean false Enables GDPR compliance logging and notifications
+message string "the software is gathering system data" Custom message for transparency notifications
+Transparency Behavior
+When transparency is enabled, the function performs the following actions:
+Console Logging: Outputs a copyright notice with the specified message to the browser console
+Toast Notification: Displays a visual notification using the Toast component
+Message Handling: Uses the custom message if provided, otherwise falls back to the default message
+Sources:
+src/index.ts
+90-99
+README.md
+61-75
+Confidence Calculation Algorithm
+The calculateCombinedConfidence function implements a sophisticated scoring algorithm that evaluates data reliability:
+Base Confidence Assessment
+Starts with system-provided confidence score (default: 0.5)
+Applies penalties based on various risk factors
+Bot Detection Impact
+Reduces confidence by up to 0.4 when bot activity is detected
+Penalty calculation: Math.min(0.4, botConfidence * 0.6)
+Geolocation Verification
+Network Provider Penalties: Deducts 0.2 for proxy, hosting, or Tor usage
+Timezone Consistency: Deducts 0.15 for timezone mismatches between system and geolocation data
+Missing Geolocation: Deducts 0.3 when geolocation data is unavailable
+Hardware/Software Consistency
+Evaluates User Agent and platform alignment using getUAPlatformMismatch
+Applies proportional penalty based on detected inconsistencies
+Final Score Bounds
+Confidence scores are clamped between 0.1 and 0.9
+Formula: Math.max(0.1, Math.min(0.9, calculatedConfidence))
+Sources:
+src/index.ts
+37-69
+Error Handling and Fallback Mechanisms
+The function implements comprehensive error handling to ensure reliable operation:
+Success
+Error
+userInfo() called
+try block
+Promise.all([getSystemInfo(), fetchGeolocationInfo()])
+Data collection successful
+catch block
+calculateCombinedConfidence()
+generateJSON()
+console.error('Data collection error:', error)
+getMockSystemInfo()
+calculateCombinedConfidence(mockSystem, null)
+generateJSON(null, mockSystem, confidence)
+Return final JSON
+Error Recovery Process
+Error Logging: All errors are logged to the console with descriptive messages
+Mock Data Fallback: Uses getMockSystemInfo() to provide baseline system information
+Null Geolocation: Passes null for geolocation data when unavailable
+Confidence Recalculation: Computes confidence score using available mock data
+Sources:
+src/index.ts
+105-114
+Return Value Structure
+The function returns a comprehensive JSON object containing:
+System Information: Browser, hardware, and operating system details
+Geolocation Data: IP-based location and network characteristics
+Confidence Assessment: Reliability scores and factors
+Privacy Detection Results: VPN, incognito, ad-blocker, and bot detection
+Unique Hash: Device identifier for tracking purposes
+For detailed information about the complete output structure, see API Reference.
+Usage Examples
+Basic Usage
+import userInfo from 'fingerprint-oss';
+
+// Simple data collection
+const data = await userInfo();
+console.log(data.hash); // Unique device identifier
+GDPR Compliant Usage
+import userInfo from 'fingerprint-oss';
+
+// Enable transparency notifications
+const config = {
+  transparency: true,
+  message: 'We collect device information for security purposes'
+};
+
+const data = await userInfo(config);
+Error Handling
+import userInfo from 'fingerprint-oss';
+
+try {
+  const data = await userInfo();
+  // Process collected data
+} catch (error) {
+  // Error handling is built-in, but additional logic can be added
+  console.error('Custom error handling:', error);
+}
+Sources:
+README.md
+54-70
+API.md
+156-178
+
+
+--- 2.2 System Information Collection ---
+
+System Information Collection
+Relevant source files
+This document covers the comprehensive system information collection capabilities of the fingerprint-oss library. The system gathers browser characteristics, hardware specifications, operating system details, and privacy settings to create detailed environmental profiles for fingerprinting purposes.
+For detailed information about specific fingerprinting techniques like canvas and WebGL, see Fingerprinting Techniques. For geolocation and network detection capabilities, see Geolocation and Network Detection. For bot detection algorithms, see Bot Detection. For privacy tool detection, see VPN and Proxy Detection, Incognito Mode Detection, and Ad Blocker Detection.
+Collection Architecture Overview
+The system information collection process is orchestrated by the getSystemInfo() function in
+src/systemInfo.ts
+132-210
+which coordinates multiple specialized detection modules to gather comprehensive browser and system data.
+System Information Collection Flow
+getSystemInfo()
+detectBot()
+detectIncognito()
+detectAdBlockers()
+Hardware Detection
+Browser Feature Detection
+Graphics Fingerprinting
+calculateConfidenceScore()
+estimateCores()
+getOSInfo()
+getTouchSupportInfo()
+getVendorFlavors()
+Storage Detection
+getPluginsInfo()
+getWebGLInfo()
+getCanvasFingerprint()
+getAudioFingerprint()
+isLocalStorageEnabled()
+isSessionStorageEnabled()
+isIndexedDBEnabled()
+SystemInfo Object
+Sources:
+src/systemInfo.ts
+132-210
+src/helper.ts
+1-684
+Core Detection Components
+The system employs multiple detection modules that each focus on specific aspects of the browser environment. These modules are implemented as standalone functions that can operate independently and handle errors gracefully.
+Detection Module Function Purpose Output Type
+Bot Detection detectBot() Identifies automated browsers {isBot: boolean, signals: string[], confidence: number}
+Privacy Detection detectIncognito() Detects private browsing modes {isPrivate: boolean, browserName: string}
+Ad Blocker Detection detectAdBlockers() Identifies ad blocking software {detected: boolean, type: string}
+OS Detection getOSInfo() Determines operating system {os: string, version: string}
+Hardware Analysis estimateCores() Estimates CPU core count number
+Sources:
+src/systemInfo.ts
+30-83
+src/systemInfo.ts
+97-124
+src/helper.ts
+497-588
+src/helper.ts
+597-683
+Hardware and System Detection
+The library implements sophisticated hardware detection that goes beyond simple navigator properties to provide more accurate system profiling.
+Hardware Detection Components
+Hardware Detection
+CPU Analysis
+Memory Detection
+Display Properties
+Input Capabilities
+estimateCores()
+navigator.hardwareConcurrency
+Web Worker Performance Testing
+navigator.deviceMemory
+Screen Resolution
+Color Depth
+getColorGamut()
+getTouchSupportInfo()
+Touch Event Support
+Max Touch Points
+Worker Script Execution
+Performance Measurement
+Core Count Estimation
+Sources:
+src/helper.ts
+597-683
+src/helper.ts
+21-27
+src/helper.ts
+484-490
+src/systemInfo.ts
+161-170
+CPU Core Estimation
+The estimateCores() function provides more accurate CPU detection than the browser-reported navigator.hardwareConcurrency by spawning multiple Web Workers and measuring their concurrent execution performance.
+The algorithm creates up to 16 workers that perform intensive mathematical computations and analyzes the execution times to estimate actual available cores. The process includes timeout protection and fallback mechanisms for environments where Web Workers are unavailable.
+Sources:
+src/helper.ts
+597-683
+Operating System Detection
+The getOSInfo() function analyzes both navigator.platform and navigator.userAgent to identify the operating system and version. It includes comprehensive mapping for Windows versions, macOS releases, mobile platforms, and Linux distributions.
+Sources:
+src/helper.ts
+497-588
+Browser Feature Detection
+The system performs extensive browser capability assessment to understand the available APIs and storage mechanisms.
+Browser Feature Detection Matrix
+Browser Features
+Storage APIs
+Vendor Detection
+Plugin System
+Math Constants
+isLocalStorageEnabled()
+isSessionStorageEnabled()
+isIndexedDBEnabled()
+getVendorFlavors()
+User Agent Analysis
+Chrome/Firefox/Safari Detection
+getPluginsInfo()
+MIME Type Enumeration
+Plugin Capabilities
+getMathFingerprint()
+Math Function Results
+Numerical Precision Testing
+Sources:
+src/helper.ts
+95-133
+src/helper.ts
+75-87
+src/helper.ts
+316-352
+src/helper.ts
+359-370
+Storage Detection
+The storage detection functions test actual read/write capabilities rather than just checking for API presence. Each function performs a test write operation to verify that the storage mechanism is both present and functional.
+isLocalStorageEnabled() - Tests localStorage with write/remove operations
+isSessionStorageEnabled() - Tests sessionStorage functionality
+isIndexedDBEnabled() - Checks for IndexedDB API availability
+Sources:
+src/helper.ts
+95-133
+Plugin Enumeration
+The getPluginsInfo() function extracts detailed information about browser plugins, including their names, descriptions, and supported MIME types. It handles errors gracefully when plugin access is restricted or unavailable.
+Sources:
+src/helper.ts
+316-352
+Graphics and Audio Fingerprinting
+The system includes multiple fingerprinting techniques that leverage browser rendering and audio capabilities to create unique device signatures.
+Fingerprinting Techniques Implementation
+Graphics & Audio
+WebGL Fingerprinting
+Canvas Fingerprinting
+Audio Fingerprinting
+Font Detection
+getWebGLInfo()
+Vendor/Renderer Strings
+Scene Rendering
+SHA-256 Hash Generation
+getCanvasFingerprint()
+2D Context Rendering
+Text and Geometry
+Winding Rule Detection
+getAudioFingerprint()
+AudioContext Creation
+Oscillator Analysis
+Frequency Data
+getFontPreferences()
+Font List Testing
+Text Measurement
+Baseline Comparison
+Sources:
+src/helper.ts
+140-267
+src/helper.ts
+274-306
+src/helper.ts
+34-67
+src/helper.ts
+377-476
+WebGL Fingerprinting
+The getWebGLInfo() function creates a comprehensive WebGL fingerprint by extracting vendor and renderer information, then rendering a complex scene with colored triangles. The rendered output is hashed using SHA-256 to create a unique signature.
+The function includes extensive error handling for environments where WebGL is unavailable or restricted, and uses the WEBGL_debug_renderer_info extension when available for more detailed hardware information.
+Sources:
+src/helper.ts
+140-267
+Font Detection
+The getFontPreferences() function implements a sophisticated font detection algorithm that tests over 100 common fonts across Windows, macOS, and Linux platforms. It measures text rendering dimensions against multiple baseline fonts (sans-serif, serif, monospace) to determine which fonts are actually installed.
+Sources:
+src/helper.ts
+377-476
+Bot and Privacy Detection Integration
+The system information collection process integrates bot detection and privacy analysis to provide context about the browsing environment's authenticity and privacy posture.
+Bot Detection Signals
+The detectBot() function analyzes multiple environmental signals with weighted confidence scoring:
+Strong signals (0.3 weight): User agent patterns, webdriver flags
+Medium signals (0.15 weight): Missing storage APIs, few plugins
+Weak signals (0.05 weight): Unusual screen dimensions, abnormal CPU counts
+Sources:
+src/systemInfo.ts
+30-83
+Confidence Score Calculation
+The calculateConfidenceScore() function combines bot detection results with privacy mode detection to generate an overall confidence assessment for the collected data. It starts with a base score of 0.7 and applies adjustments based on detected privacy tools and consistency checks.
+Sources:
+src/systemInfo.ts
+97-124
+Error Handling and Fallbacks
+The collection system implements comprehensive error handling with graceful degradation when browser APIs are unavailable or restricted.
+Component Fallback Strategy Error Handling
+WebGL Returns error strings in imageHash field Try-catch with detailed error logging
+Audio Returns null on failure Warns but continues execution
+Storage APIs Returns false for unavailable storage Test operations with exception handling
+Worker-based CPU detection Falls back to navigator.hardwareConcurrency Timeout protection and worker cleanup
+The system ensures that collection continues even when individual components fail, maintaining robustness across diverse browser environments and security configurations.
+Sources:
+src/helper.ts
+34-67
+src/helper.ts
+140-267
+src/helper.ts
+95-133
+src/helper.ts
+597-683
+
+
+--- 2.3 Fingerprinting Techniques ---
+
+Fingerprinting Techniques
+Relevant source files
+This document covers the various browser and device fingerprinting techniques implemented in the fingerprint-oss library. These techniques collect unique characteristics from the client environment to generate device-specific identifiers. For information about basic system information collection, see System Information Collection. For geolocation-based detection methods, see Geolocation and Network Detection.
+Technique Categories Overview
+The fingerprinting system employs multiple categories of detection techniques, each targeting different aspects of the client environment:
+Hardware Detection
+Browser Capabilities
+System Characteristics
+Browser Environment
+getCanvasFingerprint
+getWebGLInfo
+getAudioFingerprint
+getColorGamut
+getMathFingerprint
+getFontPreferences
+getTouchSupportInfo
+getOSInfo
+getPluginsInfo
+isLocalStorageEnabled
+isSessionStorageEnabled
+isIndexedDBEnabled
+getVendorFlavors
+estimateCores
+navigator.hardwareConcurrency
+screen properties
+Unique Device Hash
+Technique Categories and Code Implementation Sources:
+src/helper.ts
+1-684
+Canvas Fingerprinting
+Canvas fingerprinting leverages the HTML5 Canvas API to detect subtle differences in how graphics are rendered across different devices and browsers. The getCanvasFingerprint() function creates a standardized drawing and captures its output.
+Canvas Implementation Details
+Property Description Code Location
+Winding Rule Support Tests path winding algorithms
+src/helper.ts
+299
+Geometry Rendering Creates rectangles and text
+src/helper.ts
+290-296
+Font Baseline Uses Arial 14px font
+src/helper.ts
+289
+The canvas fingerprint creates a specific visual pattern:
+Return Object
+getCanvasFingerprint
+canvas.width = 200
+canvas.height = 50
+ctx.fillStyle = '#f60'
+fillRect(125,1,62,20)
+fillText('Fingerprint', 2, 15)
+fillText('Test', 4, 17)
+canvas.toDataURL
+CanvasInfo
+winding
+geometry
+text
+Canvas Fingerprinting Implementation Sources:
+src/helper.ts
+274-306
+WebGL Fingerprinting
+WebGL fingerprinting provides one of the most distinctive device signatures by combining hardware vendor information with rendered scene analysis. The getWebGLInfo() function performs comprehensive WebGL characteristic detection.
+WebGL Data Collection
+The WebGL fingerprinting process involves multiple stages:
+Shader Pipeline
+getWebGLInfo
+canvas.getContext('webgl')
+WEBGL_debug_renderer_info
+vendor string
+renderer string
+vertex shader creation
+fragment shader creation
+program linking
+triangle rendering
+gl.readPixels
+sha256(pixelData)
+WebGLInfo
+a_position attribute
+a_color attribute
+v_color varying
+gl_FragColor output
+WebGL Fingerprinting Architecture Sources:
+src/helper.ts
+140-267
+WebGL Rendering Pipeline
+The WebGL implementation renders a specific geometric pattern to generate a unique hash:
+Component Specification Purpose
+Canvas Size 64x64 pixels Consistent rendering area
+Vertex Shader Position + Color attributes Geometric transformation
+Fragment Shader Color interpolation Pixel-level rendering
+Geometry Two colored triangles Complex rendering test
+Hash Algorithm SHA-256 Deterministic fingerprint
+Sources:
+src/helper.ts
+176-254
+Audio Fingerprinting
+Audio fingerprinting exploits differences in audio processing hardware and drivers through the Web Audio API. The getAudioFingerprint() function analyzes audio context characteristics.
+Audio Context Analysis
+getAudioFingerprint
+AudioContext
+createOscillator
+createAnalyser
+createGain
+createScriptProcessor
+type = 'triangle'
+gain.value = 0
+oscillator.connect
+analyser.connect
+scriptProcessor.connect
+gainNode.connect
+destination
+getFloatFrequencyData
+reduce((a, b) => a + b, 0)
+numeric fingerprint
+Audio Fingerprinting Process Sources:
+src/helper.ts
+34-67
+Mathematical Constants Fingerprinting
+The getMathFingerprint() function captures implementation differences in JavaScript's Math object across different engines and platforms.
+Math Function Analysis
+Function Input Value Purpose
+Math.acos 0.123456789 Inverse cosine precision
+Math.acosh 1.123456789 Hyperbolic arccosine
+Math.asinh 0.123456789 Hyperbolic arcsine
+Math.atanh 0.123456789 Hyperbolic arctangent
+Math.expm1 0.123456789 e^x - 1 precision
+Math.sinh 0.123456789 Hyperbolic sine
+Math.cosh 0.123456789 Hyperbolic cosine
+Math.tanh 0.123456789 Hyperbolic tangent
+getMathFingerprint
+Math.acos(0.123456789)
+Math.acosh(1.123456789)
+Math.asinh(0.123456789)
+Math.atanh(0.123456789)
+Math.expm1(0.123456789)
+Math.sinh(0.123456789)
+Math.cosh(0.123456789)
+Math.tanh(0.123456789)
+MathInfo
+Mathematical Constants Collection Sources:
+src/helper.ts
+359-370
+Font Detection Fingerprinting
+Font fingerprinting identifies available system fonts by measuring text rendering differences. The getFontPreferences() function tests against an extensive font database.
+Font Detection Algorithm
+The font detection process compares rendered text dimensions across different font families:
+getFontPreferences
+testString = 'abcdefghijklmnopqrstuvwxyz0123456789'
+testSize = '72px'
+baseline: sans-serif
+baseline: serif
+baseline: monospace
+baselineWidth
+baselineSerifWidth
+baselineMonoWidth
+test each font
+measureText comparison
+width difference?
+height difference?
+detectedFonts.push
+sort() and deduplicate
+FontPreferencesInfo
+Font Detection Process Sources:
+src/helper.ts
+377-476
+Font Database Coverage
+The font detection tests against 100+ fonts across multiple platforms:
+Platform Font Examples Count
+Windows Arial, Calibri, Segoe UI, Times New Roman ~50
+macOS Helvetica, San Francisco, Menlo, Monaco ~30
+Linux DejaVu Sans, Liberation, Ubuntu, Noto ~15
+Cross-platform Roboto, Open Sans, Century Gothic ~5
+Sources:
+src/helper.ts
+378-403
+Browser Capability Detection
+Several functions detect browser-specific capabilities and features that contribute to the device fingerprint.
+Storage API Detection
+Storage Detection
+isLocalStorageEnabled
+isSessionStorageEnabled
+isIndexedDBEnabled
+localStorage.setItem('test', 'test')
+localStorage.removeItem('test')
+boolean result
+sessionStorage.setItem('test', 'test')
+sessionStorage.removeItem('test')
+boolean result
+!!window.indexedDB
+boolean result
+StorageCapabilities
+Storage Capability Detection Sources:
+src/helper.ts
+95-133
+Plugin Enumeration
+The getPluginsInfo() function analyzes installed browser plugins and their MIME type associations:
+Property Description Code Reference
+Plugin Name Plugin identifier
+src/helper.ts
+343
+Description Plugin description
+src/helper.ts
+344
+MIME Types Supported file types
+src/helper.ts
+326-336
+Suffixes File extensions
+src/helper.ts
+334
+Sources:
+src/helper.ts
+316-352
+Advanced Hardware Detection
+CPU Core Estimation
+The estimateCores() function performs sophisticated hardware analysis using Web Workers to estimate actual CPU cores available to the browser.
+estimateCores
+navigator.hardwareConcurrency
+Web Worker creation
+compute-intensive task
+TARGET_ITERATIONS = 30e6
+Math.sin(i) * Math.log(i + 1)
+concurrent execution
+duration measurement
+median calculation
+efficiency analysis
+core estimation
+fallback value
+Math.min(result, 12)
+estimated cores
+CPU Core Estimation Algorithm Sources:
+src/helper.ts
+597-683
+Performance Testing Parameters
+Parameter Value Purpose
+MAX_TEST_TIME 1200ms Timeout protection
+TARGET_ITERATIONS 30,000,000 Computation load
+Test Concurrency browserReportedCores * 2 Parallel execution
+Maximum Result 12 cores Result capping
+Sources:
+src/helper.ts
+598-674
+Touch and Device Capabilities
+Touch Support Detection
+The getTouchSupportInfo() function analyzes touch interface capabilities:
+getTouchSupportInfo
+navigator.maxTouchPoints
+'ontouchstart' in window
+'ontouchstart' in window
+maxTouchPoints
+touchEvent
+touchStart
+TouchSupportInfo
+Touch Capability Detection Sources:
+src/helper.ts
+484-490
+Color Gamut Detection
+The getColorGamut() function uses CSS media queries to detect display color capabilities:
+Gamut CSS Query Color Range
+rec2020 (color-gamut: rec2020) Wide gamut HDR
+p3 (color-gamut: p3) Display P3
+srgb (color-gamut: srgb) Standard RGB
+unknown Default fallback Undetectable
+Sources:
+src/helper.ts
+21-27
+
+
+--- 2.4 Geolocation And Network Detection ---
+
+Geolocation and Network Detection
+Relevant source files
+Purpose and Scope
+This document covers the geolocation and network detection subsystem of fingerprint-oss, which provides IP-based geographic location identification and network characteristic analysis. The system fetches detailed geolocation data from external services, detects various types of network infrastructure (VPNs, proxies, hosting providers), and performs timezone-based VPN detection analysis.
+For information about confidence assessment of geolocation data, see Confidence Assessment System. For bot detection algorithms, see Bot Detection.
+System Architecture
+The geolocation and network detection system consists of three main components: IP geolocation data fetching, network traits analysis, and VPN detection through timezone comparison.
+Geolocation Data Flow
+userInfo
+fetchGeolocationInfo
+GEOIP_URL
+fingerprint-proxy.gossorg.in
+MaxMind_Database
+GeolocationInfo
+getMockGeolocationData
+Fallback_Data
+getVpnStatus
+timezone_comparison
+VPN_Probability
+Network_Traits
+Proxy_Detection
+Hosting_Provider_Detection
+Anonymity_Detection
+Sources:
+src/geo-ip.ts
+106-161
+src/vpn.ts
+41-66
+Core Components and Data Types
+timeZones.ts
+vpn.ts
+geo-ip.ts
+GeolocationInfo
+fetchGeolocationInfo
+getMockGeolocationData
+getVpnStatus
+normalizeTimezone
+TimeZone
+timezoneAliases
+Sources:
+src/geo-ip.ts
+18-64
+src/vpn.ts
+11-14
+src/timeZones.ts
+10-159
+GeolocationInfo Interface
+The GeolocationInfo interface defines the comprehensive structure for IP geolocation data returned by the system.
+Data Structure
+Field Type Description
+ipAddress string Detected IP address
+country object Country information with ISO code and name
+registeredCountry object Registered country with EU membership flag
+city object City name and GeoName ID
+continent object Continent code and name
+subdivisions array State/province information
+location object Coordinates, accuracy radius, and timezone
+postal object Postal/ZIP code
+traits object Network characteristics and anonymity flags
+Network Traits Detection
+The traits object within GeolocationInfo provides detailed network infrastructure analysis:
+traits
+isAnonymousProxy
+isAnonymousVpn
+isHostingProvider
+isLegitimateProxy
+isPublicProxy
+isResidentialProxy
+isTorExitNode
+isSatelliteProvider
+network_range
+Sources:
+src/geo-ip.ts
+50-63
+IP Geolocation Fetching Process
+Primary Data Source
+The fetchGeolocationInfo() function retrieves geolocation data from the configured proxy server endpoint.
+Configuration Parameters
+PROXY_API_KEY: Authentication key (currently set to 'tester')
+GEOIP_URL: Service endpoint ('https://fingerprint-proxy.gossorg.in/')
+Request Flow
+"MaxMind Database"
+"fingerprint-proxy.gossorg.in"
+"fetchGeolocationInfo()"
+"MaxMind Database"
+"fingerprint-proxy.gossorg.in"
+"fetchGeolocationInfo()"
+Validates response structure
+Falls back to mock data if invalid
+GET request
+Query IP data
+Geolocation response
+Structured GeolocationInfo
+Sources:
+src/geo-ip.ts
+106-161
+Error Handling and Fallbacks
+The system implements robust error handling with automatic fallback to mock data:
+Network Failures: Returns mock data if HTTP request fails
+Invalid Responses: Validates response structure before processing
+Missing Data: Populates missing fields with default values
+API Unavailability: Graceful degradation using getMockGeolocationData()
+The mock data represents a standard US-based location with safe default values for all required fields.
+Sources:
+src/geo-ip.ts
+69-99
+src/geo-ip.ts
+112-124
+VPN Detection Methodology
+Timezone-Based Detection
+The getVpnStatus() function implements VPN detection by comparing timezone information from two sources:
+GeoIP Timezone: Derived from IP geolocation lookup
+Local Browser Timezone: Detected from browser's timezone settings
+Detection Algorithm
+No
+Yes
+No
+Yes
+getVpnStatus
+Data Available?
+Return 50% probability
+normalizeTimezone
+Timezones Match?
+VPN: true, probability: 0.75
+VPN: false, probability: 0.2
+timezoneAliases
+Probability Scoring
+Condition VPN Status Probability Reasoning
+Missing data false 0.5 Insufficient information
+Timezone mismatch true 0.75 High likelihood of VPN
+Timezone match false 0.2 Low likelihood of VPN
+Unknown timezones false 0.5 Cannot determine reliably
+Sources:
+src/vpn.ts
+41-66
+Timezone Normalization
+The system handles timezone aliases and naming inconsistencies through the normalizeTimezone() function, which maps common timezone variations to canonical names.
+Normalization Examples
+Input Normalized Output Category
+Asia/Calcutta Asia/Kolkata Historical rename
+US/Pacific America/Los_Angeles US timezone alias
+Europe/Kiev Europe/Kyiv Political rename
+GB Europe/London Country code alias
+The normalization ensures accurate timezone comparison despite variations in timezone naming conventions across different systems and time periods.
+Sources:
+src/vpn.ts
+27-31
+src/timeZones.ts
+10-159
+Integration with Core System
+Data Flow Integration
+Output Structure
+userInfo
+fetchGeolocationInfo
+GeolocationInfo
+getVpnStatus
+VPN_Assessment
+Hash_Generation
+Confidence_Assessment
+geolocation
+confidenceAssessment
+hash
+The geolocation system integrates with the broader fingerprinting system by providing both raw geolocation data and derived VPN detection results, which contribute to overall device fingerprinting and confidence assessment.
+Sources:
+src/geo-ip.ts
+106-161
+src/vpn.ts
+41-66
+
+
+--- 2.5 Hash Generation And Unique Identifiers ---
+
+Hash Generation and Unique Identifiers
+Relevant source files
+Purpose and Scope
+This document covers the deterministic hash generation system that creates unique device identifiers from collected system information. The hash generation process transforms the heterogeneous data collected by fingerprinting techniques into a stable, unique SHA-256 hash string that serves as a device fingerprint.
+For information about the data collection methods that feed into this system, see Fingerprinting Techniques and System Information Collection. For details about how the generated hash is included in the final output, see Output Format and JSON Generation.
+Hash Generation Process Overview
+The hash generation system implements a multi-stage pipeline that ensures deterministic and stable fingerprint creation across different browser sessions and environments.
+Hash Generation Flow
+External Dependencies
+Data Processing
+SystemInfo Input
+generateId()
+Data Selection
+Normalization
+deepSortObject()
+JSON.stringify()
+sha256()
+Hash String Output
+Extract Core Properties
+Apply Default Values
+reliableRound()
+replacer()
+Sort Object Keys
+Sort Array Elements
+hash-wasm Library
+Sources:
+src/hash.ts
+41-95
+The generateId function serves as the main entry point, accepting a SystemInfo object and returning a Promise that resolves to a SHA-256 hash string. The process ensures that identical system configurations always produce the same hash value.
+Data Selection and Normalization
+Core Data Elements
+The hash generation selects specific system properties that provide the highest fingerprinting value while maintaining stability:
+Data Category Properties Normalization Applied
+Browser Identity userAgent, platform Default placeholders for missing values
+Graphics screenResolution, colorDepth, colorGamut Array format for resolution, numeric defaults
+Operating System os.os, os.version Object structure with fallback values
+WebGL webGL.imageHash String hash or placeholder
+Fonts fontPreferences.detectedFonts Sorted array joined as comma-separated string
+Canvas/Audio canvas.geometry, audio String fingerprints or placeholders
+Math Constants mathConstants Precision-rounded to 3 decimal places
+Plugins plugins Filtered and normalized plugin data
+Sources:
+src/hash.ts
+43-90
+Data Normalization Functions
+The system applies consistent normalization through specialized functions:
+Raw System Data
+reliableRound()
+replacer()
+Font Sorting
+Plugin Filtering
+Numeric Precision
+String Cleanup
+Deterministic Order
+Consistent Structure
+Normalized Data
+Sources:
+src/hash.ts
+27-31
+src/hash.ts
+104-110
+The reliableRound function ensures consistent floating-point representation by rounding to 3 decimal places and converting to fixed-point strings. The replacer function handles special cases during JSON serialization, converting ArrayBuffers to empty strings and normalizing whitespace in strings.
+Deterministic Sorting Algorithm
+Deep Object Sorting
+The deepSortObject function recursively processes the normalized data to ensure deterministic ordering:
+Recursive Processing
+Array
+Object
+Primitive
+Input Object/Array
+Type Check
+Map deepSortObject
+Sort Keys
+Return As-Is
+Sort by JSON String
+Reduce with Sorted Keys
+Sorted Array
+Sorted Object
+Output
+deepSortObject on Elements
+deepSortObject on Values
+Sources:
+src/hash.ts
+120-143
+The sorting algorithm handles three data types:
+Arrays: Elements are recursively sorted, then the array is sorted by lexicographic comparison of JSON-stringified elements
+Objects: Keys are sorted alphabetically, and values are recursively processed
+Primitives: Returned unchanged
+SHA-256 Hash Computation
+Hash Input Generation
+The final hash input is created through controlled JSON serialization:
+External Library
+Serialization Control
+stableInfo Object
+deepSortObject()
+JSON.stringify()
+sha256()
+Hash String
+replacer Function
+ArrayBuffer → ''
+Number → reliableRound
+String → trim/normalize
+hash-wasm
+Sources:
+src/hash.ts
+92-95
+The system uses the hash-wasm library's sha256 function to compute the final hash. The JSON string input is carefully controlled through the replacer function to ensure consistent serialization across different JavaScript environments.
+Stability and Consistency Guarantees
+Normalization Strategies
+The hash generation implements several strategies to maintain consistent fingerprints:
+Challenge Solution Implementation
+Missing Data Default placeholders ?? 'unavailable' operators
+Floating Point Precision Fixed decimal rounding reliableRound() with 3 decimal places
+Array/Object Ordering Deterministic sorting deepSortObject() recursive sorting
+String Variations Whitespace normalization Regex replacement in replacer()
+Plugin Inconsistencies Filtering and normalization Remove Brave-specific plugins, normalize names
+Font Detection Variability Sorted concatenation slice().sort().join(',')
+Sources:
+src/hash.ts
+27-31
+src/hash.ts
+104-110
+src/hash.ts
+120-143
+Hash Input Structure
+The final stableInfo object structure ensures comprehensive coverage while maintaining stability:
+stableInfo
+Core Browser
+Graphics
+Platform
+Fingerprints
+Math/Plugins
+userAgent
+platform
+screenResolution
+colorDepth
+colorGamut
+os.os
+os.version
+webGLImageHash
+detectedFontsString
+canvasFingerprint
+audioFingerprint
+mathConstants
+plugins
+Sources:
+src/hash.ts
+43-90
+The system excludes volatile data such as browser extensions (except for basic plugin enumeration), temporary session identifiers, and privacy-mode indicators that could change between sessions while maintaining the same underlying system configuration.
+
+
+--- 2.6 Output Format And Json Generation ---
+
+Output Format and JSON Generation
+Relevant source files
+This document describes the structured JSON output format produced by the fingerprint-oss library and the data aggregation process that creates it. The output format represents the final consolidated result of all fingerprinting techniques, system information collection, and confidence assessments.
+For information about the individual data collection methods that feed into this output, see Fingerprinting Techniques and System Information Collection. For details about the confidence scoring system that evaluates the output, see Confidence Assessment System.
+Overview
+The library's output generation process transforms raw collected data into a structured JSON format through the generateJSON function. This process involves data aggregation, confidence interpretation, and the creation of a comprehensive fingerprinting result that includes geolocation data, system information, and reliability assessments.
+Data Aggregation Process
+The JSON generation process follows a systematic approach to combine multiple data sources into a unified output format:
+Data Aggregation Flow
+SystemInfo
+generateJSON()
+GeolocationInfo | null
+combinedConfidenceScore?: number
+interpretConfidenceScore(systemInfo.confidenceScore)
+interpretConfidenceScore(combinedConfidenceScore)
+getVpnStatus({ geoip, localtime })
+generateId(systemInfo)
+Extract proxy flags
+isProxy
+isVpn
+isHosting
+isTor
+systemConfidenceInterpretation
+combinedConfidenceInterpretation
+vpnStatus
+hash
+confidenceAssessment.system
+confidenceAssessment.combined
+geolocation.vpnStatus
+hash
+systemInfo
+geolocation
+Final JSON Output
+The generateJSON function in
+src/json.ts
+73-139
+serves as the central orchestrator, taking three primary inputs (SystemInfo, GeolocationInfo | null, and optional combinedConfidenceScore) and producing a structured output with confidence assessments, geolocation details, system information, and a unique hash identifier.
+Sources:
+src/json.ts
+73-139
+JSON Structure Components
+The output JSON contains four main sections, each serving a specific purpose in the fingerprinting ecosystem:
+JSON Output Structure
+generateJSON() return
+confidenceAssessment
+geolocation
+systemInfo
+hash
+system: { score, rating, description, reliability, level, factors }
+combined?: { score, rating, description, reliability, level, factors }
+vpnStatus: VpnStatusResult
+ip: string
+city: string
+region: { isoCode, name }
+country: { isoCode, name }
+continent: { code, name }
+location: { accuracyRadius, latitude, longitude, timeZone }
+traits: { isAnonymous, isAnonymousProxy, isAnonymousVpn, network }
+SystemInfo interface
+All collected fingerprinting data
+Bot detection results
+Hardware/software characteristics
+string (SHA-256 hash)
+Sources:
+src/json.ts
+94-138
+API.md
+9-147
+Confidence Assessment Generation
+The confidence assessment system provides human-readable interpretations of numerical confidence scores through the interpretConfidenceScore function:
+Score Range Rating Level Description
+0.8 - 1.0 High Confidence high Genuine user with consistent information
+0.65 - 0.8 Medium-High Confidence medium-high Mostly consistent with minor discrepancies
+0.5 - 0.65 Medium Confidence medium Moderate consistency with concerning signals
+0.35 - 0.5 Medium-Low Confidence medium-low Significant inconsistencies suggesting fraud
+0.1 - 0.35 Low Confidence low Strong signals of automation or spoofing
+The system generates both individual system confidence assessments and optionally combined assessments that factor in network-based risk indicators.
+Sources:
+src/json.ts
+19-61
+Geolocation Data Integration
+The geolocation section combines multiple data sources to provide comprehensive location and network information:
+Geolocation Data Assembly
+GeolocationInfo | null
+generateJSON()
+Extract proxy flags
+geolocationInfo?.traits?.isAnonymousProxy
+geolocationInfo?.traits?.isAnonymousVpn
+geolocationInfo?.traits?.isHostingProvider
+geolocationInfo?.traits?.isTorExitNode
+getVpnStatus({ geoip, localtime })
+VpnStatusResult
+Build geolocation object
+vpnStatus: VpnStatusResult
+ip: geolocationInfo.ipAddress || 'unknown'
+city: geolocationInfo.city?.name || 'unknown'
+region: geolocationInfo.subdivisions?.[0]
+country: geolocationInfo.country
+continent: geolocationInfo.continent
+location: geolocationInfo.location
+traits: filtered trait properties
+null check
+Return null if geolocationInfo is null
+The geolocation data includes VPN status detection, geographic location details, and network trait analysis for identifying proxies, VPNs, and hosting providers.
+Sources:
+src/json.ts
+84-133
+System Information Passthrough
+The system information section of the output directly includes the collected SystemInfo object, preserving all fingerprinting data including:
+Browser and OS detection results
+Hardware characteristics
+Storage capabilities
+Canvas and WebGL fingerprints
+Plugin information
+Bot detection signals
+Confidence scoring
+This ensures that all collected fingerprinting data is available in the final output without transformation or loss of detail.
+Sources:
+src/json.ts
+136
+Hash Generation Integration
+The output includes a unique device identifier hash generated through the generateId function. This hash provides a deterministic fingerprint derived from the system information:
+hash: await generateId(systemInfo)
+The hash serves as a stable identifier that can be used for device recognition while maintaining privacy through one-way hashing.
+Sources:
+src/json.ts
+137
+Error Handling and Null Safety
+The JSON generation process includes robust error handling for scenarios where geolocation data may be unavailable:
+Null Geolocation: When geolocationInfo is null (common in test environments), the system gracefully handles missing data
+Missing Properties: Default values are provided for missing geolocation properties
+VPN Detection: VPN status detection is conditionally executed only when geolocation data is available
+This approach ensures that the output remains consistent and complete even when external data sources are unavailable.
+Sources:
+src/json.ts
+84-92
+src/json.ts
+119-133
+Output Format Consistency
+The JSON structure maintains consistent formatting across all execution contexts:
+Type Safety: All output properties are properly typed through TypeScript interfaces
+Predictable Structure: The same object structure is returned regardless of data availability
+Comprehensive Coverage: All collected data points are included in the final output
+Human-Readable Interpretations: Confidence scores are accompanied by descriptive text
+This consistency enables reliable integration with downstream systems and predictable parsing of the fingerprinting results.
+Sources:
+src/json.ts
+73-139
+API.md
+1-190
+
+
+--- 2.7 Confidence Assessment System ---
+
+Confidence Assessment System
+Relevant source files
+Purpose and Scope
+The Confidence Assessment System provides multi-factor reliability scoring for collected fingerprinting data. This system evaluates the trustworthiness of browser and system information by analyzing consistency patterns, detecting anomalies, and identifying potential spoofing or automation signals. The system generates numerical confidence scores and human-readable interpretations to help applications make informed decisions about data reliability.
+For information about the bot detection signals that feed into confidence assessment, see Bot Detection. For VPN and proxy detection that influences network-based confidence factors, see VPN and Proxy Detection. For details on how confidence scores are integrated into the final output, see Output Format and JSON Generation.
+Confidence Score Interpretation Framework
+The system uses a standardized scoring framework that converts numerical confidence values into actionable assessments. The interpretConfidenceScore function in
+src/json.ts
+19-61
+provides five distinct confidence levels with corresponding descriptions and reliability indicators.
+Confidence Score (0.1-0.9)
+interpretConfidenceScore()
+score >= 0.8
+High Confidence
+score >= 0.65
+Medium-High Confidence
+score >= 0.5
+Medium Confidence
+score >= 0.35
+Medium-Low Confidence
+score < 0.35
+Low Confidence
+Genuine user with consistent signals
+Highly reliable for fraud detection
+Mostly consistent with minor discrepancies
+Generally reliable
+Moderate consistency with concerning signals
+Treat with caution
+Significant inconsistencies suggest spoofing
+Questionable reliability
+Strong automation/manipulation signals
+Highly unreliable
+Sources:
+src/json.ts
+19-61
+Confidence Level Score Range Rating Reliability Assessment
+High ≥ 0.8 High Confidence Highly reliable for most purposes including fraud detection
+Medium-High ≥ 0.65 Medium-High Confidence Generally reliable but may have minor inconsistencies
+Medium ≥ 0.5 Medium Confidence Should be treated with caution and verified
+Medium-Low ≥ 0.35 Medium-Low Confidence Questionable reliability, verification required
+Low < 0.35 Low Confidence Highly unreliable, strong non-human indicators
+Sources:
+src/json.ts
+25-60
+Multi-Factor Assessment Framework
+The confidence assessment system operates on two levels: system-level confidence and combined confidence. The system evaluates multiple data points to generate comprehensive reliability assessments through the generateJSON function.
+SystemInfo
+System Confidence
+GeolocationInfo
+Network Risk Factors
+Bot Detection Signals
+Browser Consistency Checks
+isAnonymousProxy
+isAnonymousVpn
+isTorExitNode
+isHostingProvider
+confidenceAssessment.system
+confidenceAssessment.combined
+factors: Bot signals or 'No bot signals detected'
+factors: Network threat descriptions
+Sources:
+src/json.ts
+73-139
+Consistency Validation Components
+The system implements several consistency validation functions that contribute to overall confidence scoring. These functions detect mismatches and anomalies that may indicate spoofing or automation.
+Language-Country Consistency
+The getLanguageConsistency function validates whether the browser's language settings align with the detected geographic location.
+Browser Language
+Extract Primary Language Code
+Country Code
+Country-Language Mapping
+Language-Country Comparison
+Match: +0.15
+Mismatch: -0.1
+Unknown Country: 0
+US: [en, es]
+GB: [en]
+FR: [fr]
+DE: [de]
+CN: [zh]
+JP: [ja]
+RU: [ru]
+IN: [hi, en]
+Sources:
+src/confidence.ts
+11-30
+User Agent Platform Validation
+The getUAPlatformMismatch function detects inconsistencies between the User Agent string and the reported platform characteristics.
+User Agent String
+Mobile/OS Detection
+Platform String
+Platform Characteristics
+Mobile Indicators:
+mobile, android, iphone
+Platform Indicators:
+arm, iphone, android
+Mobile Consistency Check
+OS Detection:
+windows, mac, linux
+Platform OS:
+win, mac, linux
+OS Consistency Check
+Mobile Mismatch: +0.2
+OS Mismatch: +0.15
+No Mismatch: 0
+Sources:
+src/confidence.ts
+47-67
+Browser Hardware Consistency
+The checkBrowserConsistency function validates the logical consistency of reported hardware and browser characteristics.
+Sources:
+src/confidence.ts
+70-90
+Risk Factor Detection
+The system identifies several categories of risk factors that negatively impact confidence scores.
+ASN Risk Assessment
+The isRiskyASN function identifies Autonomous System Numbers associated with hosting providers, VPNs, and other infrastructure that may indicate non-residential usage.
+ASN Provider Risk Type
+AS14061 DigitalOcean Cloud Hosting
+AS16276 OVH Cloud Hosting
+AS16509 Amazon AWS Cloud Hosting
+AS14618 Amazon AWS Cloud Hosting
+AS3356 Level3 Transit Provider
+AS9009 M247 VPN/Proxy Provider
+AS24940 Hetzner Cloud Hosting
+AS48666 NETASSIST VPN/Proxy Provider
+Sources:
+src/confidence.ts
+32-45
+Network Threat Indicators
+The system evaluates multiple network-based threat indicators extracted from geolocation traits:
+Proxy Detection: isAnonymousProxy flag identification
+VPN Detection: isAnonymousVpn flag identification
+Tor Detection: isTorExitNode flag identification
+Hosting Detection: isHostingProvider flag identification
+Sources:
+src/json.ts
+85-88
+src/json.ts
+108-114
+Integration with Output Generation
+The confidence assessment system integrates with the main output generation through the generateJSON function, which combines all assessment factors into a structured response.
+SystemInfo.confidenceScore
+System Assessment
+combinedConfidenceScore
+Combined Assessment
+GeolocationInfo.traits
+Network Risk Flags
+SystemInfo.bot
+Bot Signal Factors
+interpretConfidenceScore(system)
+interpretConfidenceScore(combined)
+confidenceAssessment.system
+confidenceAssessment.combined
+system.factors
+combined.factors
+Final JSON Response
+Sources:
+src/json.ts
+73-139
+The system outputs structured confidence assessments containing:
+Numerical Scores: Raw confidence values between 0.1 and 0.9
+Interpretive Ratings: Human-readable confidence levels
+Reliability Descriptions: Contextual explanations of score meanings
+Contributing Factors: Specific signals that influenced the assessment
+Risk Indicators: Network and behavioral threat indicators
+Sources:
+src/json.ts
+96-116
+
+
+--- 3 Detection Components ---
+
+Detection Components
+Relevant source files
+This document covers the specialized detection modules within fingerprint-oss that identify privacy tools, analyze browser behavior, and detect suspicious activities. These components provide essential functionality for distinguishing between genuine users and automated systems, while also identifying privacy-enhancing technologies that may affect fingerprinting accuracy.
+For information about the core fingerprinting techniques like canvas and WebGL, see Fingerprinting Techniques. For details about the confidence assessment system that uses these detection results, see Confidence Assessment System.
+Overview
+The detection system consists of four primary components that work together to provide comprehensive analysis of the browser environment:
+Output Processing
+Integration Points
+Detection Components
+detectBot
+Bot Detection
+detectIncognito
+Incognito Mode Detection
+detectAdBlockers
+Ad Blocker Detection
+VPN_Detection
+VPN and Proxy Detection
+getSystemInfo
+calculateConfidenceScore
+SystemInfo.bot
+SystemInfo.incognito
+SystemInfo.adBlocker
+GeolocationInfo.vpn
+confidenceScore
+Detection System Architecture
+Sources:
+src/systemInfo.ts
+30-83
+src/systemInfo.ts
+97-124
+src/incognito.ts
+47-355
+Core Detection Modules
+The detection system implements four specialized modules, each targeting specific aspects of browser behavior and privacy tools:
+Component Primary Function Confidence Impact Integration Point
+Bot Detection Identifies automated browsing tools High (±0.3 score adjustment) detectBot() in getSystemInfo()
+Incognito Detection Detects private browsing modes Medium (-0.1 score adjustment) detectIncognito() in getSystemInfo()
+Ad Blocker Detection Identifies ad blocking software Low (informational) detectAdBlockers() in getSystemInfo()
+VPN Detection Analyzes network routing patterns Medium (geolocation confidence) Timezone comparison in geolocation
+Sources:
+src/systemInfo.ts
+97-124
+src/systemInfo.ts
+132-210
+Detection Flow and Signal Processing
+The detection components follow a standardized pattern for signal collection and confidence scoring:
+Scoring Engine
+Confidence Weights
+Signal Types
+Browser_Environment
+Signal_Collection
+Strong Signals
+Medium Signals
+Weak Signals
+strong: 0.3
+medium: 0.15
+weak: 0.05
+calculateConfidenceScore
+Base Score: 0.7
+Incognito Adjustment: -0.1
+Bot Adjustment: ±0.3
+Consistency Checks
+Final Confidence Score
+Range: 0.1 - 0.9
+Signal Processing and Confidence Calculation
+Sources:
+src/systemInfo.ts
+36-40
+src/systemInfo.ts
+73-82
+src/systemInfo.ts
+97-124
+Bot Detection Implementation
+The detectBot function implements a weighted signal analysis system that evaluates multiple environmental indicators:
+Detection Logic
+Weak Signals (0.05 weight)
+Medium Signals (0.15 weight)
+Strong Signals (0.3 weight)
+UserAgent Patterns
+navigator.webdriver
+Automation Keywords
+Missing Storage APIs
+Few Browser Plugins
+Small Screen Dimensions
+Unusual CPU Concurrency
+detectBot
+signals array
+confidence calculation
+isBot threshold: 0.7
+Bot Detection Signal Analysis
+The system checks for automation patterns including bot, crawler, selenium, webdriver, headless, puppeteer, and playwright in the user agent string.
+Sources:
+src/systemInfo.ts
+30-83
+src/systemInfo.ts
+43-47
+src/systemInfo.ts
+50-52
+Incognito Mode Detection Strategy
+The detectIncognito function implements browser-specific detection strategies through a sophisticated branching system:
+IE Detection
+Firefox Detection
+Chrome Detection
+Safari Detection
+detectIncognito
+Browser_Identification
+isSafari
+isChrome
+isFirefox
+isMSIE
+currentSafariTest
+safari13to18Test
+oldSafariTest
+navigator.storage.getDirectory
+IndexedDB Blob Test
+WebSQL + localStorage
+storageQuotaChromePrivateTest
+oldChromePrivateTest
+webkitTemporaryStorage quota
+webkitRequestFileSystem
+firefoxPrivateTest
+navigator.serviceWorker check
+msiePrivateTest
+window.indexedDB check
+Browser-Specific Incognito Detection Methods
+Sources:
+src/incognito.ts
+124-152
+src/incognito.ts
+230-300
+src/incognito.ts
+306-313
+src/incognito.ts
+319-326
+Integration with System Information
+The detection components integrate into the main system through the getSystemInfo function, which orchestrates all detection activities:
+calculateConfidenceScore
+detectAdBlockers
+detectIncognito
+detectBot
+getSystemInfo
+Client
+calculateConfidenceScore
+detectAdBlockers
+detectIncognito
+detectBot
+getSystemInfo
+Client
+Request system info
+Get bot detection results
+{isBot, signals, confidence}
+Check incognito mode
+{isPrivate, browserName}
+Detect ad blockers
+Ad blocker info
+Calculate final score
+Adjusted confidence
+Complete SystemInfo object
+Detection Component Integration Sequence
+The system creates a comprehensive SystemInfo object that includes bot detection results in the bot field, incognito status in the incognito field, and ad blocker information in the adBlocker field.
+Sources:
+src/systemInfo.ts
+132-210
+src/systemInfo.ts
+140-143
+src/systemInfo.ts
+146
+src/systemInfo.ts
+199-206
+Browser Consistency Validation
+The detection system includes consistency checks that validate expected browser features against the reported user agent:
+Score Boundaries
+Consistency Checks
+No
+Yes
+No
+Yes
+Chrome User Agent
+window.chrome exists
+Firefox User Agent
+window.InstallTrigger exists
+Score -= 0.1
+No penalty
+Score -= 0.1
+No penalty
+Min Score: 0.1
+Max Score: 0.9
+Math.max/Math.min
+Browser Feature Consistency Validation
+Sources:
+src/systemInfo.ts
+113-122
+src/systemInfo.ts
+123
+
+
+--- 3.1 Bot Detection ---
+
+Bot Detection
+Relevant source files
+This document describes the bot detection system implemented in the fingerprint-oss library. The system analyzes multiple environmental signals to determine whether the current user agent is likely operating as an automated bot rather than a human user.
+For information about the broader confidence assessment system that incorporates bot detection results, see Confidence Assessment System. For details about VPN and proxy detection, see VPN and Proxy Detection. For the complete system information collection process, see System Information Collection.
+Purpose and Algorithm Overview
+The bot detection system evaluates multiple browser environment characteristics to identify automated tools, web crawlers, and headless browsers. The detectBot() function implements a weighted scoring algorithm that classifies detection signals by strength and computes a confidence score indicating the likelihood of bot behavior.
+Yes
+No
+Yes
+No
+detectBot()
+Environment Check
+Non-Browser Environment?
+Return isBot=true, confidence=0.8
+Signal Collection
+Strong Signals
+Medium Signals
+Weak Signals
+User Agent Patterns
+WebDriver Flag
+Missing Storage APIs
+Few Browser Plugins
+Small Screen Dimensions
+Unusual Hardware Concurrency
+Confidence Calculation
+Score > 0.7?
+isBot=true
+isBot=false
+Return Result
+Bot Detection Flow Sources:
+src/systemInfo.ts
+30-83
+Signal Classification System
+The bot detection algorithm categorizes signals into three strength levels, each with different confidence weights:
+Signal Strength Weight Detection Criteria
+Strong 0.3 User agent patterns, WebDriver flag
+Medium 0.15 Missing storage APIs, few plugins
+Weak 0.05 Small screen size, unusual CPU cores
+Strong Signals
+Strong signals provide high confidence indicators of automation tools:
+User Agent Patterns: Detects common automation frameworks including bot, crawler, selenium, webdriver, headless, puppeteer, and playwright
+WebDriver Flag: Checks navigator.webdriver property set by automation tools
+Medium Signals
+Medium signals indicate environments that may lack typical browser features:
+Missing Storage APIs: Absence of localStorage or sessionStorage
+Few Browser Plugins: Less than 2 plugins in navigator.plugins
+Weak Signals
+Weak signals detect unusual hardware configurations:
+Small Screen Dimensions: Width or height ≤ 300 pixels
+Unusual Hardware Concurrency: Less than 2 or more than 32 CPU cores
+Sources:
+src/systemInfo.ts
+36-70
+Confidence Score Calculation
+The bot detection confidence score starts at a base value of 0.5 and applies weighted adjustments based on detected signals:
+Base Score: 0.5
+Add Strong Signals × 0.3
+Add Medium Signals × 0.15
+Add Weak Signals × 0.05
+Cap at 0.9
+isBot = score > 0.7
+Confidence Score Calculation Process Sources:
+src/systemInfo.ts
+72-82
+The algorithm ensures the final confidence score never exceeds 0.9, providing a conservative upper bound for bot detection certainty.
+Integration with System Confidence Assessment
+Bot detection results integrate into the broader system confidence assessment through the calculateConfidenceScore() function:
+Yes
+No
+Yes
+Yes
+calculateConfidenceScore()
+Base Score: 0.7
+Adjust for Incognito Mode
+Bot Detected?
+Subtract botConfidence × 0.3
+Add (1 - botConfidence) × 0.1
+Browser Consistency Checks
+Chrome Object Missing?
+Firefox InstallTrigger Missing?
+Subtract 0.1
+Subtract 0.1
+Clamp Between 0.1 and 0.9
+Final Confidence Score
+System Confidence Integration Sources:
+src/systemInfo.ts
+97-124
+Implementation Details
+Non-Browser Environment Handling
+When executed outside a browser environment (e.g., Node.js), the function immediately returns bot detection with high confidence:
+if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return { isBot: true, signals: ['non-browser-environment'], confidence: 0.8 };
+}
+Return Value Structure
+The detectBot() function returns an object with three properties:
+isBot: Boolean indicating whether bot behavior is detected (confidence > 0.7)
+signals: Array of strings describing detected signals with strength prefixes
+confidence: Numerical confidence score (0.5 to 0.9 range)
+Integration Points
+Bot detection integrates with the main system information collection:
+getSystemInfo()
+detectBot()
+calculateConfidenceScore()
+SystemInfo.bot
+SystemInfo.confidenceScore
+SystemInfo.incognito
+Browser Consistency Checks
+Bot Detection Integration Points Sources:
+src/systemInfo.ts
+139-146
+src/systemInfo.ts
+199-206
+The bot detection results are stored in the SystemInfo.bot object and used to calculate the overall SystemInfo.confidenceScore that reflects the reliability of all collected system information.
+Sources:
+src/systemInfo.ts
+30-210
+
+
+--- 3.2 Vpn And Proxy Detection ---
+
+VPN and Proxy Detection
+Relevant source files
+Purpose and Scope
+This document covers the VPN and proxy detection capabilities within fingerprint-oss, specifically focusing on the timezone-based VPN detection algorithm. The system analyzes discrepancies between GeoIP-derived timezone information and browser-reported local timezone to identify potential VPN usage.
+For broader network detection capabilities and geolocation services, see Geolocation and Network Detection. For confidence assessment methodologies used across detection systems, see Confidence Assessment System.
+Detection Methodology Overview
+The VPN detection system employs timezone comparison as its primary detection vector. The core principle is that users behind VPNs often exhibit timezone mismatches between their actual geographic location (as determined by GeoIP) and their system's configured timezone.
+Yes
+No
+Missing Data
+getVpnStatus()
+Input Validation
+Timezone Normalization
+Comparison Logic
+Probability Calculation
+VPN Status Result
+geoip timezone
+localtime timezone
+normalizeTimezone()
+timezoneAliases lookup
+Timezones Match?
+Low VPN Probability
+High VPN Probability
+Medium VPN Probability
+probability: 0.2
+probability: 0.75
+probability: 0.5
+Core VPN Detection Algorithm
+Sources:
+src/vpn.ts
+1-67
+Core Algorithm Implementation
+The VPN detection logic is implemented in the getVpnStatus function, which accepts a TimeZone interface containing geoip and localtime properties.
+TimeZone Interface
+The system defines timezone data through a simple interface:
+Property Type Description
+geoip string | null | undefined Timezone derived from IP geolocation
+localtime string | null | undefined Browser-reported system timezone
+Detection Flow
+Missing geoip or localtime
+'unknown' values
+Valid data
+Match
+Mismatch
+getVpnStatus(timeZone)
+Data Available?
+Return 50% probability
+Normalize both timezones
+normalizeTimezone(geoip)
+normalizeTimezone(localtime)
+Compare normalized values
+status: false, probability: 0.2
+status: true, probability: 0.75
+VPN Status Object
+VPN Detection Decision Flow
+Sources:
+src/vpn.ts
+41-66
+Timezone Normalization System
+The timezone normalization process handles the complexity of timezone naming conventions by mapping aliases to canonical names through the timezoneAliases mapping.
+Normalization Function
+The normalizeTimezone function performs the core normalization logic:
+Raw timezone string
+Trim whitespace
+timezoneAliases lookup
+Canonical timezone name
+Original if no alias found
+Normalized timezone
+Timezone Normalization Process
+Alias Categories
+The timezoneAliases mapping covers several categories of timezone name variations:
+Category Examples Purpose
+Historical Names Asia/Calcutta → Asia/Kolkata Handle renamed cities
+Legacy Aliases US/Pacific → America/Los_Angeles Support old timezone codes
+Common Typos Asia/Culcutta → Asia/Kolkata Correct frequent misspellings
+Political Changes Europe/Kiev → Europe/Kyiv Reflect geopolitical updates
+Regional Aliases GB → Europe/London Map country codes to cities
+Sources:
+src/vpn.ts
+19-31
+src/timeZones.ts
+10-159
+Probability Scoring Framework
+The VPN detection system employs a three-tier probability scoring model:
+Scoring Tiers
+Scenario Status Probability Rationale
+Timezone Mismatch true 0.75 Strong indicator of VPN usage
+Timezone Match false 0.2 Low likelihood of VPN
+Missing/Unknown Data false 0.5 Insufficient data for assessment
+Output Format
+The function returns a structured object with the following format:
+{
+  vpn: {
+    status: boolean,    // VPN usage indication
+    probability: number // Confidence score (0.0-1.0)
+  }
+}
+Sources:
+src/vpn.ts
+44-45
+src/vpn.ts
+49
+src/vpn.ts
+61
+src/vpn.ts
+65
+Code Architecture
+Integration Layer
+timeZones.ts Module
+vpn.ts Module
+External Dependencies
+GeoIP Service
+Browser Timezone API
+TimeZone interface
+getVpnStatus()
+normalizeTimezone()
+timezoneAliases
+userInfo() function
+Confidence Assessment
+VPN Detection Module Architecture
+Implementation Details
+Error Handling Strategy
+The system implements defensive programming by handling edge cases gracefully:
+Null/undefined values: Treated as missing data with 50% probability
+'unknown' strings: Treated as unreliable data with 50% probability
+Empty strings: Normalized to null through trimming logic
+Timezone Alias Scope
+The timezoneAliases mapping includes 150+ timezone transformations covering:
+Geographic regions: Asia (34 mappings), Europe (19 mappings), Americas (20 mappings)
+Special cases: Australia state aliases, Pacific island corrections
+Time standard codes: JST, KST, IST, PST, GMT, UTC mappings
+Integration Points
+The VPN detection system integrates with the broader fingerprinting ecosystem through:
+Input data: Receives timezone information from geolocation services and browser APIs
+Output consumption: Results feed into the overall confidence assessment system
+Export interface: The getVpnStatus function is exported for use by the main userInfo function
+Sources:
+src/vpn.ts
+1-67
+src/timeZones.ts
+1-159
+
+
+--- 3.3 Incognito Mode Detection ---
+
+Incognito Mode Detection
+Relevant source files
+Purpose and Scope
+This document details the incognito/private browsing mode detection subsystem used in the fingerprint-oss library. The system can reliably detect when a user is browsing in private/incognito mode across major browsers including Chrome, Firefox, Safari, and Internet Explorer. This detection is used as one signal in the overall fingerprinting and confidence scoring process (for more information on confidence scoring, see page 2.7).
+Overview
+The incognito detection system works by exploiting browser-specific differences between normal and private browsing modes. Each major browser implementation restricts certain APIs or modifies their behavior when in private/incognito mode, providing detectable patterns.
+feid() === 44
+feid() === 51
+feid() === 25
+msSaveBlob + eval.toString().length === 39
+detectIncognito()
+Browser Engine Identification
+feid() + msSaveBlob checks
+Browser Engine Type
+isSafari() → safariPrivateTest()
+isChrome() → identifyChromium() + chromePrivateTest()
+isFirefox() → firefoxPrivateTest()
+isMSIE() → msiePrivateTest()
+currentSafariTest() - navigator.storage.getDirectory()
+safari13to18Test() - IndexedDB + Blob
+oldSafariTest() - openDatabase + localStorage
+storageQuotaChromePrivateTest() - webkitTemporaryStorage
+oldChromePrivateTest() - webkitRequestFileSystem
+navigator.serviceWorker === undefined
+window.indexedDB === undefined
+__callback(isPrivate)
+resolve({isPrivate, browserName})
+Diagram Title: Complete Incognito Detection Flow with Actual Function Names
+Sources:
+src/incognito.ts
+47-355
+Implementation Details
+The incognito detection system is implemented in a single file and is largely based on the detectIncognito library created by Joe Rutkowski, which has been integrated into fingerprint-oss.
+Core Function
+The main entry point is an asynchronous function that returns a Promise containing the detection result:
+async function detectIncognito(): Promise<{ isPrivate: boolean; browserName: string }>
+Sources:
+src/incognito.ts
+47-355
+Browser Identification
+Before applying browser-specific detection techniques, the system first identifies the browser using a unique fingerprinting method based on JavaScript engine error message lengths:
+44
+51
+25
+navigator.brave !== undefined
+ua.match(/Edg/)
+ua.match(/OPR/)
+ua.match(/Chrome/)
+default
+feid()
+parseInt('-1').toFixed(neg)
+exception.message.length
+isSafari() = true
+isChrome() = true
+isFirefox() = true
+identifyChromium()
+navigator.userAgent.match()
+browserName = 'Brave'
+browserName = 'Edge'
+browserName = 'Opera'
+browserName = 'Chrome'
+browserName = 'Chromium'
+isMSIE()
+navigator.msSaveBlob + assertEvalToString(39)
+Diagram Title: Browser Engine Identification Using feid() and User Agent Analysis
+The feid() function exploits differences in JavaScript engine error message formatting by calling parseInt("-1").toFixed(neg) and measuring the resulting exception message length. This creates a unique identifier for each browser engine that is more reliable than user agent parsing alone.
+Sources:
+src/incognito.ts
+90-99
+src/incognito.ts
+101-118
+src/incognito.ts
+64-80
+src/incognito.ts
+82-88
+Detection Techniques by Browser
+Each browser requires a different technique for detecting incognito mode:
+Browser Detection Method API/Feature Used How It Works
+Safari (Current) currentSafariTest() navigator.storage.getDirectory() Attempts to access storage directory; throws 'unknown transient reason' error in private mode
+Safari (v13-18) safari13to18Test() indexedDB.open() + createObjectStore() Creates IndexedDB and attempts to store Blob; throws 'not yet supported' error in private mode
+Safari (Legacy) oldSafariTest() window.openDatabase, localStorage Attempts storage operations that fail in private mode
+Chrome (≥76) storageQuotaChromePrivateTest() navigator.webkitTemporaryStorage.queryUsageAndQuota() Compares available quota with expected limit based on performance.memory.jsHeapSizeLimit
+Chrome (50-75) oldChromePrivateTest() window.webkitRequestFileSystem() Attempts to use file system API, which fails in incognito mode
+Firefox firefoxPrivateTest() navigator.serviceWorker Checks if serviceWorker is undefined (it is in private mode)
+Internet Explorer msiePrivateTest() window.indexedDB Checks if indexedDB is undefined (it is in private mode)
+Sources:
+src/incognito.ts
+124-152
+src/incognito.ts
+154-187
+src/incognito.ts
+189-209
+src/incognito.ts
+247-270
+src/incognito.ts
+273-287
+src/incognito.ts
+306-313
+src/incognito.ts
+319-326
+Safari Detection Deep Dive
+Safari's incognito detection is the most complex due to browser evolution and requires multiple approaches:
+Yes
+No
+Yes
+No
+Yes
+No
+Yes
+No
+Yes
+No
+Yes
+No
+safariPrivateTest()
+navigator.storage?.getDirectory !== undefined
+await currentSafariTest()
+navigator.maxTouchPoints !== undefined
+navigator.storage.getDirectory()
+e.message.includes('unknown transient reason')
+__callback(true)
+__callback(false)
+safari13to18Test()
+oldSafariTest()
+indexedDB.open(String(Math.random()), 1)
+db.createObjectStore('t', {autoIncrement: true}).put(new Blob())
+err.message.includes('are not yet supported')
+__callback(true) + db.close() + indexedDB.deleteDatabase()
+__callback(false) + db.close() + indexedDB.deleteDatabase()
+window.openDatabase(null, null, null, null)
+openDatabase throws exception
+__callback(true)
+localStorage.setItem('test', '1') + removeItem('test')
+localStorage throws exception
+__callback(true)
+__callback(false)
+Diagram Title: Safari Incognito Detection with Actual API Calls
+Sources:
+src/incognito.ts
+211-224
+src/incognito.ts
+124-152
+src/incognito.ts
+154-187
+src/incognito.ts
+189-209
+Chrome Detection Methods
+Chrome's detection depends on browser version and uses different storage APIs:
+Yes
+No
+true
+false
+Yes
+No
+chromePrivateTest()
+self.Promise !== undefined && self.Promise.allSettled !== undefined
+storageQuotaChromePrivateTest()
+oldChromePrivateTest()
+navigator.webkitTemporaryStorage.queryUsageAndQuota(callback, errorCallback)
+getQuotaLimit() → performance.memory.jsHeapSizeLimit || 1073741824
+quotaInMib = Math.round(quota / (1024 * 1024))
+quotaLimitInMib = Math.round(quotaLimit / (1024 * 1024)) * 2
+quotaInMib < quotaLimitInMib
+__callback(true)
+__callback(false)
+window.webkitRequestFileSystem(0, 1, successCallback, errorCallback)
+successCallback called
+__callback(false)
+__callback(true)
+Diagram Title: Chrome Incognito Detection Using Storage APIs and Quota Limits
+Sources:
+src/incognito.ts
+289-300
+src/incognito.ts
+247-270
+src/incognito.ts
+230-244
+src/incognito.ts
+273-287
+Firefox and Internet Explorer Detection
+Firefox and Internet Explorer use simpler detection methods based on disabled APIs:
+true
+false
+true
+false
+firefoxPrivateTest()
+navigator.serviceWorker === undefined
+__callback(true)
+__callback(false)
+msiePrivateTest()
+window.indexedDB === undefined
+__callback(true)
+__callback(false)
+Diagram Title: Firefox and Internet Explorer API Availability Checks
+Firefox: The navigator.serviceWorker API is completely disabled in private browsing mode
+Internet Explorer: The window.indexedDB API is not available in InPrivate mode
+Sources:
+src/incognito.ts
+306-313
+src/incognito.ts
+319-326
+Integration with System Information Collection
+The incognito detection result is integrated into the broader system information collection process:
+userInfo()
+System Information Collection
+detectIncognito()
+{isPrivate: boolean, browserName: string}
+systemInfo.incognito object
+Confidence Assessment Impact
+Final JSON Output
+Other System Signals
+Bot Detection
+VPN Detection
+Diagram Title: Incognito Detection Integration in System Information Flow
+The incognito detection result becomes part of the systemInfo.incognito object in the final output and influences the overall confidence scoring. Private browsing modes can affect the reliability of other fingerprinting signals, so this information is used to adjust confidence assessments accordingly.
+Sources:
+src/incognito.ts
+328-354
+Error Handling and Fallbacks
+The detectIncognito() function includes robust error handling for various edge cases:
+Non-browser environments: Returns {isPrivate: false, browserName: 'Unknown'} when window or navigator are undefined
+Unknown browsers: Falls back to {isPrivate: false, browserName: 'Unknown'} with a console warning
+API failures: Each browser-specific test includes error handling that defaults to not private when APIs fail unexpectedly
+true
+false
+false
+true
+Expected Error
+Success/Unexpected
+detectIncognito()
+typeof window === 'undefined' || typeof navigator === 'undefined'
+resolve({isPrivate: false, browserName: 'Unknown'})
+main().catch(reject)
+isSafari() || isChrome() || isFirefox() || isMSIE()
+Known Browser Engine?
+console.warn('detectIncognito cannot determine the browser') + __callback(false)
+Execute browserName assignment + specific test
+safariPrivateTest() | chromePrivateTest() | firefoxPrivateTest() | msiePrivateTest()
+API Call Behavior
+__callback(true)
+__callback(false)
+resolve({isPrivate: true, browserName})
+resolve({isPrivate: false, browserName})
+Diagram Title: detectIncognito Main Error Handling and Browser Test Execution Flow
+Sources:
+src/incognito.ts
+52-55
+src/incognito.ts
+348-350
+src/incognito.ts
+328-354
+Usage Within the Fingerprint System
+The incognito detection is used as one signal in the overall fingerprinting system. The detection result is:
+Stored in the system information object
+Used to adjust the confidence score
+Exposed in the final JSON output
+This information can be valuable for applications that need to:
+Detect potential attempts to evade tracking
+Adjust the reliability weight of other fingerprinting signals
+Inform users that some functionality may be limited in private browsing
+Sources:
+src/incognito.ts
+45-291
+
+
+--- 3.4 Ad Blocker Detection ---
+
+Ad Blocker Detection
+Relevant source files
+This document covers the ad blocker and Brave browser detection capabilities within the fingerprint-oss library. The system identifies when users are running ad blocking software or the privacy-focused Brave browser, which can affect fingerprinting accuracy and user privacy preferences.
+For information about other privacy tool detection, see Incognito Mode Detection and VPN and Proxy Detection. For details on how these detections factor into confidence scoring, see Confidence Assessment System.
+Detection Strategy Overview
+The ad blocker detection system employs multiple complementary techniques to identify both the Brave browser and general ad blocking software. The detection operates through two primary vectors: browser identification APIs and network request interception analysis.
+Return Object
+detectAdBlockers
+isBraveBrowser()
+isBraveBrowserUAData()
+isUBlockActive()
+navigator.brave.isBrave()
+User Agent Analysis
+navigator.userAgentData.brands
+detectAdBlock()
+Google AdSense Script Fetch
+Response Analysis
+{ isBrave: boolean, adBlocker: boolean }
+Detection Flow Diagram
+The system returns a structured object containing boolean flags for both Brave browser detection and general ad blocker presence, allowing consuming applications to adjust their behavior accordingly.
+Sources:
+src/adblocker.ts
+90-103
+Brave Browser Detection
+Brave browser detection utilizes multiple detection vectors to ensure reliability across different browser configurations and API availability scenarios.
+Primary Detection Method
+The primary detection method leverages Brave's exposed navigator.brave.isBrave() API, which provides the most reliable identification mechanism when available.
+Yes
+No
+Yes
+No
+isBraveBrowser()
+navigator.brave exists?
+navigator.brave.isBrave()
+User Agent Fallback
+API Call Success?
+Return API Result
+navigator.userAgent.toLowerCase()
+Check for 'brave' substring
+Return Boolean Result
+Brave Detection Logic Flow
+The implementation includes error handling for cases where the Brave API exists but fails to execute, falling back gracefully to user agent string analysis.
+Sources:
+src/adblocker.ts
+16-27
+User Agent Data Detection
+A secondary detection method utilizes the navigator.userAgentData.brands API, which provides structured browser brand information when available.
+Detection Method API Used Reliability Fallback Behavior
+Primary navigator.brave.isBrave() High User agent string
+Secondary navigator.userAgentData.brands Medium None
+Fallback User agent string analysis Low Returns false
+The dual detection approach ensures coverage across different browser versions and API support scenarios.
+Sources:
+src/adblocker.ts
+34-41
+src/adblocker.ts
+92-97
+Ad Blocker Detection Mechanism
+The ad blocker detection system operates by attempting to fetch Google's AdSense JavaScript file and analyzing the response for signs of blocking or modification.
+Network Request Analysis
+The core detection mechanism performs a controlled fetch to a known advertising resource and evaluates the response characteristics.
+No
+Yes
+Found
+Found
+Not Found
+Not Found
+detectAdBlock()
+Fetch Google AdSense Script
+Response Received?
+Return true (Blocked)
+Extract Response Text
+Text Analysis
+Check for 'uBlock Origin'
+Check for Modified adsbygoogle
+Return true (Detected)
+Continue Analysis
+Return false (Not Detected)
+Fetch Error
+Ad Blocker Detection Logic
+The detection logic identifies blocking through multiple signals: complete request blocking, content modification, and specific ad blocker signatures in the response.
+Sources:
+src/adblocker.ts
+61-84
+Detection Signatures
+The system looks for specific signatures that indicate ad blocker modification of advertising resources:
+Complete Blocking: Network request failure indicates aggressive blocking
+Content Modification: Presence of uBlock Origin strings in response
+Script Replacement: Detection of placeholder adsbygoogle object implementations
+The fetch operation uses no-cors mode to handle cross-origin restrictions while maintaining detection capability.
+Sources:
+src/adblocker.ts
+64-77
+Test Element Integration
+The system includes a complementary detection mechanism through DOM element injection, which can be used to detect ad blockers that remove or hide specific element patterns.
+No
+Yes
+DOM Element Creation
+createElement('div')
+Set ID: 'GTvbiUxNuhSd'
+Set display: 'none'
+Append to document.body
+Ad Blocker Detection
+Check Element Existence
+Element Present?
+Ad Blocker Detected
+No Blocking Detected
+Test Element Detection Flow
+This passive detection method creates a hidden marker element that ad blockers may remove, providing an additional detection vector.
+Sources:
+src/dfp_async.ts
+10-15
+Integration with Confidence Assessment
+The ad blocker detection results contribute to the overall confidence assessment system by indicating potential privacy-conscious user behavior patterns.
+Detection Result Confidence Impact Reasoning
+Brave Browser Reduces tracking confidence Privacy-focused browser
+Ad Blocker Active Moderate confidence reduction Active privacy protection
+No Detection Neutral impact Standard browsing environment
+The detection results are incorporated into the broader fingerprinting confidence assessment to provide more accurate reliability scores.
+Sources:
+src/adblocker.ts
+90-103
+API Interface
+The detectAdBlockers function serves as the primary interface for ad blocker detection capabilities, returning structured results for both Brave browser and general ad blocker detection.
+async function detectAdBlockers(): Promise<{ isBrave: boolean, adBlocker: boolean }>
+The function executes all detection methods concurrently using Promise.all() to optimize performance while maintaining detection accuracy across all supported vectors.
+Sources:
+src/adblocker.ts
+90-103
+
+
+--- 4 Usage And Integration ---
+
+Usage and Integration
+Relevant source files
+This document provides comprehensive guidance for implementing and using the fingerprint-oss library in web applications. It covers installation procedures, API integration patterns, configuration options, and compliance considerations.
+For detailed information about specific detection components, see Detection Components. For development and testing guidance, see Development and Testing.
+Installation Methods
+The fingerprint-oss library is distributed as an npm package with multiple output formats to support different JavaScript environments and module systems.
+Package Installation
+Install the latest version using npm:
+npm install fingerprint-oss@latest
+The package provides three main distribution formats defined in
+package.json
+5-7
+:
+Format File Purpose
+CommonJS dist/index.cjs.js Node.js and legacy bundlers
+ES Module dist/index.esm.js Modern bundlers and native ES modules
+TypeScript dist/index.d.ts Type definitions for TypeScript projects
+Integration Workflow
+Output Processing
+Configuration
+Import Methods
+npm install fingerprint-oss
+Import userInfo function
+Configure options (optional)
+Call userInfo()
+Await Promise resolution
+Process fingerprint data
+ES Module: import userInfo from 'fingerprint-oss'
+CommonJS: const userInfo = require('fingerprint-oss')
+transparency: boolean
+message: string
+systemInfo object
+geolocation object
+confidenceAssessment object
+hash string
+Sources:
+README.md
+52-65
+package.json
+5-8
+Basic Implementation Patterns
+Standard Implementation
+The most common integration pattern involves importing the default export and calling it asynchronously:
+import userInfo from 'fingerprint-oss';
+
+const fingerprintData = await userInfo();
+console.log(fingerprintData);
+Error Handling Pattern
+Robust implementations should include proper error handling for network failures and browser limitations:
+import userInfo from 'fingerprint-oss';
+
+try {
+    const data = await userInfo();
+    // Process successful fingerprint data
+    handleFingerprintData(data);
+} catch (error) {
+    // Handle fingerprinting failures
+    handleFingerprintError(error);
+}
+Package Entry Points
+Build System
+Import Contexts
+Package Structure
+fingerprint-oss package
+dist/index.cjs.js
+dist/index.esm.js
+dist/index.d.ts
+Node.js require()
+ES Module import
+TypeScript compiler
+Rollup bundler
+TypeScript compiler
+Multiple output targets
+Sources:
+package.json
+5-8
+package.json
+10-16
+Configuration System
+GDPR Compliance Configuration
+The library supports configuration options primarily focused on privacy compliance and transparency as shown in
+README.md
+67-81
+:
+const config = {
+    transparency: true,
+    message: 'Custom message about data collection'
+};
+
+const data = await userInfo(config);
+Configuration Options Reference
+Option Type Default Description
+transparency boolean false Logs data collection message to console
+message string undefined Custom transparency message override
+Privacy-First Configuration
+For maximum privacy compliance, enable transparency mode with a clear user notification:
+const privacyConfig = {
+    transparency: true,
+    message: 'This application collects anonymous device information for security purposes. No personal data is stored.'
+};
+
+const secureFingerprint = await userInfo(privacyConfig);
+Data Processing and Output Structure
+Response Object Structure
+The userInfo function returns a comprehensive object with four main sections as documented for the output format in Core Functionality:
+confidenceAssessment Properties
+geolocation Properties
+systemInfo Properties
+Response Structure
+userInfo() Promise
+Response Object
+systemInfo
+geolocation
+confidenceAssessment
+hash
+browser information
+hardware details
+privacy detection
+fingerprinting data
+ip address
+country/region
+timezone data
+network information
+system confidence
+geolocation confidence
+combined score
+risk factors
+Practical Data Extraction
+Extract specific information from the fingerprint response:
+const data = await userInfo();
+
+// Extract browser information
+const browserInfo = data.systemInfo.browser;
+const osInfo = data.systemInfo.operatingSystem;
+
+// Extract location data
+const country = data.geolocation.country;
+const timezone = data.geolocation.timezone;
+
+// Extract confidence metrics
+const overallConfidence = data.confidenceAssessment.combined;
+
+// Extract unique identifier
+const deviceHash = data.hash;
+Sources:
+README.md
+58-76
+README.md
+89-109
+Legal and Compliance Framework
+License Requirements
+The library is distributed under LGPL-3.0 license as specified in
+package.json
+48
+and detailed in
+LICENSE.md
+1-166
+Key compliance requirements include:
+Attribution requirements for derivative works
+Source code availability obligations
+Copy-left provisions for modifications
+Commercial usage permissions with restrictions
+Ethical Usage Guidelines
+The project includes ethical guidelines outlined in
+NOTICE.md
+1-5
+:
+Financial or code contribution encouragement for substantial usage
+Server infrastructure sustainability considerations
+Community-driven development model
+Responsible fingerprinting practices
+Copyright and Attribution
+Copyright notice requirements from
+COPYRIGHT.md
+1-25
+:
+© 2025 Akshat Kotpalliwar (alias IntegerAlex on GitHub)
+Licensed under LGPL-3.0
+Integration Best Practices
+Performance Considerations
+The library operates entirely client-side except for geolocation services
+Asynchronous operation prevents UI blocking
+Caching strategies should consider hash stability over time
+Network requests are limited to geolocation data only
+Security Implementation
+Always validate fingerprint data before processing
+Implement rate limiting for fingerprint collection
+Consider user privacy preferences and consent mechanisms
+Monitor for suspicious patterns in fingerprint data
+Error Recovery Patterns
+import userInfo from 'fingerprint-oss';
+
+async function robustFingerprinting() {
+    try {
+        return await userInfo({ transparency: true });
+    } catch (error) {
+        // Fallback to basic browser detection
+        return {
+            fallback: true,
+            userAgent: navigator.userAgent,
+            timestamp: Date.now()
+        };
+    }
+}
+Sources:
+README.md
+40-49
+README.md
+67-81
+NOTICE.md
+1-5
+LICENSE.md
+1-166
+COPYRIGHT.md
+1-25
+
+
+--- 4.1 Installation And Setup ---
+
+Installation and Setup
+Relevant source files
+This document provides comprehensive instructions for installing and setting up the fingerprint-oss library in your project. It covers package installation, module imports, basic configuration, and verification steps to ensure the library is working correctly.
+For detailed API documentation and usage examples, see API Reference. For configuration options and advanced setup, see Configuration Options. For development setup and building from source, see Build System and Distribution.
+Prerequisites
+Before installing fingerprint-oss, ensure your environment meets the following requirements:
+Requirement Version Notes
+Node.js ≥16.0.0 Required for npm installation and development
+Browser Support Modern browsers ES6+ support required for client-side usage
+Package Manager npm, yarn, or pnpm Any modern JavaScript package manager
+Sources:
+package.json
+57-59
+Installation Methods
+NPM Installation
+Install the package using npm:
+npm install fingerprint-oss
+Yarn Installation
+yarn add fingerprint-oss
+PNPM Installation
+pnpm add fingerprint-oss
+Sources:
+LEARN.md
+9-12
+package.json
+1-3
+Package Structure and Entry Points
+The fingerprint-oss package provides multiple distribution formats to support different JavaScript environments:
+Import Methods
+fingerprint-oss Package
+package.json
+main: dist/index.cjs.js
+module: dist/index.esm.js
+types: dist/index.d.ts
+CommonJS Format
+ES Module Format
+TypeScript Declarations
+dist/index.min.js
+UMD Format (Minified)
+const { userInfo } = require('fingerprint-oss')
+import { userInfo } from 'fingerprint-oss'
+Package Entry Points Diagram
+Format File Path Use Case
+CommonJS dist/index.cjs.js Node.js, legacy bundlers
+ES Module dist/index.esm.js Modern bundlers, native ES modules
+TypeScript dist/index.d.ts Type definitions
+UMD dist/index.min.js Browser script tags
+Sources:
+package.json
+5-7
+package.json
+19-26
+Basic Setup and Import
+ES Module Import (Recommended)
+import { userInfo } from 'fingerprint-oss';
+CommonJS Import
+const { userInfo } = require('fingerprint-oss');
+TypeScript Import
+import { userInfo } from 'fingerprint-oss';
+// Type definitions are automatically included
+Browser Script Tag
+<script src="node_modules/fingerprint-oss/dist/index.min.js"></script>
+<script>
+  // userInfo is available globally
+  const data = userInfo();
+</script>
+Sources:
+LEARN.md
+13-16
+package.json
+5-8
+Installation and Setup Flow
+npm install fingerprint-oss
+Package Downloaded
+Choose Import Method
+ES Module
+CommonJS
+Browser Script
+import { userInfo } from 'fingerprint-oss'
+const { userInfo } = require('fingerprint-oss')
+Call userInfo()
+const data = userInfo()
+Fingerprint Data Ready
+Process Results
+Application Integration
+Installation and Usage Flow Diagram
+Sources:
+LEARN.md
+9-21
+package.json
+5-8
+Verification and Testing
+Basic Functionality Test
+After installation, verify the library works correctly:
+import { userInfo } from 'fingerprint-oss';
+
+// Test basic functionality
+const data = userInfo();
+console.log('Fingerprint data:', data);
+
+// Verify essential properties exist
+if (data && data.hash && data.confidence) {
+    console.log('✓ fingerprint-oss is working correctly');
+    console.log('Device hash:', data.hash);
+    console.log('Confidence score:', data.confidence);
+} else {
+    console.error('✗ fingerprint-oss setup issue detected');
+}
+TypeScript Verification
+For TypeScript projects, verify type definitions are working:
+import { userInfo } from 'fingerprint-oss';
+
+// TypeScript should provide autocomplete and type checking
+const data = userInfo();
+// data should be properly typed with all available properties
+Sources:
+LEARN.md
+17-21
+Dependency Management
+The library has minimal dependencies to reduce bundle size and security surface:
+Dependency Purpose Version
+hash-wasm SHA-256 hashing for fingerprint generation ^4.12.0
+Production Dependencies
+{
+  "dependencies": {
+    "hash-wasm": "^4.12.0"
+  }
+}
+Sources:
+package.json
+73-75
+Common Issues and Troubleshooting
+Module Not Found Error
+Issue: Cannot find module 'fingerprint-oss'
+Solution:
+Verify installation: npm list fingerprint-oss
+Reinstall if missing: npm install fingerprint-oss
+Check node_modules directory exists
+Type Definition Issues
+Issue: TypeScript cannot find type definitions
+Solution:
+Verify TypeScript version compatibility
+Check dist/index.d.ts exists in node_modules
+Restart TypeScript language server
+Browser Compatibility Issues
+Issue: Library not working in older browsers
+Solution:
+Use the UMD build for broader compatibility
+Ensure browser supports ES6+ features
+Consider using a polyfill for older browsers
+Import/Export Issues
+Issue: Import syntax not working
+Solution:
+Verify your bundler configuration
+Check package.json "type": "module" setting
+Use appropriate import syntax for your environment
+Sources:
+package.json
+8
+Development Setup
+For contributing to the library or building from source:
+Clone and Setup
+git clone https://github.com/IntegerAlex/fingerprint-oss.git
+cd fingerprint-oss
+npm install
+Build Commands
+# Build distribution files
+npm run build
+
+# Run tests
+npm run test
+
+# Generate documentation
+npm run docs
+Sources:
+package.json
+9-16
+CONTRIBUTING.md
+7-13
+Next Steps
+After successful installation and setup:
+API Reference: Learn about available functions and their parameters - see API Reference
+Configuration: Explore configuration options for customizing behavior - see Configuration Options
+Privacy Compliance: Understand GDPR compliance features - see GDPR Compliance and Privacy
+Testing: Set up testing for your integration - see Testing Infrastructure
+Package Metadata
+The following metadata is included with the package:
+Field Value
+Package Name fingerprint-oss
+Current Version 0.9.0
+License LGPL-3.0-only
+Repository https://github.com/IntegerAlex/fingerprint-oss.git
+Bug Reports https://github.com/IntegerAlex/fingerprint-oss/issues
+Sources:
+package.json
+2
+package.json
+3
+package.json
+48
+package.json
+49-56
+
+
+--- 4.2 Api Reference ---
+
+API Reference
+Relevant source files
+This document provides a comprehensive reference for all exported functions, interfaces, and configuration options available in the fingerprint-oss library. It covers the main userInfo function, individual utility functions, and the structure of returned data.
+For installation and basic setup procedures, see Installation and Setup. For configuration parameters and GDPR compliance features, see Configuration Options.
+Main Entry Point
+userInfo Function
+The primary interface for collecting browser fingerprint data is the userInfo function, which serves as the main entry point for the library.
+userInfo(config?: {transparency?: boolean, message?: string}): Promise<FingerprintResult>
+Parameters:
+config (optional): Configuration object with transparency and messaging options
+transparency (boolean): Enables logging and Toast notifications for data collection transparency
+message (string): Custom message for transparency notifications; defaults to "the software is gathering system data"
+Return Value: Promise resolving to a comprehensive fingerprint object containing system information, geolocation data, confidence assessment, and unique hash.
+The function performs parallel data collection of system and geolocation information, calculates confidence scores, and returns structured JSON output.
+Sources:
+src/index.ts
+99-135
+Configuration Interface
+userInfo()
+config parameter
+transparency: boolean
+message: string
+Console logging
+Toast notifications
+Custom transparency message
+Toast message override
+Copyright notice output
+Toast.show() display
+User-defined message
+Message-only Toast
+Configuration Flow:
+When transparency is true: Logs copyright notice and shows Toast notification
+When message is provided with transparency: Shows custom message in both console and Toast
+When only message is provided: Shows Toast with custom message only
+Sources:
+src/index.ts
+108-117
+Function Exports
+The library exports all functions as properties of the default export, providing access to individual components for advanced use cases.
+Core System Functions
+Function Description Return Type
+getSystemInfo Collects comprehensive system and browser information Promise<SystemInfo>
+detectBot Analyzes system characteristics to identify automated browsers BotDetectionResult
+fetchGeolocationInfo Retrieves IP-based geolocation and network information Promise<GeolocationInfo>
+generateJSON Combines system and geo data into structured output format FingerprintResult
+generateId Creates deterministic hash from collected data string
+Privacy Detection Functions
+Function Description Return Type
+detectIncognito Identifies private/incognito browsing modes Promise<IncognitoResult>
+detectAdBlockers Detects ad blockers and Brave browser AdBlockerResult
+getVpnStatus Evaluates VPN usage through timezone analysis VpnStatusResult
+Browser Fingerprinting Functions
+Function Description Return Type
+getCanvasFingerprint Generates canvas-based fingerprint CanvasFingerprint
+getAudioFingerprint Creates audio context fingerprint AudioFingerprint
+getWebGLInfo Extracts WebGL vendor and renderer information WebGLInfo
+getMathFingerprint Computes mathematical constants fingerprint MathFingerprint
+getFontPreferences Analyzes font rendering characteristics FontPreferences
+System Detection Functions
+Function Description Return Type
+getOSInfo Determines operating system and version OSInfo
+getTouchSupportInfo Evaluates touch input capabilities TouchSupportInfo
+getPluginsInfo Enumerates browser plugins and MIME types PluginInfo[]
+estimateCores Estimates CPU core count number
+getColorGamut Determines display color gamut capabilities string
+getVendorFlavors Identifies browser vendor variations string[]
+Storage and Feature Detection
+Function Description Return Type
+isLocalStorageEnabled Tests localStorage availability boolean
+isSessionStorageEnabled Tests sessionStorage availability boolean
+isIndexedDBEnabled Tests IndexedDB availability boolean
+Sources:
+src/index.ts
+138-178
+API Surface Diagram
+fingerprintOSS Default Export
+Core Functions
+Utilities
+getMockSystemInfo()
+Toast
+userInfo() - Main Function
+getSystemInfo()
+fetchGeolocationInfo()
+detectBot()
+generateJSON()
+generateId()
+Confidence Assessment
+getLanguageConsistency()
+isRiskyASN()
+getUAPlatformMismatch()
+checkBrowserConsistency()
+Storage Detection
+isLocalStorageEnabled()
+isSessionStorageEnabled()
+isIndexedDBEnabled()
+System Detection
+getOSInfo()
+getTouchSupportInfo()
+getPluginsInfo()
+estimateCores()
+getColorGamut()
+getVendorFlavors()
+Fingerprinting
+getCanvasFingerprint()
+getAudioFingerprint()
+getWebGLInfo()
+getMathFingerprint()
+getFontPreferences()
+Privacy Detection
+detectIncognito()
+detectAdBlockers()
+getVpnStatus()
+Sources:
+src/index.ts
+10-35
+src/index.ts
+138-178
+Return Value Structure
+The userInfo function returns a comprehensive object with the following top-level properties:
+FingerprintResult Interface
+interface FingerprintResult {
+  systemInfo: SystemInfo;
+  geolocation: GeolocationInfo;
+  confidenceAssessment: ConfidenceAssessment;
+  hash: string;
+}
+Confidence Assessment Structure
+confidenceAssessment
+system
+combined
+score: number
+rating: string
+description: string
+reliability: string
+level: string
+factors: string
+score: number
+rating: string
+description: string
+reliability: string
+level: string
+factors: string
+System Information Categories
+Category Properties Description
+Privacy State incognito, adBlocker Privacy tool detection results
+Browser Identity userAgent, platform, vendor, vendorFlavors Browser identification data
+Hardware hardwareConcurrency, deviceMemory, screenResolution Device hardware characteristics
+Capabilities touchSupport, localStorage, sessionStorage, indexedDB Feature support detection
+Fingerprints canvas, webGL, audio, mathConstants, fontPreferences Unique browser fingerprints
+Security Assessment bot, confidenceScore Automated browser detection
+Geolocation Information Structure
+Property Type Description
+vpnStatus VpnStatusResult VPN detection analysis
+ip string Client IP address
+city string Geographic city location
+region RegionInfo Regional information with ISO codes
+country CountryInfo Country data with ISO codes
+continent ContinentInfo Continental location data
+location LocationInfo Precise coordinates and timezone
+traits TraitsInfo Network characteristics and risk factors
+Sources:
+API.md
+9-66
+Usage Patterns
+Basic Fingerprinting
+import fingerprintOSS from 'fingerprint-oss';
+
+const result = await fingerprintOSS();
+const deviceId = result.hash;
+const osInfo = result.systemInfo.os;
+Individual Function Access
+import fingerprintOSS from 'fingerprint-oss';
+
+const canvasFingerprint = fingerprintOSS.getCanvasFingerprint();
+const botDetection = fingerprintOSS.detectBot();
+const vpnStatus = fingerprintOSS.getVpnStatus();
+GDPR Compliance Configuration
+import fingerprintOSS from 'fingerprint-oss';
+
+const config = {
+  transparency: true,
+  message: 'Collecting device information for security purposes'
+};
+
+const result = await fingerprintOSS(config);
+Sources:
+API.md
+157-178
+src/index.ts
+99-117
+Function Call Flow
+generateJSON
+calculateCombinedConfidence
+fetchGeolocationInfo
+getSystemInfo
+userInfo
+Client
+generateJSON
+calculateCombinedConfidence
+fetchGeolocationInfo
+getSystemInfo
+userInfo
+Client
+par
+[Parallel Data Collection]
+"userInfo(config)"
+"Collect system data"
+"Fetch geo data"
+"SystemInfo object"
+"GeolocationInfo object"
+"Calculate confidence score"
+"Combined confidence score"
+"Generate final result"
+"FingerprintResult object"
+"Complete fingerprint data"
+Sources:
+src/index.ts
+102-122
+
+
+--- 4.3 Configuration Options ---
+
+Configuration Options
+Relevant source files
+This document covers the configuration parameters available for the fingerprint-oss library, specifically the options that can be passed to the main userInfo function to customize its behavior. These options primarily focus on transparency and compliance features.
+For comprehensive API documentation including return value structures, see API Reference. For detailed GDPR compliance implementation and privacy features, see GDPR Compliance and Privacy.
+Configuration Object Structure
+The fingerprint-oss library accepts an optional configuration object with the following TypeScript interface:
+interface UserInfoConfig {
+  transparency?: boolean;
+  message?: string;
+}
+The configuration is passed to the userInfo function as its single parameter, with all options being optional and having sensible defaults.
+Configuration Parameters
+transparency
+Type: boolean
+Default: false
+Purpose: Controls whether the library operates in transparency mode for GDPR compliance
+When set to true, the library will:
+Log a copyright notice with data collection message to the browser console
+Display toast notifications to inform users about data collection
+Use the custom message if provided, otherwise defaults to "the software is gathering system data"
+message
+Type: string
+Default: "the software is gathering system data"
+Purpose: Custom message for transparency notifications
+This parameter allows developers to provide a custom message that will be:
+Logged to the console when transparency is enabled
+Displayed in toast notifications
+Used even when transparency is disabled (will still show toast)
+Configuration Flow
+Configuration Processing Flow
+No
+Yes
+Yes
+Yes
+No
+No
+Yes
+No
+userInfo function call
+config provided?
+Use default empty config {}
+Process config object
+transparency: true?
+Log copyright notice
+message provided?
+Log custom message
+Log default message
+Show toast with custom message
+Show basic toast
+message provided?
+Show toast with custom message
+No transparency actions
+Continue with data collection
+Sources:
+src/index.ts
+99-117
+Usage Examples
+Basic Usage (No Configuration)
+import userInfo from 'fingerprint-oss';
+
+// Uses default configuration with no transparency features
+const data = await userInfo();
+Transparency Mode
+import userInfo from 'fingerprint-oss';
+
+const config = {
+  transparency: true
+};
+
+const data = await userInfo(config);
+// Logs: "© fingerprint-oss the software is gathering system data"
+// Shows toast notification
+Custom Message
+import userInfo from 'fingerprint-oss';
+
+const config = {
+  transparency: true,
+  message: 'We collect device information to improve your experience'
+};
+
+const data = await userInfo(config);
+// Logs: "© fingerprint-oss We collect device information to improve your experience"
+// Shows toast with custom message
+Message Without Transparency
+import userInfo from 'fingerprint-oss';
+
+const config = {
+  message: 'Custom notification message'
+};
+
+const data = await userInfo(config);
+// Shows toast notification but no console logging
+Implementation Details
+The configuration system is implemented in the main userInfo function with the following behavior logic:
+transparency message Console Log Toast Notification
+true provided Custom message Custom message
+true not provided Default message Basic toast
+false provided None Custom message
+false not provided None None
+Configuration Code Entity Relationships
+Core Functions
+getSystemInfo
+data collection
+fetchGeolocationInfo
+confidence calculation
+Configuration Flow
+config.transparency
+transparency boolean check
+config.message
+message string usage
+conditional logging
+userInfo
+config parameter
+transparency property
+message property
+console.log
+Toast.show
+compliance module
+browser console
+generateJSON
+calculateCombinedConfidence
+Sources:
+src/index.ts
+99-135
+src/index.ts
+15
+Default Behavior
+When no configuration is provided, the library operates in standard mode:
+No transparency notifications
+No console logging
+No toast notifications
+Full data collection proceeds normally
+This ensures the library works out-of-the-box without requiring configuration while still providing transparency options for compliance-conscious applications.
+Toast Notification System
+The Toast class is imported from the compliance module and provides user-facing notifications. The toast system supports:
+Basic copyright notifications
+Custom message display
+Non-blocking user interface integration
+The toast notifications are designed to be minimally intrusive while providing necessary transparency for data collection activities.
+Sources:
+src/index.ts
+15
+src/index.ts
+108-117
+README.md
+67-81
+
+
+--- 4.4 Gdpr Compliance And Privacy ---
+
+GDPR Compliance and Privacy
+Relevant source files
+This document covers the privacy protection features, transparency mechanisms, and GDPR compliance capabilities built into fingerprint-oss. It explains how to configure the library to meet privacy regulations, inform users about data collection, and implement transparent fingerprinting practices.
+For general configuration options beyond privacy settings, see Configuration Options. For details about what data is collected by the system, see System Information Collection.
+Privacy-First Design Philosophy
+The fingerprint-oss library is built with privacy considerations at its core, offering configurable transparency features and user notification systems. Unlike commercial alternatives, this open-source implementation provides full visibility into data collection practices and includes mechanisms to inform users about fingerprinting activities.
+Compliance Framework
+User Notification System
+Privacy Configuration Layer
+userInfo
+transparency: boolean
+message: string
+Console Logging
+Custom Messages
+Toast
+Toast.show()
+DOM Injection
+Visual Notification
+LGPL-3.0
+Open Source License
+NOTICE.md
+Ethical Guidelines
+COPYRIGHT.md
+Usage Rights
+User Awareness
+Legal Compliance
+GDPR Compliance
+Sources:
+README.md
+67-81
+src/compliance.ts
+1-104
+LICENSE.md
+NOTICE.md
+COPYRIGHT.md
+Configuration Options for Transparency
+The primary mechanism for GDPR compliance is through configuration parameters passed to the main userInfo function. These options enable transparent data collection practices by informing users about fingerprinting activities.
+Basic Transparency Configuration
+Parameter Type Default Description
+transparency boolean false Enables console logging about data collection
+message string Standard message Custom message displayed to users
+User Information
+Transparency Implementation
+userInfo Function Call
+config
+transparency: true
+message: string
+console.log()
+Custom Message
+Browser Console
+Data Collection Notice
+GDPR Compliance
+Implementation Example
+The transparency system works by intercepting the data collection process and providing notifications through browser console messages:
+const config = {
+    transparency: true,
+    message: 'This website is collecting anonymized device information for security purposes'
+};
+
+const data = await userInfo(config);
+Sources:
+README.md
+69-80
+Toast Notification System
+The Toast class in compliance.ts provides a sophisticated user notification system with glassmorphism styling for informing users about data collection activities.
+User Experience
+DOM Manipulation
+Toast Class Architecture
+Safety Mechanisms
+DOM Availability Check
+typeof document
+document.body existence
+document.createElement availability
+Toast
+Toast.show()
+Toast.injectStyles()
+stylesInjected: boolean
+document.createElement()
+document.body.appendChild()
+style.textContent
+document.head.appendChild()
+Visual Notification
+Glassmorphic Styling
+User Awareness
+Toast Implementation Details
+The toast system includes several key features for privacy compliance:
+DOM Safety Checks: Prevents errors in server-side environments with checks at
+src/compliance.ts
+23-26
+and
+src/compliance.ts
+56-59
+Glassmorphic Styling: Modern UI design with backdrop filters at
+src/compliance.ts
+79-80
+Accessibility: Responsive design and dark mode support at
+src/compliance.ts
+90-95
+Animation Control: Smooth transitions using CSS transitions at
+src/compliance.ts
+82
+Sources:
+src/compliance.ts
+13-104
+Data Collection Transparency
+The library provides comprehensive transparency about what data is collected, enabling organizations to create accurate privacy policies and data processing agreements.
+Categories of Collected Data
+Network Information
+Privacy Detection
+Fingerprinting Data
+System Information
+Browser Type & Version
+Operating System
+Screen Resolution
+Hardware Information
+Canvas Fingerprinting
+WebGL Capabilities
+Audio Fingerprinting
+Font Detection
+VPN Status
+Incognito Mode
+AdBlocker Status
+Bot Detection
+Time Zone
+Language Settings
+IP Geolocation
+ASN Information
+userInfo
+All data collection is documented in the API reference, providing the transparency required for GDPR Article 13 (information to be provided where personal data are collected from the data subject).
+Sources:
+README.md
+91-106
+Legal Framework and Licensing
+The fingerprint-oss library operates under a comprehensive legal framework designed to ensure compliance with privacy regulations and provide clear usage rights.
+Open Source Licensing Structure
+Contributor Framework
+Ethical Guidelines
+Copyright Framework
+Primary License
+LGPL-3.0
+GNU Lesser GPL v3
+Copyleft Protection
+Commercial Use Allowed
+Modification Rights
+COPYRIGHT.md
+Author: Akshat Kotpalliwar
+Redistribution Rights
+Warranty Disclaimer
+NOTICE.md
+Ethical Contribution
+Financial Support
+Sustainability
+CLA.md
+Contributor License Agreement
+Code Ownership Rights
+License Flexibility
+Legal Compliance
+Ethical Usage
+Contribution Framework
+Key Legal Provisions
+The legal framework includes several important elements:
+LGPL-3.0 License: Provides strong copyleft protection while allowing commercial use
+Warranty Disclaimer: Explicit disclaimer of warranties as required by LGPL at
+COPYRIGHT.md
+7
+Contribution Terms: Clear contributor license agreement at
+CLA.md
+7-11
+Ethical Guidelines: Non-binding but encouraged ethical contribution practices at
+NOTICE.md
+1-4
+Sources:
+LICENSE.md
+COPYRIGHT.md
+NOTICE.md
+CLA.md
+Implementation Best Practices
+To ensure GDPR compliance when using fingerprint-oss, organizations should implement the following practices:
+Required Implementation Steps
+Enable Transparency: Always set transparency: true in production environments
+Provide Clear Messaging: Use custom messages that explain data collection purposes
+Document Data Processing: Maintain clear records of what data is collected and why
+Implement User Rights: Provide mechanisms for users to exercise GDPR rights
+Example Compliant Implementation
+// GDPR-compliant configuration
+const complianceConfig = {
+    transparency: true,
+    message: 'We collect device information to prevent fraud and enhance security. This data is processed anonymously and not linked to your identity.'
+};
+
+// Display notification to user
+Toast.show('Device security check in progress...', 4000);
+
+// Collect fingerprint data
+const deviceData = await userInfo(complianceConfig);
+Privacy Policy Integration
+Organizations should integrate the comprehensive data collection list from the API documentation into their privacy policies, ensuring users understand exactly what information is collected through the fingerprinting process.
+Sources:
+README.md
+67-81
+src/compliance.ts
+21-49
+
+
+--- 5 Development And Testing ---
+
+Development and Testing
+Relevant source files
+This document provides comprehensive guidance for developers working on the fingerprint-oss library, covering the build system, testing infrastructure, development workflows, and quality assurance processes. It serves as the foundation for understanding how the library is built, tested, and maintained.
+The development and testing ecosystem encompasses Rollup-based builds, unit testing with Vitest, end-to-end testing with Playwright, continuous integration, and proxy server components. The system includes specialized testing utilities and maintains strict quality standards through automated validation.
+Build and Testing Architecture Overview
+The fingerprint-oss library employs a comprehensive development infrastructure that combines Rollup-based builds with multi-layered testing strategies validating both individual components and complete system integration across different browsers and environments.
+Development Infrastructure Overview
+CI/CD Pipeline
+E2E Testing
+Unit Testing
+Distribution Outputs
+Build System
+rollup.config.js
+src/index.ts
+typescript plugin
+terser plugin
+nodeResolve plugin
+commonjs plugin
+dist/index.cjs.js
+dist/index.esm.js
+dist/index.min.js
+fingerprintOss UMD
+test/unit/
+Vitest
+JSDOM
+test/e2e/
+@playwright/test
+http-server
+chromium
+firefox
+webkit
+.github/workflows/playwright_tests.yml
+ubuntu-latest
+Node.js 20
+Sources:
+rollup.config.js
+1-32
+test/package.json
+1-23
+.github/workflows/playwright_tests.yml
+1-89
+Build System Configuration
+The build system uses Rollup with multiple plugins to generate distribution packages in different formats. The configuration supports browser environments and bundles all dependencies for standalone usage.
+Features
+Output Formats
+Rollup Plugins
+Input
+src/index.ts
+nodeResolve
+commonjs
+typescript
+terser
+CommonJS: dist/index.cjs.js
+ESM: dist/index.esm.js
+UMD: dist/index.min.js
+Source Maps
+Minification
+Browser Compatibility
+Bundle Dependencies
+Sources:
+rollup.config.js
+6-31
+Development Workflow
+The development process follows a structured approach ensuring code quality through automated testing and validation across multiple browser environments using specific tools and scripts.
+Local Development Process
+Testing Targets
+test/local-ci-test.sh Execution
+Local Development Workflow
+Source Changes
+npm install
+npm run build
+npm link
+test/local-ci-test.sh
+cd test && npm install
+npm link ../
+fuser -k 8080/tcp
+npx http-server -p 8080 &
+npx playwright install chromium firefox webkit
+npx playwright test
+kill SERVER_PID
+chromium
+firefox
+webkit
+CI/CD Development Process
+Browser Matrix
+playwright_tests.yml Workflow
+Pull Request
+GitHub Actions
+actions/checkout@v4
+actions/setup-node@v4
+npm ci
+npm run build
+cd test/unit && npm install && npm test
+mkdir -p test/e2e/node_modules/fingerprint-oss/dist
+cp dist/* test/e2e/node_modules/fingerprint-oss/dist/
+cp package.json test/e2e/node_modules/fingerprint-oss/
+npx http-server -p 8080 --cors
+npx playwright install
+cd test/e2e && npm install && npm test
+actions/upload-artifact@v4
+chromium
+firefox
+webkit
+Sources:
+test/local-ci-test.sh
+1-45
+.github/workflows/playwright_tests.yml
+11-89
+Testing Infrastructure Components
+The testing infrastructure consists of multiple specialized components that work together to ensure comprehensive coverage and quality assurance through specific testing frameworks and utilities.
+Test Suite Architecture
+Browser Engines
+E2E Testing Dependencies
+Unit Testing Dependencies
+Package Scripts
+Test Package Structure
+test/package.json
+test/unit/
+test/e2e/
+npm run test
+npm run test:unit
+npm run test:e2e
+npm run install:all
+vitest
+jsdom
+@vitest/ui
+@playwright/test ^1.51.1
+playwright ^1.51.1
+http-server ^14.1.1
+chromium
+firefox
+webkit
+Testing Workflow Integration
+Combined Flow
+E2E Test Flow
+Unit Test Flow
+cd unit
+npm install
+npm test
+cd e2e
+npm install
+npm test
+npm run test
+test:unit && test:e2e
+Sources:
+test/package.json
+6-21
+CI/CD Pipeline Implementation
+The continuous integration pipeline is implemented using GitHub Actions and provides automated testing across multiple browsers and Node.js environments with specific workflow configurations.
+GitHub Actions Workflow Steps
+Step Command/Action Purpose
+Checkout actions/checkout@v4 Retrieve source code
+Node Setup actions/setup-node@v4 with Node.js 20 Configure environment with npm cache
+Dependencies npm ci Install production dependencies
+Build npm run build Execute rollup build process
+Unit Tests cd test/unit && npm install && npm test Validate components with Vitest
+Package Prep mkdir -p test/e2e/node_modules/fingerprint-oss/dist Create test package structure
+Copy Dist cp dist/* test/e2e/node_modules/fingerprint-oss/dist/ Deploy build artifacts
+Copy Package cp package.json test/e2e/node_modules/fingerprint-oss/ Deploy package metadata
+Start Server npx http-server -p 8080 --cors & Launch test server with CORS
+Health Check while ! curl -f http://localhost:8080/; do sleep 1; done Verify server availability
+Install Browsers npx playwright install Download browser engines
+E2E Tests cd test/e2e && npm install && npm test Execute Playwright tests
+Artifacts actions/upload-artifact@v4 Store test-results on failure
+Test Environment Configuration
+Browser Matrix
+Server Lifecycle
+Package Structure Creation
+GitHub Actions Environment
+ubuntu-latest
+Node.js 20.x
+npm cache enabled
+mkdir -p test/e2e/node_modules/fingerprint-oss/dist
+cp dist/* test/e2e/node_modules/fingerprint-oss/dist/
+cp package.json test/e2e/node_modules/fingerprint-oss/
+npx http-server -p 8080 --cors &
+while ! curl -f Unsupported markdown: link
+SERVER_PID capture
+E2E test execution
+kill SERVER_PID cleanup
+npx playwright install
+chromium
+firefox
+webkit
+Artifact Management
+Failed tests trigger automatic artifact collection with specific retention policies and diagnostic information preservation.
+Conditional Logic
+Artifact Collection
+Test Execution
+npm test
+Test Failure
+actions/upload-artifact@v4
+name: playwright-report
+path: test/e2e/playwright-report/
+retention-days: 30
+if: failure()
+Sources:
+.github/workflows/playwright_tests.yml
+16-88
+Test Organization and Structure
+The test suite is organized into distinct layers with specific responsibilities and execution contexts.
+Test Suite Organization
+The testing infrastructure follows a hierarchical structure that separates concerns and enables targeted testing of different system aspects:
+Unit Tests (test/unit/): Component-level validation using Vitest and JSDOM
+E2E Tests (test/e2e/): Browser-based integration testing with Playwright
+CI/CD Tests: Automated execution across multiple environments and browsers
+The test scripts provide convenient entry points for different testing scenarios:
+# Run all tests
+npm run test
+
+# Run only unit tests  
+npm run test:unit
+
+# Run only end-to-end tests
+npm run test:e2e
+
+# Install all test dependencies
+npm run install:all
+Sources:
+test/package.json
+7-10
+Quality Assurance Measures
+The development process incorporates several quality assurance mechanisms to ensure reliability and maintainability:
+Automated Quality Checks
+Multi-browser Testing: Validation across Chromium, Firefox, and WebKit engines
+Artifact Collection: Automatic capture of test results and failure diagnostics
+Environment Consistency: Standardized Node.js version and dependency management
+Health Monitoring: Server availability verification before test execution
+Failure Handling: Graceful error reporting and artifact preservation
+Test Result Management
+Failed tests trigger automatic artifact collection with a 30-day retention policy, providing developers with detailed diagnostic information for troubleshooting and debugging.
+Sources:
+.github/workflows/playwright_tests.yml
+81-88
+
+
+--- 5.1 Build System And Distribution ---
+
+Build System and Distribution
+Relevant source files
+This document covers the build pipeline and distribution process for the fingerprint-oss library. It explains how TypeScript source code is compiled and bundled into multiple distribution formats using Rollup, and how the resulting artifacts are packaged for NPM distribution.
+For information about testing infrastructure that validates the build outputs, see Testing Infrastructure. For CI/CD automation that orchestrates the build process, see CI/CD Pipeline.
+Build Pipeline Overview
+The fingerprint-oss library uses a Rollup-based build system that transforms TypeScript source code into multiple JavaScript output formats. The build process generates CommonJS, ES Module, and UMD bundles along with TypeScript declaration files and source maps.
+src/index.ts
+Rollup Build Process
+TypeScript Compilation
+Module Resolution
+Dependency Bundling
+Code Minification
+dist/index.d.ts
+dist/index.cjs.js
+dist/index.esm.js
+dist/index.min.js
+NPM Package
+Build Pipeline Flow Diagram
+Sources:
+package.json
+9-16
+rollup.config.js
+6-32
+Rollup Configuration
+The build system is configured through rollup.config.js, which defines a single bundle configuration that generates three output formats from the main TypeScript entry point.
+Input and Output Configuration
+The build process starts with src/index.ts as the single entry point and generates three distinct output formats:
+Format File Purpose Module System
+CommonJS dist/index.cjs.js Node.js compatibility CJS
+ES Module dist/index.esm.js Modern bundlers ESM
+UMD dist/index.min.js Browser globals UMD
+src/index.ts
+rollup.config.js
+Output: CommonJS
+Output: ES Module
+Output: UMD
+dist/index.cjs.js
+dist/index.esm.js
+dist/index.min.js
+Node.js Applications
+Modern Bundlers
+Browser Script Tags
+Output Format Distribution Diagram
+Sources:
+rollup.config.js
+9-24
+package.json
+5-7
+Plugin Chain Configuration
+The Rollup build uses a specific plugin chain to process the TypeScript source code:
+nodeResolve: Resolves node module imports with browser compatibility
+commonjs: Converts CommonJS modules to ES6 for bundling
+typescript: Compiles TypeScript to JavaScript with declaration generation
+terser: Minifies the output code for all formats
+TypeScript Source
+nodeResolve Plugin
+commonjs Plugin
+typescript Plugin
+terser Plugin
+Minified Output
+Type Declarations
+Browser Compatibility
+ES6 Module Format
+JavaScript Compilation
+Code Optimization
+Plugin Processing Chain Diagram
+Sources:
+rollup.config.js
+25-29
+TypeScript Compilation Settings
+The TypeScript compilation is configured through tsconfig.json and integrated into the Rollup build process. The configuration targets ES2020 with strict type checking and generates both compiled JavaScript and declaration files.
+Compilation Configuration
+Setting Value Purpose
+target es2020 Modern JavaScript features
+module ESNext Latest module syntax
+declaration true Generate .d.ts files
+sourceMap true Debug support
+declarationDir ./dist Declaration output location
+The TypeScript plugin in Rollup uses these settings to ensure type safety and generate comprehensive declaration files for library consumers.
+Sources:
+tsconfig.json
+2-14
+rollup.config.js
+28
+Dependency Bundling Strategy
+The build system bundles all runtime dependencies directly into the output files rather than treating them as external dependencies. This approach simplifies distribution and ensures consistent behavior across environments.
+Bundled Dependencies
+The library includes one runtime dependency that gets bundled:
+hash-wasm: Provides WebAssembly-based SHA-256 hashing functionality
+The bundling configuration ensures that hash-wasm is included in all output formats:
+hash-wasm dependency
+Rollup Bundling
+CommonJS Bundle
+ES Module Bundle
+UMD Bundle
+Self-contained CJS
+Self-contained ESM
+Self-contained UMD
+No external deps
+Dependency Bundling Strategy Diagram
+Sources:
+rollup.config.js
+30
+package.json
+73-75
+Build Scripts and Automation
+The build process is orchestrated through NPM scripts defined in package.json. The primary build command triggers the complete compilation and bundling process.
+Available Build Commands
+Script Command Purpose
+build rollup -c Full build process
+rollup rollup -c Alternative build trigger
+prepublishOnly npm run build Pre-publication build
+The prepublishOnly script ensures that the package is always built before being published to NPM, preventing distribution of stale artifacts.
+Sources:
+package.json
+10-16
+Distribution Package Structure
+The NPM package includes only essential files for distribution, minimizing package size while providing complete functionality. The files array in package.json explicitly controls which files are included.
+Package Contents
+NPM Package
+dist/
+LICENSE
+NOTICE.md
+COPYRIGHT.md
+README.md
+package.json
+index.cjs.js
+index.esm.js
+index.min.js
+index.d.ts
+Source Maps
+Distribution Package Structure Diagram
+The package entry points are configured to support different module resolution strategies:
+Entry Point Field Target Environment
+main dist/index.cjs.js Node.js CommonJS
+module dist/index.esm.js Bundler ES modules
+types dist/index.d.ts TypeScript support
+Sources:
+package.json
+5-7
+package.json
+19-26
+Local Development and Testing Integration
+The build system integrates with the testing infrastructure through the local CI test script, which demonstrates the complete build-test cycle used during development.
+Build-Test Workflow
+The local testing script follows this sequence:
+Install dependencies
+Execute build process
+Create local package link
+Run tests against built artifacts
+This workflow ensures that tests always run against the actual build outputs rather than source files, validating the complete distribution pipeline.
+Sources:
+test/local-ci-test.sh
+4-20
+
+
+--- 5.2 Testing Infrastructure ---
+
+Testing Infrastructure
+Relevant source files
+This document describes the testing infrastructure for the fingerprint-oss library, covering both unit and end-to-end testing frameworks, their configuration, and execution workflows. The testing setup is designed to validate the library's functionality across different environments and use cases.
+For information about the CI/CD pipeline that orchestrates these tests, see CI/CD Pipeline. For details about writing specific test cases, see Unit and Integration Tests.
+Test Architecture Overview
+The testing infrastructure is organized into two distinct layers: unit tests for isolated component validation and end-to-end tests for integration verification. Each layer uses specialized tooling optimized for its testing scope.
+Test Execution Flow
+test/
+e2e/
+unit/
+package.json
+Root Test Controller
+package.json
+Unit Test Config
+vitest + jsdom
+Test Runner
+package.json
+E2E Test Config
+playwright
+Browser Automation
+http-server
+Test Server
+npm run test
+npm run test:unit
+npm run test:e2e
+npm run install:all
+Test Architecture Diagram
+Sources:
+test/package.json
+1-22
+test/unit/package.json
+1-13
+test/e2e/package.json
+1-16
+Unit Testing Infrastructure
+The unit testing layer uses Vitest as the test runner with JSDOM to simulate browser environments. This combination provides fast execution while maintaining browser API compatibility for fingerprinting operations.
+Core Dependencies
+Package Version Purpose
+vitest ^3.0.9 Modern test runner with TypeScript support
+jsdom ^23.0.0 DOM implementation for Node.js
+Test Runner Configuration
+The unit test configuration is minimal, leveraging Vitest's default settings with JSDOM environment:
+test:unit script
+cd unit && npm install
+npm test
+npx vitest run
+JSDOM Environment
+Test Execution
+test:watch script
+npx vitest
+Watch Mode
+Unit Test Execution Flow
+The unit tests run in a simulated browser environment provided by JSDOM, allowing fingerprinting functions to access browser APIs like canvas, WebGL, and AudioContext without requiring a real browser.
+Sources:
+test/unit/package.json
+5-7
+test/unit/package-lock.json
+1-2340
+End-to-End Testing Infrastructure
+The E2E testing layer uses Playwright for cross-browser automation, testing the library's behavior in real browser environments. This layer validates the complete integration including network requests and actual browser fingerprinting.
+E2E Test Dependencies
+Package Version Purpose
+@playwright/test ^1.51.1 Browser automation testing framework
+playwright ^1.51.1 Browser automation library
+http-server ^14.1.1 Static file server for test content
+Browser Test Matrix
+Test Server
+Browser Support
+Playwright Test Runner
+@playwright/test
+playwright install
+Chromium
+Firefox
+WebKit
+http-server
+Static Test Files
+E2E Testing Architecture
+The E2E tests require browser installation via npx playwright install, which downloads the necessary browser binaries for testing across different engines.
+Sources:
+test/e2e/package.json
+6-7
+test/e2e/package.json
+10-11
+test/e2e/package.json
+14
+Test Execution Workflow
+The root test package orchestrates the execution of both unit and E2E tests through a unified interface. The workflow ensures proper dependency installation and sequential test execution.
+Test Scripts Hierarchy
+npm run test
+(Root Level)
+npm run test:unit
+npm run test:e2e
+cd unit && npm install
+npm test (unit)
+npx vitest run
+cd e2e && npm install
+npm test (e2e)
+npx playwright test
+npm run install:all
+cd unit && npm install
+cd ../e2e && npm install
+Test Execution Workflow Diagram
+Installation and Setup
+The install:all script ensures all test dependencies are properly installed across both test suites:
+Unit Test Setup: Installs Vitest and JSDOM dependencies
+E2E Test Setup: Installs Playwright and HTTP server dependencies
+Browser Installation: Downloads browser binaries for cross-browser testing
+Sources:
+test/package.json
+7-10
+Testing Environment Configuration
+The testing infrastructure uses different environments tailored for each test type:
+Unit Test Environment
+Runtime: Node.js with JSDOM
+Browser APIs: Simulated via JSDOM
+Network: Mocked or isolated
+Performance: Optimized for speed
+E2E Test Environment
+Runtime: Real browsers (Chromium, Firefox, WebKit)
+Browser APIs: Native implementation
+Network: Real HTTP requests
+Performance: Realistic conditions
+E2E Tests
+Real Browsers
+Native APIs
+HTTP Server
+Network Requests
+Unit Tests
+Node.js Runtime
+JSDOM Environment
+Mocked APIs
+Testing Environment Comparison
+This dual-environment approach provides comprehensive coverage while maintaining fast feedback loops during development.
+Sources:
+test/unit/package.json
+1-13
+test/e2e/package.json
+1-16
+test/package.json
+1-22
+
+
+--- 5.3 Cicd Pipeline ---
+
+CI/CD Pipeline
+Relevant source files
+This document covers the automated continuous integration and continuous deployment (CI/CD) system that validates code changes, runs comprehensive tests, and ensures build integrity for the fingerprint-oss library. The pipeline orchestrates unit testing, end-to-end testing, and build verification through GitHub Actions workflows.
+For information about the underlying build system and distribution process, see Build System and Distribution. For details about the testing frameworks and methodologies, see Testing Infrastructure and Unit and Integration Tests.
+Pipeline Overview
+The CI/CD pipeline is implemented as a single GitHub Actions workflow that performs comprehensive validation of code changes. The pipeline ensures that all modifications to the fingerprint-oss library maintain functionality, pass all tests, and can be successfully built and distributed.
+CI/CD Pipeline Architecture
+GitHub Repository
+Push/PR Trigger
+playwright_tests.yml Workflow
+Setup Environment
+Install Dependencies
+Build Package
+Run Unit Tests
+Setup E2E Environment
+Unit Test Results
+Start HTTP Server
+Install Playwright Browsers
+Run E2E Tests
+E2E Test Results
+Pipeline Success/Failure
+Upload Artifacts on Failure
+Sources:
+.github/workflows/playwright_tests.yml
+1-89
+Workflow Configuration
+The CI/CD pipeline is defined in the playwright_tests.yml workflow file and operates under specific trigger conditions and execution parameters.
+Trigger Events
+The workflow executes automatically on the following Git events:
+Event Type Branches Purpose
+pull_request main Validates proposed changes before merge
+push main Verifies main branch integrity after merge
+Execution Environment
+Component Configuration Purpose
+Runner ubuntu-latest Provides consistent Linux environment
+Node.js Version 20 Ensures compatible JavaScript runtime
+Cache npm Accelerates dependency installation
+Sources:
+.github/workflows/playwright_tests.yml
+3-24
+Build and Dependency Management
+The pipeline performs a systematic build process that prepares the fingerprint-oss package for testing across multiple test environments.
+Build Process Flow
+Checkout Code
+Setup Node.js 20
+Install Root Dependencies
+Build fingerprint-oss
+Install Unit Test Dependencies
+Install E2E Test Dependencies
+test/unit/node_modules
+test/e2e/node_modules
+Create Package Structure
+Copy Built Assets
+Setup Local Package Link
+Build Stage Implementation
+The build process consists of sequential dependency installation and package compilation:
+Root Package Build: Executes npm ci and npm run build to generate distribution files
+Unit Test Setup: Navigates to test/unit directory and installs test-specific dependencies
+E2E Test Setup: Navigates to test/e2e directory and installs Playwright dependencies
+Package Linking: Creates local package structure for e2e tests to consume built library
+Sources:
+.github/workflows/playwright_tests.yml
+27-50
+Test Execution Pipeline
+The pipeline executes two distinct test suites in a coordinated sequence, ensuring comprehensive validation of the fingerprint-oss library functionality.
+Unit Test Execution
+Unit tests run first to validate individual component functionality:
+cd test/unit
+npm install
+npm test
+End-to-End Test Environment
+The e2e testing requires a complete HTTP server environment to simulate real browser conditions:
+E2E Test Environment Setup
+Install E2E Dependencies
+Create Package Structure
+Copy Distribution Files
+Copy package.json
+Start HTTP Server
+Server Health Check Loop
+Install Playwright Browsers
+chromium Browser
+firefox Browser
+webkit Browser
+Execute E2E Tests
+HTTP Server Configuration
+The pipeline starts an HTTP server with specific configuration for cross-browser testing:
+Port: 8080
+CORS: Enabled for cross-origin requests
+Health Check: Retry mechanism with 10 attempts and 2-second intervals
+Verification: curl -f http://localhost:8080/ validates server availability
+Sources:
+.github/workflows/playwright_tests.yml
+52-79
+Artifact Management and Failure Handling
+The pipeline includes robust error handling and artifact preservation for debugging failed test runs.
+Test Result Artifacts
+When tests fail, the pipeline automatically preserves debugging information:
+Artifact Component Storage Location Retention
+Test Results test-results/ 30 days
+Screenshots test/e2e/test-results/ 30 days
+Video Recordings test/e2e/test-results/ 30 days
+Console Logs test/e2e/test-results/ 30 days
+Upload Configuration
+The artifact upload mechanism activates only on pipeline failure:
+- name: Upload test results
+  uses: actions/upload-artifact@v4
+  if: failure()
+  with:
+    name: test-results
+    path: test/e2e/test-results/
+    retention-days: 30
+This configuration ensures that successful runs don't consume unnecessary storage while preserving critical debugging information for failed executions.
+Sources:
+.github/workflows/playwright_tests.yml
+82-88
+Pipeline Dependencies and Integration Points
+The CI/CD pipeline integrates with several external systems and internal components to provide comprehensive validation.
+Integration Architecture
+Runtime Dependencies
+Test Framework Integration
+Build System Integration
+External Dependencies
+actions/checkout@v4
+actions/setup-node@v4
+actions/upload-artifact@v4
+npm ci
+npm run build
+rollup.config.js
+test/unit/package.json
+test/e2e/package.json
+Vitest Framework
+Playwright Framework
+http-server
+Node.js 20
+Ubuntu Latest
+Artifact Storage
+Unit Test Results
+E2E Test Results
+Local HTTP Server
+Critical Dependencies
+The pipeline relies on specific versions of key dependencies to ensure consistent execution:
+GitHub Actions: v4 versions for checkout, Node.js setup, and artifact upload
+Node.js: Version 20 with npm caching enabled
+Playwright: Multi-browser support for chromium, firefox, and webkit
+HTTP Server: Local development server for e2e test execution
+Sources:
+.github/workflows/playwright_tests.yml
+18-89
+
+
+--- 5.4 Unit And Integration Tests ---
+
+Unit and Integration Tests
+Relevant source files
+This page documents the comprehensive test suites that validate the functionality, reliability, and performance of the fingerprint-oss library. The testing infrastructure ensures code quality through unit tests for individual modules and integration tests that verify end-to-end workflows.
+For information about the overall testing infrastructure and framework setup, see Testing Infrastructure. For details about automated testing in the CI/CD pipeline, see CI/CD Pipeline. For mock data and testing utilities, see Mock Data and Testing Utilities.
+Test Organization and Architecture
+The test suite is organized around individual modules and functionality areas, with each test file corresponding to a specific source module or feature set. Tests are executed using the Vitest framework with comprehensive mocking capabilities.
+Test Suite Structure
+Source Module Mapping
+Test Organization
+Test Configuration
+test/unit/vite.config.js
+Vitest Configuration
+JSDOM Environment
+Coverage Settings
+Test Isolation
+test/unit/
+hash.test.ts
+incognito.test.ts
+adblocker.test.ts
+compliance.test.ts
+confidence.test.ts
+geo-ip.test.ts
+helper.test.ts
+src/hash.ts
+src/incognito.ts
+src/adblocker.ts
+src/compliance.ts
+src/confidence.ts
+src/geo-ip.ts
+src/helper.ts
+Sources:
+test/unit/vite.config.js
+1-35
+test/unit/hash.test.ts
+1-5
+test/unit/incognito.test.ts
+1-5
+test/unit/adblocker.test.ts
+1-5
+Testing Framework Configuration
+The unit tests use Vitest with specific configuration optimized for browser environment simulation:
+Configuration Value Purpose
+environment jsdom Browser API simulation
+globals true Global test functions
+isolate true Test isolation
+sequence.concurrent false Prevent race conditions
+testTimeout 10000 10 second timeout
+coverage.provider v8 V8 coverage engine
+Sources:
+test/unit/vite.config.js
+12-23
+Hash Generation Test Suite
+The hash generation tests validate the deterministic fingerprint creation process and stability across different system configurations.
+Hash Determinism and Stability
+Ignored Properties
+Tested Properties
+Hash Test Categories
+generateId Function Tests
+Deterministic Hashing
+Property Sensitivity
+Placeholder Handling
+Data Filtering
+userAgent
+canvas.geometry
+webGL.imageHash
+fontPreferences.detectedFonts
+mathConstants.*
+plugins
+audio
+timezone
+languages
+hardwareConcurrency
+deviceMemory
+Sources:
+test/unit/hash.test.ts
+65-302
+The test suite validates that generateId produces identical hashes for identical inputs while remaining sensitive to changes in fingerprinting-relevant properties. Critical tests include:
+Deterministic behavior:
+test/unit/hash.test.ts
+66-71
+verifies identical inputs produce identical hashes
+Property filtering:
+test/unit/hash.test.ts
+73-80
+confirms timezone and language changes don't affect hash
+WebGL sensitivity:
+test/unit/hash.test.ts
+83-89
+validates WebGL image hash impact
+Font detection handling:
+test/unit/hash.test.ts
+124-130
+tests font preference changes
+Plugin filtering:
+test/unit/hash.test.ts
+218-242
+verifies Brave browser plugin exclusion
+Sources:
+test/unit/hash.test.ts
+8-63
+test/unit/hash.test.ts
+65-302
+Browser Detection Test Suites
+Incognito Mode Detection Tests
+The incognito detection tests verify browser-specific private browsing mode identification across multiple browsers.
+Detection Methods
+Browser Detection Matrix
+Test Environment Setup
+setupChromeEnvironment
+Navigator UserAgent Mock
+Storage API Mock
+setupFirefoxEnvironment
+IndexedDB Mock
+setupSafariEnvironment
+Storage Exception Mock
+detectIncognito Function
+Chrome Detection
+Firefox Detection
+Safari Detection
+Edge Detection
+Mobile Safari
+Storage Quota API
+IndexedDB Availability
+LocalStorage Exceptions
+UserAgent Analysis
+Sources:
+test/unit/incognito.test.ts
+14-156
+test/unit/incognito.test.ts
+214-324
+The incognito test suite includes comprehensive browser environment simulation:
+Chrome incognito detection:
+test/unit/incognito.test.ts
+25-33
+using quota API limitations
+Firefox private mode:
+test/unit/incognito.test.ts
+45-53
+via IndexedDB availability checks
+Safari private browsing:
+test/unit/incognito.test.ts
+65-73
+through localStorage exception handling
+Error handling:
+test/unit/incognito.test.ts
+86-94
+for storage API failures
+Non-browser environments:
+test/unit/incognito.test.ts
+116-136
+graceful degradation
+Sources:
+test/unit/incognito.test.ts
+160-324
+Ad Blocker Detection Tests
+The ad blocker detection tests validate identification of various ad blocking technologies and browser privacy features.
+Ad Blocking Signals
+Brave Detection Methods
+Ad Blocker Detection
+Mock Strategies
+Global Fetch Mock
+Response Simulation
+Network Error Simulation
+Script Content Analysis
+detectAdBlockers Function
+Brave Browser Detection
+Ad Script Blocking
+Script Modification
+navigator.brave API
+UserAgent Analysis
+UserAgentData Brands
+Fetch Failure
+Response Null
+uBlock Origin Signatures
+adsbygoogle Modification
+Sources:
+test/unit/adblocker.test.ts
+28-327
+Key test scenarios include:
+Brave browser detection:
+test/unit/adblocker.test.ts
+29-48
+via multiple detection methods
+Ad script blocking:
+test/unit/adblocker.test.ts
+118-133
+through fetch failures
+Script modification detection:
+test/unit/adblocker.test.ts
+135-155
+identifying uBlock Origin signatures
+UserAgentData handling:
+test/unit/adblocker.test.ts
+76-97
+for modern browser API support
+Sources:
+test/unit/adblocker.test.ts
+4-25
+Confidence Scoring Test Suite
+The confidence scoring tests validate the multi-factor assessment system that evaluates data reliability and consistency.
+Confidence Assessment Components
+Test Coverage Areas
+Confidence Functions
+getLanguageConsistency
+Language-Country Matching
+isRiskyASN
+Known VPN/Hosting ASNs
+getUAPlatformMismatch
+UserAgent-Platform Validation
+checkBrowserConsistency
+Hardware Consistency
+Consistent Pairs (+0.15)
+Inconsistent Pairs (-0.1)
+Known Risky ASNs
+Safe ASN Validation
+Mobile/Desktop Mismatch
+OS Mismatch Detection
+Memory-CPU Correlation
+Viewport-Screen Validation
+Sources:
+test/unit/confidence.test.ts
+10-305
+The confidence test suite covers all scoring components:
+Language consistency:
+test/unit/confidence.test.ts
+11-57
+validating language-country pair scoring
+ASN risk assessment:
+test/unit/confidence.test.ts
+60-104
+testing known risky network identification
+Platform consistency:
+test/unit/confidence.test.ts
+107-175
+checking UserAgent-platform alignment
+Browser consistency:
+test/unit/confidence.test.ts
+178-304
+validating hardware configuration logic
+Sources:
+test/unit/confidence.test.ts
+2-8
+Geolocation and Network Tests
+The geolocation tests verify IP-based location detection and network characteristic identification.
+Type System Validation
+Response Validation
+Geolocation Testing
+fetchGeolocationInfo
+API Success Scenarios
+API Failure Handling
+Mock Data Fallback
+GeolocationInfo Structure
+IP Address Validation
+Location Data Types
+Network Error Handling
+Malformed Response
+Consistent Mock Data
+Country Information
+City and Subdivision
+Location Coordinates
+Network Traits
+Postal Code Data
+Sources:
+test/unit/geo-ip.test.ts
+13-273
+The geolocation test suite ensures robust handling of external API dependencies:
+Successful API responses:
+test/unit/geo-ip.test.ts
+14-38
+with complete geolocation data
+API failure scenarios:
+test/unit/geo-ip.test.ts
+40-56
+falling back to mock data
+Type structure validation:
+test/unit/geo-ip.test.ts
+58-105
+ensuring correct GeolocationInfo format
+Consistent fallback behavior:
+test/unit/geo-ip.test.ts
+107-147
+with reliable mock data
+Sources:
+test/unit/geo-ip.test.ts
+1-6
+Helper Function Test Suite
+The helper function tests validate utility functions used throughout the fingerprinting process.
+Browser Environment Detection
+Mock Environment Setup
+Window Object Mocking
+matchMedia API
+Storage APIs
+Canvas Context
+Navigator Mocking
+userAgent Property
+Platform Detection
+Plugin Information
+Helper Function Testing
+Browser Environment
+getColorGamut
+getVendorFlavors
+Storage Capabilities
+isLocalStorageEnabled
+isSessionStorageEnabled
+isIndexedDBEnabled
+System Information
+getTouchSupportInfo
+getOSInfo
+getMathFingerprint
+getPluginsInfo
+getCanvasFingerprint
+Sources:
+test/unit/helper.test.ts
+15-510
+The helper test suite provides comprehensive coverage of utility functions:
+Color gamut detection:
+test/unit/helper.test.ts
+16-69
+testing matchMedia API usage
+Browser vendor identification:
+test/unit/helper.test.ts
+72-135
+validating getVendorFlavors logic
+Storage capability testing:
+test/unit/helper.test.ts
+137-237
+for localStorage, sessionStorage, and IndexedDB
+Operating system detection:
+test/unit/helper.test.ts
+278-377
+across Windows, macOS, Linux, Android
+Canvas fingerprinting:
+test/unit/helper.test.ts
+456-508
+with mock canvas context
+Sources:
+test/unit/helper.test.ts
+2-13
+Compliance and UI Component Tests
+The compliance test suite validates the GDPR-compliant notification system and user interface components.
+Test Scenarios
+Message Display
+Default Duration
+Custom Duration
+Multiple Toasts
+Error Handling
+Missing DOM
+Animation Failures
+Mock DOM Environment
+Document Mock
+createElement
+body.appendChild
+head.appendChild
+Element Mock
+classList Methods
+Event Listeners
+Property Setting
+Toast Component Testing
+Toast.show Function
+DOM Manipulation
+Style Injection
+Animation Handling
+Lifecycle Management
+Sources:
+test/unit/compliance.test.ts
+42-331
+The compliance test suite ensures reliable notification functionality:
+Toast creation and display:
+test/unit/compliance.test.ts
+83-90
+with proper DOM manipulation
+Style injection management:
+test/unit/compliance.test.ts
+111-133
+preventing duplicate CSS
+Animation lifecycle:
+test/unit/compliance.test.ts
+136-145
+handling show/hide transitions
+Multiple toast support:
+test/unit/compliance.test.ts
+147-153
+for concurrent notifications
+Error boundary testing:
+test/unit/compliance.test.ts
+262-294
+for missing DOM elements
+Sources:
+test/unit/compliance.test.ts
+4-41
+Mock Strategies and Test Isolation
+Browser API Mocking
+The test suite employs comprehensive mocking strategies to simulate browser environments and external dependencies:
+API Category Mock Strategy Purpose
+DOM APIs document.createElement, element properties Canvas and DOM testing
+Storage APIs localStorage, sessionStorage, indexedDB Storage capability testing
+Network APIs fetch, response objects External service simulation
+Navigator APIs userAgent, platform, plugins Browser detection testing
+Browser-specific navigator.brave, matchMedia Privacy feature detection
+Test Environment Isolation
+Each test file implements proper environment isolation:
+Mock clearing:
+test/unit/incognito.test.ts
+8-12
+between test cases
+Environment reset:
+test/unit/incognito.test.ts
+162-212
+to known states
+Global restoration:
+test/unit/compliance.test.ts
+78-80
+after environment modifications
+Property redefinition:
+test/unit/helper.test.ts
+73-78
+for consistent test conditions
+Sources:
+test/unit/vite.config.js
+17-20
+test/unit/incognito.test.ts
+6-12
+test/unit/compliance.test.ts
+46-49
+Coverage and Quality Metrics
+The test configuration includes comprehensive coverage reporting with exclusions for non-source files:
+Quality Targets
+Function Coverage
+Module Exports
+Branch Coverage
+Conditional Logic
+Statement Coverage
+Code Execution
+Exclusion Patterns
+node_modules/**
+Third-party Dependencies
+test/**
+Test Files
+**/*.test.ts
+Test Implementations
+**/*.config.js
+Configuration Files
+Coverage Configuration
+V8 Provider
+Text Reporter
+JSON Reporter
+HTML Reporter
+Sources:
+test/unit/vite.config.js
+24-33
+The test suite maintains high coverage across all modules while providing detailed reporting for continuous quality monitoring. Each test file focuses on specific functionality areas while maintaining comprehensive edge case coverage and error handling validation.
+
+
+--- 5.5 Proxy Server Component ---
+
+Proxy Server Component
+Relevant source files
+This document covers the Express-based proxy server component that provides geolocation services for the fingerprint-oss library. The proxy server acts as an intermediary between client applications and external IP geolocation databases, handling API key authentication and IP address resolution.
+For information about how geolocation data is used in the main fingerprinting process, see Geolocation and Network Detection. For details about the overall system architecture, see System Architecture.
+Purpose and Architecture
+The proxy server component provides a secure, authenticated endpoint for retrieving IP-based geolocation information. It serves as a standalone Express application that can be deployed independently to handle geolocation requests from the main fingerprint-oss library.
+Server Architecture
+Client Request
+Express Server
+CORS Middleware
+getClientIp()
+API Key Validation
+getIpInfo()
+MaxMind GeoIP2
+JSON Response
+Environment Config
+dotenv
+PORT
+API_KEY
+x-forwarded-for
+socket.remoteAddress
+Server Component Structure
+The proxy server consists of several key components that work together to process geolocation requests:
+Component Purpose Implementation
+Express Server HTTP request handling server = express()
+CORS Middleware Cross-origin request support server.use(cors())
+IP Extraction Client IP address resolution getClientIp() function
+Authentication API key validation Header-based auth check
+Geolocation Service IP to location mapping getIpInfo() integration
+Sources:
+proxy_server/src/index.ts
+1-70
+Request Processing Flow
+IP Address Resolution
+The server implements intelligent IP address extraction that handles various deployment scenarios:
+"getClientIp()"
+"Express Server"
+"Proxy/Load Balancer"
+"Client"
+"getClientIp()"
+"Express Server"
+"Proxy/Load Balancer"
+"Client"
+alt
+["x-forwarded-for
+present"]
+["No forwarded
+header"]
+"HTTP Request"
+"Forward with x-forwarded-for"
+"Extract IP Address"
+"Parse header value"
+"Split by comma"
+"Return first IP"
+"Use socket.remoteAddress"
+"Client IP Address"
+The getClientIp function handles IP extraction with fallback logic:
+Primary: Extracts from x-forwarded-for header for proxied requests
+Fallback: Uses req.socket.remoteAddress for direct connections
+Parsing: Splits comma-separated IP lists and returns the originating client IP
+Sources:
+proxy_server/src/index.ts
+20-33
+Authentication and Security
+The server implements API key-based authentication for all requests:
+undefined
+exists
+missing
+present
+invalid
+valid
+GET / Request
+Check Headers Exist
+403 Forbidden
+Extract x-api-key
+403 Forbidden
+Validate API Key
+403 Forbidden
+Process Request
+getIpInfo()
+Return JSON Response
+Authentication flow includes multiple validation steps:
+Header Validation: Ensures request headers are defined
+API Key Presence: Checks for x-api-key header
+Key Verification: Compares against configured API_KEY environment variable
+Request Processing: Proceeds with geolocation lookup on successful authentication
+Sources:
+proxy_server/src/index.ts
+37-51
+Configuration and Dependencies
+Environment Configuration
+The server uses environment variables for configuration:
+Variable Default Purpose
+PORT 8080 Server listening port
+API_KEY 123 Authentication key for requests
+Configuration loading occurs through the dotenv package at application startup.
+Sources:
+proxy_server/src/index.ts
+7-13
+Dependency Structure
+proxy_server
+express
+cors
+dotenv
+@maxmind/geoip2-node
+body-parser
+TypeScript
+@types/express
+@types/cors
+@types/node
+Build Process
+tsc
+dist/index.js
+Runtime
+Core Dependencies
+express: Web framework for HTTP server functionality
+cors: Cross-Origin Resource Sharing middleware
+dotenv: Environment variable configuration management
+@maxmind/geoip2-node: MaxMind GeoIP2 database integration
+body-parser: HTTP request body parsing middleware
+Development Dependencies
+typescript: TypeScript compiler and type checking
+Type definitions for Express, CORS, and Node.js APIs
+Sources:
+proxy_server/package.json
+13-26
+Error Handling and Response Format
+The server implements comprehensive error handling for geolocation requests:
+success
+error
+Geolocation Request
+try Block
+await getIpInfo(ip)
+res.json(response)
+catch Block
+res.json({error: null})
+res.end()
+Error Handling Strategy
+Try-Catch Wrapper: Encapsulates geolocation lookup in error handling
+Graceful Degradation: Returns standardized error response on failure
+Response Cleanup: Ensures proper connection termination with res.end()
+The error response format provides a consistent structure even when geolocation data is unavailable.
+Sources:
+proxy_server/src/index.ts
+53-64
+Integration with Main Library
+The proxy server integrates with the fingerprint-oss main library through HTTP requests. The main library makes authenticated requests to the proxy server endpoint to retrieve geolocation data for IP addresses.
+fingerprint-oss
+HTTP Request
+x-api-key Header
+Proxy Server
+GeoIP Lookup
+JSON Response
+Geolocation Data
+This separation allows the geolocation service to be deployed independently while maintaining secure access control through API key authentication.
+Sources:
+proxy_server/src/index.ts
+1-70
+
+
+--- 5.6 Mock Data And Testing Utilities ---
+
+Mock Data and Testing Utilities
+Relevant source files
+This document covers the mock data generation and testing utility systems within the fingerprint-oss codebase. These utilities provide predictable, consistent test data that mirrors the structure of real browser fingerprinting data, enabling reliable unit testing and development workflows.
+For information about the broader testing infrastructure, see Testing Infrastructure. For details about unit and integration tests that utilize these mock utilities, see Unit and Integration Tests.
+Mock Data Generation System
+The fingerprint-oss library provides a centralized mock data generation system through the getMockSystemInfo() function. This system creates comprehensive mock objects that replicate the structure and data types returned by the actual fingerprinting system, ensuring that tests operate against realistic data structures.
+Core Mock Data Function
+The primary mock data generator is implemented in the getMockSystemInfo() function, which returns a complete system information object with representative values for all fingerprinting categories:
+getMockSystemInfo()
+Mock System Data
+Browser Information
+Device Properties
+Security Features
+Graphics Capabilities
+Bot Detection Data
+userAgent
+platform
+languages
+cookiesEnabled
+screenResolution
+hardwareConcurrency
+deviceMemory
+touchSupport
+incognito
+doNotTrack
+localStorage
+sessionStorage
+webGL
+canvas
+mathConstants
+bot
+confidenceScore
+hash
+Sources:
+src/mock.ts
+20-57
+Mock Data Structure
+The mock data structure comprehensively covers all aspects of browser fingerprinting data collected by the system. Each field provides realistic test values that maintain data type consistency with the production system.
+Browser and Platform Information
+Field Mock Value Purpose
+userAgent 'Mozilla/5.0 (Test Browser)' Simulates browser identification string
+platform 'Test Platform' Represents operating system platform
+languages ['en-US'] Mock browser language preferences
+vendor 'Test Vendor' Browser vendor information
+vendorFlavors ['test'] Additional vendor-specific identifiers
+Device and Hardware Properties
+The mock data includes realistic hardware specifications that mirror common device configurations:
+Device Mock Data
+screenResolution: [1920, 1080]
+colorDepth: 24
+colorGamut: 'srgb'
+hardwareConcurrency: 8
+deviceMemory: 8
+touchSupport Object
+maxTouchPoints: 0
+touchEvent: false
+touchStart: false
+Sources:
+src/mock.ts
+28-46
+Security and Privacy Features
+The mock system includes comprehensive privacy-related feature simulation:
+Category Fields Mock Values
+Storage APIs localStorage, sessionStorage, indexedDB true, true, true
+Privacy Settings doNotTrack, cookiesEnabled null, true
+Incognito Detection incognito.isPrivate, incognito.browserName false, 'Test Browser'
+Graphics and Rendering Capabilities
+The mock data provides realistic graphics fingerprinting information:
+Graphics Mock Data
+WebGL Information
+Canvas Fingerprint
+Mathematical Constants
+vendor: 'Test Vendor'
+renderer: 'Test Renderer'
+imageHash: null
+winding: false
+geometry: ''
+text: ''
+getMathFingerprint()
+Sources:
+src/mock.ts
+38-49
+Integration with Testing Infrastructure
+The mock data system integrates seamlessly with the broader testing infrastructure, providing consistent test data across different testing scenarios and frameworks.
+Bot Detection Mock Data
+The mock system includes sophisticated bot detection simulation with realistic confidence scoring:
+botInfo Object
+isBot: false
+signals: []
+confidence: 0.82
+System Mock
+bot: botInfo
+confidenceScore: 0.85
+hash: '5d41402abc4b2a76b9719d911017c592'
+Sources:
+src/mock.ts
+21-22
+src/mock.ts
+52-55
+Mathematical Constants Integration
+The mock system leverages the existing getMathFingerprint() helper function to ensure mathematical fingerprinting consistency between mock and real data:
+Same Function
+getMockSystemInfo()
+Import getMathFingerprint
+helper module
+mathConstants Field
+getMathFingerprint() Result
+Real System
+getMathFingerprint()
+Sources:
+src/mock.ts
+10
+src/mock.ts
+49
+Usage in Development Workflow
+The mock data utilities support various development and testing scenarios by providing predictable, well-structured test data that eliminates the variability inherent in real browser environments.
+Test Data Consistency
+The mock data system ensures that tests operate against consistent baseline data, enabling:
+Deterministic test outcomes
+Reliable unit test assertions
+Consistent integration test scenarios
+Predictable hash generation testing
+Development Environment Support
+Mock data facilitates development workflows by providing:
+Immediate access to complete system information structures
+No dependency on actual browser APIs during development
+Consistent data for UI development and debugging
+Standardized test fixtures for component testing
+Sources:
+src/mock.ts
+1-59
+
+
+--- 5.7 Contributing And Legal Framework ---
+
+Contributing and Legal Framework
+Relevant source files
+This document outlines the development process and legal requirements for contributing to the fingerprint-oss project. It covers the legal framework, contribution workflows, community standards, and compliance requirements that govern participation in this open-source project.
+For information about the technical build system and CI/CD processes, see Build System and Distribution and CI/CD Pipeline.
+Legal Framework
+The fingerprint-oss project operates under a comprehensive legal framework designed to ensure open-source compliance while protecting both contributors and users.
+License Structure
+The project is released under the GNU Lesser General Public License (LGPL) version 3.0, which provides specific rights and obligations for both users and contributors.
+Legal Obligations
+License Framework
+Legal Documents
+LICENSE.md
+COPYRIGHT.md
+CLA.md
+NOTICE.md
+LGPL-3.0 License
+Contributor License Agreement
+Copyright Attribution
+Ethical Guidelines
+Source Code Availability
+Derivative Work Licensing
+Attribution Requirements
+Commercial Use Rights
+LGPL-3.0 License Requirements
+Requirement Description Implementation
+Source Availability Modified versions must provide source code Covered by GitHub repository
+License Preservation LGPL license must be maintained Enforced in
+LICENSE.md
+1-166
+Attribution Original copyright must be preserved Specified in
+COPYRIGHT.md
+1-25
+Linking Rights Applications can link without becoming GPL Allows commercial integration
+Sources:
+LICENSE.md
+1-166
+COPYRIGHT.md
+1-25
+README.md
+114-116
+Contributor License Agreement
+All contributors must agree to the terms specified in the Contributor License Agreement, which grants specific rights to the project maintainer while preserving contributor attribution.
+CLA Key Terms:
+Contributors certify ownership or right to submit code
+CLA.md
+7
+Irrevocable licensing rights granted to maintainer
+CLA.md
+8
+Contributions made under LGPL-3.0 terms
+CLA.md
+9
+No compensation expectation
+CLA.md
+10
+Sources:
+CLA.md
+1-18
+Copyright and Attribution
+The project maintains clear copyright attribution while allowing for community contributions under the LGPL framework.
+Copyright Structure:
+Primary copyright holder: Akshat Kotpalliwar (IntegerAlex)
+COPYRIGHT.md
+3
+Contributor licensing under same LGPL terms
+COPYRIGHT.md
+17
+Warranty disclaimers as required by LGPL
+COPYRIGHT.md
+7
+Sources:
+COPYRIGHT.md
+1-25
+Contributing Process
+The contribution process follows established open-source practices with specific workflows for code submission and review.
+Repository Workflow
+Review Process
+Project Files
+Contributor Actions
+Fork Repository
+Create Feature Branch
+Implement Changes
+Write Tests
+Commit Changes
+Push to Fork
+Create Pull Request
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+.github/workflows/
+test/ directory
+Automated Testing
+Code Review
+Merge to Main
+Contribution Steps:
+Repository Setup
+CONTRIBUTING.md
+7-8
+Fork the repository on GitHub
+Clone fork locally for development
+Branch Creation
+CONTRIBUTING.md
+9-13
+Create feature branch with descriptive name
+Use format: feature-branch-name
+Development Process
+CONTRIBUTING.md
+14-15
+Implement changes with thorough testing
+Follow project coding conventions
+Commit Standards
+CONTRIBUTING.md
+16-20
+Write clear, descriptive commit messages
+Reference issues when applicable
+Pull Request Submission
+CONTRIBUTING.md
+25-26
+Open PR from feature branch to main
+Provide detailed description of changes
+Sources:
+CONTRIBUTING.md
+1-44
+Code Quality Standards
+The project maintains specific standards for code quality and documentation that contributors must follow.
+Code Style Requirements:
+Follow project coding conventions
+CONTRIBUTING.md
+30
+Include comprehensive documentation
+CONTRIBUTING.md
+31
+Write descriptive commit messages
+CONTRIBUTING.md
+32
+Testing Requirements:
+Unit tests for new functionality (see Unit and Integration Tests)
+End-to-end tests for user-facing features (see Testing Infrastructure)
+All tests must pass CI/CD pipeline (see CI/CD Pipeline)
+Sources:
+CONTRIBUTING.md
+28-33
+Community Guidelines
+The project maintains a professional and inclusive community environment through established guidelines and enforcement mechanisms.
+Code of Conduct Framework
+Violation Responses
+Enforcement Structure
+Community Standards
+Empathy and Kindness
+Respect for Opinions
+Constructive Feedback
+Community Focus
+Community Leaders
+Reporting Mechanism
+Investigation Process
+Corrective Actions
+Correction
+Warning
+Temporary Ban
+Permanent Ban
+Acceptable Behavior Standards:
+Empathy and kindness toward others
+CODE_OF_CONDUCT.md
+13
+Respect for differing viewpoints
+CODE_OF_CONDUCT.md
+14
+Constructive feedback exchange
+CODE_OF_CONDUCT.md
+15
+Community-focused decision making
+CODE_OF_CONDUCT.md
+17
+Unacceptable Behavior:
+Harassment or trolling
+CODE_OF_CONDUCT.md
+21
+Inappropriate language or imagery
+CODE_OF_CONDUCT.md
+22
+Privacy violations
+CODE_OF_CONDUCT.md
+23
+Unprofessional conduct
+CODE_OF_CONDUCT.md
+24
+Sources:
+CODE_OF_CONDUCT.md
+1-69
+Enforcement Guidelines
+The project implements a tiered enforcement system for community guideline violations.
+Level Community Impact Consequence
+Correction Inappropriate language/behavior Private warning, possible public apology
+Warning Single incident or minor violations Warning with interaction restrictions
+Temporary Ban Serious or sustained violations Temporary community ban
+Permanent Ban Pattern of violations or severe misconduct Permanent community ban
+Reporting Process:
+Contact community leaders via LinkedIn
+CODE_OF_CONDUCT.md
+36
+Confidential complaint handling
+CODE_OF_CONDUCT.md
+36
+Prompt and fair investigation
+CODE_OF_CONDUCT.md
+36
+Sources:
+CODE_OF_CONDUCT.md
+40-61
+Ethical Considerations
+The project incorporates ethical guidelines that encourage responsible use and sustainable development practices.
+Ethical Usage Framework
+The project includes non-binding ethical guidelines for users implementing fingerprinting at scale.
+Ethical Contribution Notice:
+Financial or code contributions encouraged for substantial usage
+NOTICE.md
+2
+Server maintenance sustainability concerns
+NOTICE.md
+4
+Non-legally binding ethical participation
+NOTICE.md
+4
+Privacy and Transparency:
+Transparent data collection practices
+README.md
+18
+User privacy protection commitment
+README.md
+19
+GDPR compliance support
+README.md
+21
+Sources:
+NOTICE.md
+1-5
+README.md
+14-22
+Sustainability Guidelines
+Community Benefits
+Ethical Usage
+Privacy Compliance
+GDPR Support
+Transparency Options
+User Consent
+Data Protection
+Substantial User Fingerprinting
+Financial Contributions
+Code Contributions
+Server Sustainability
+Improved Latency
+Enhanced Throughput
+Continued Development
+Feature Expansion
+Sources:
+NOTICE.md
+1-5
+README.md
+67-81
+Legal Compliance Requirements
+Contributors and users must understand specific legal obligations under the LGPL-3.0 license and project terms.
+License Compliance Matrix
+Use Case Source Code Requirement License Preservation Attribution Required
+Direct Library Use No Yes Yes
+Modified Library Yes (modifications only) Yes Yes
+Combined Work Minimal corresponding source Yes Yes
+Commercial Integration No (if unmodified) Yes Yes
+Key Compliance Points:
+Library modifications must be made available
+LICENSE.md
+49-61
+Combined works have specific source requirements
+LICENSE.md
+79-127
+Installation information may be required
+LICENSE.md
+116-126
+Attribution Requirements
+All uses of the fingerprint-oss library must maintain proper attribution as specified in the license framework.
+Required Attribution Elements:
+Copyright notice preservation
+COPYRIGHT.md
+3
+License reference inclusion
+COPYRIGHT.md
+23
+Contribution acknowledgment
+COPYRIGHT.md
+15-17
+Implementation in Code:
+Package.json license field references LGPL-3.0
+Distribution includes license files
+Documentation maintains attribution
+Sources:
+LICENSE.md
+1-166
+COPYRIGHT.md
+1-25
+Commercial Use Guidelines
+The LGPL-3.0 license specifically allows commercial use while maintaining certain obligations.
+Commercial Rights:
+Applications can use library without becoming GPL
+LICENSE.md
+22-25
+Dynamic linking preserves application licensing
+LICENSE.md
+109-114
+Commercial distribution permitted with attribution
+Commercial Obligations:
+License preservation in distributions
+Source availability for library modifications
+Installation information for embedded systems
+Sources:
+LICENSE.md
+79-127
+
