@@ -78,6 +78,47 @@ class TelemetryManager {
                 return;
             }
 
+            // Attempt to register a WebTracerProvider and exporter when available
+            // This is best-effort and fully optional. Tests and apps without SDK/exporters won't fail.
+            try {
+                // Dynamically import to avoid bundling in SSR/non-browser contexts
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                // @ts-ignore - dynamic at runtime, optional dep
+                import('@opentelemetry/sdk-trace-web').then(async (traceWeb) => {
+                    const provider: any = new traceWeb.WebTracerProvider();
+
+                    // If an endpoint is provided, attempt to set up OTLP HTTP exporter
+                    if (this.config.endpoint) {
+                        try {
+                            const [{ OTLPTraceExporter }, traceBase] = await Promise.all([
+                                // @ts-ignore - optional dep
+                                import('@opentelemetry/exporter-trace-otlp-http'),
+                                // @ts-ignore - optional dep
+                                import('@opentelemetry/sdk-trace-base')
+                            ]);
+                            const exporter = new OTLPTraceExporter({ url: this.config.endpoint });
+                            const processor = new (traceBase as any).BatchSpanProcessor(exporter);
+                            (provider as any).addSpanProcessor(processor);
+                        } catch (e) {
+                            if (this.config.debug) {
+                                console.warn('[Telemetry] OTLP exporter setup skipped:', e);
+                            }
+                        }
+                    }
+
+                    provider.register();
+                    if (this.config.debug) {
+                        console.log('[Telemetry] WebTracerProvider registered');
+                    }
+                }).catch(() => {
+                    // sdk-trace-web not present - safe to ignore
+                });
+            } catch (e) {
+                if (this.config.debug) {
+                    console.warn('[Telemetry] Provider registration skipped:', e);
+                }
+            }
+
             // Initialize tracer
             this.tracer = trace.getTracer(
                 this.config.serviceName!,

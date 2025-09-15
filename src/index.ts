@@ -239,4 +239,42 @@ export default fingerprintOSS;
 export { Telemetry, withTelemetry };
 export type { TelemetryConfig };
 
-export default fingerprintOSS;
+// Re-export core functions for named imports in consumers and tests
+export {
+    getSystemInfo,
+    detectBot
+} from './systemInfo';
+
+export { fetchGeolocationInfo } from './geo-ip';
+export { generateJSON } from './json';
+export { generateId } from './hash';
+export { detectIncognito } from './incognito';
+export { detectAdBlockers } from './adblocker';
+export { getVpnStatus } from './vpn';
+
+export {
+    getColorGamut,
+    getVendorFlavors,
+    isLocalStorageEnabled,
+    isSessionStorageEnabled,
+    isIndexedDBEnabled,
+    getTouchSupportInfo,
+    getOSInfo,
+    getPluginsInfo,
+    getMathFingerprint,
+    getCanvasFingerprint,
+    getAudioFingerprint,
+    getWebGLInfo,
+    getFontPreferences,
+    estimateCores
+} from './helper';
+
+export {
+    getLanguageConsistency,
+    isRiskyASN,
+    getUAPlatformMismatch,
+    checkBrowserConsistency
+} from './confidence';
+
+export { getMockSystemInfo } from './mock';
+export { Toast } from './compliance';
