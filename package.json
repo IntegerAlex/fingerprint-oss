@@ -10,7 +10,8 @@
     "build": "rollup -c",
     "rollup": "rollup -c",
     "docs": "typedoc",
-    "test": "cd test && npm run test",
+    "test": "cd test && npm run test:unit",
+    "test:all": "cd test && npm run test:all",
     "test:unit": "cd test && npm run test:unit",
     "test:e2e": "cd test && npm run test:e2e",
     "prepublishOnly": "npm run build"

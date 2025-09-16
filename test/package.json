@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit",
+    "test:all": "npm run test:unit && npm run test:e2e",
     "test:unit": "cd unit && npm install && npm test",
     "test:e2e": "cd e2e && npm install && npm test",
     "install:all": "cd unit && npm install && cd ../e2e && npm install"
