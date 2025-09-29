@@ -19,20 +19,21 @@ import { detectAdBlockers } from './adblocker';
 import { getVpnStatus } from './vpn';
 import { Telemetry, TelemetryConfig, withTelemetry } from './telemetry';
 import { 
-    getColorGamut, 
-    getVendorFlavors, 
-    isLocalStorageEnabled, 
-    isSessionStorageEnabled, 
-    isIndexedDBEnabled, 
-    getTouchSupportInfo, 
-    getOSInfo, 
-    getPluginsInfo, 
-    getMathFingerprint, 
+    getColorGamut,
+    getVendorFlavors,
+    isLocalStorageEnabled,
+    isSessionStorageEnabled,
+    isIndexedDBEnabled,
+    getTouchSupportInfo,
+    getOSInfo,
+    getPluginsInfo,
+    getMathFingerprint,
     getCanvasFingerprint,
     getAudioFingerprint,
     getWebGLInfo,
     getFontPreferences,
-    estimateCores
+    estimateCores,
+    getDoNotTrack // Added here
 } from './helper';
 
 // Note: All individual functions are available as properties of the default export
@@ -44,10 +45,10 @@ import {
  * and applies several penalty adjustments:
  * - If the system is flagged as a bot, it reduces the score by a computed value capped at 0.4.
  * - When geolocation data is available, it decreases the score if indicators of proxies, hosting, or TOR usage are present,
- *   and further penalizes if the geolocation timezone does not match the system timezone.
+ * and further penalizes if the geolocation timezone does not match the system timezone.
  * - In the absence of geolocation information, it applies a penalty.
  * - It also evaluates the hardware and software consistency by comparing the user agent with the platform,
- *   reducing the score by the detected mismatch.
+ * reducing the score by the detected mismatch.
  *
  * The final confidence score is clamped to remain between 0.1 and 0.9.
  *
@@ -93,9 +94,9 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  * The function fetches system and geolocation information in parallel and calculates a confidence score based on the integrity of the data. When the optional `transparency` flag is enabled, it logs a copyright notice and displays a notification via Toast using a custom message (or a default message if none is provided). If an error occurs during data retrieval, the function logs the error and uses fallback system data to compute the confidence score.
  *
  * @param config - Optional configuration with:
- *   - `transparency`: When true, enables logging and Toast notifications for data collection transparency.
- *   - `message`: A custom message to log and display; defaults to "the software is gathering system data" if not specified.
- *   - `telemetry`: Configuration for OpenTelemetry data collection.
+ * - `transparency`: When true, enables logging and Toast notifications for data collection transparency.
+ * - `message`: A custom message to log and display; defaults to "the software is gathering system data" if not specified.
+ * - `telemetry`: Configuration for OpenTelemetry data collection.
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
 async function userInfo(config:{transparency?:boolean, message?:string, telemetry?: TelemetryConfig}={}) {
@@ -120,8 +121,7 @@ async function userInfo(config:{transparency?:boolean, message?:string, telemetr
             getSystemInfo(),
             fetchGeolocationInfo()
         ]);
-	
-
+    
  if(config.transparency) {
    const message = config.message || 'the software is gathering system data';
    console.log(`\u00A9 fingerprint-oss  ${message}`);
@@ -215,6 +215,7 @@ const fingerprintOSS = Object.assign(userInfo, {
     getWebGLInfo,
     getFontPreferences,
     estimateCores,
+    getDoNotTrack, // Added here
     
     // Confidence functions
     getLanguageConsistency,
@@ -266,7 +267,8 @@ export {
     getAudioFingerprint,
     getWebGLInfo,
     getFontPreferences,
-    estimateCores
+    estimateCores,
+    getDoNotTrack // Added here
 } from './helper';
 
 export {
