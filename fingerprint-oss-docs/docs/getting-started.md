@@ -68,8 +68,8 @@ async function getFingerprint() {
     });
     
     console.log('Device ID:', data.hash);
-    console.log('Browser:', data.systemInfo.browser.name);
-    console.log('OS:', data.systemInfo.os.name);
+    console.log('Browser:', data.systemInfo.browser?.name, data.systemInfo.browser?.version);
+    console.log('OS:', data.systemInfo.os.os, data.systemInfo.os.version);
     
     return data;
   } catch (error) {
@@ -113,7 +113,7 @@ To enable telemetry, pass the telemetry config. The default OTLP HTTP endpoint i
 Telemetry.initialize({
   enabled: true,
   serviceName: 'your-app',
-  serviceVersion: '0.9.1',
+  serviceVersion: '0.9.2',
   sampleRate: 0.1
 });
 ```
@@ -170,8 +170,8 @@ function App() {
     <div>
       <h1>Device Information</h1>
       <p>Device ID: {fingerprint.hash}</p>
-      <p>Browser: {fingerprint.systemInfo.browser.name} {fingerprint.systemInfo.browser.version}</p>
-      <p>OS: {fingerprint.systemInfo.os.name} {fingerprint.systemInfo.os.version}</p>
+      <p>Browser: {fingerprint.systemInfo.browser?.name} {fingerprint.systemInfo.browser?.version}</p>
+      <p>OS: {fingerprint.systemInfo.os.os} {fingerprint.systemInfo.os.version}</p>
       <p>Confidence: {Math.round(fingerprint.confidence * 100)}%</p>
     </div>
   );

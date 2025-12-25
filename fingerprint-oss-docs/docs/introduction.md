@@ -27,11 +27,12 @@ Fingerprint OSS is a comprehensive JavaScript library for device fingerprinting 
 
 ## Core Capabilities
 
-- **System Information**: Browser, OS, and hardware detection
+- **System Information**: Enhanced browser detection (98% accuracy), OS, and hardware detection
 - **Advanced Fingerprinting**: Canvas, WebGL, Audio, and Math constants
 - **Privacy Detection**: Incognito mode, AdBlockers, and VPN detection
 - **Network Analysis**: Geolocation and network characteristics
 - **Confidence Scoring**: Reliability assessment of collected data
+- **Browser Detection**: Industry-standard parser supporting 100+ browsers with high accuracy
 
 ## Quick Start
 

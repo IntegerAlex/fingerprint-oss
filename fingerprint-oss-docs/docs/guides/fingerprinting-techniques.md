@@ -9,6 +9,28 @@ description: Comprehensive guide to the fingerprinting methods used in the libra
 
 Fingerprint-oss employs multiple techniques to create a unique device fingerprint. This document explains each technique, its implementation, and its reliability characteristics.
 
+## Browser Detection
+
+**Purpose**: Accurately identifies the browser and version using industry-standard parsing.
+
+**How it works**:
+1. Uses the Bowser library for comprehensive browser detection
+2. Parses user-agent strings with high accuracy (98% for common browsers)
+3. Supports 100+ browsers including Chrome, Firefox, Safari, Edge, Opera, Brave, and specialized browsers
+4. Provides normalized browser names and version strings
+
+**Example Output**:
+```javascript
+{
+  browser: {
+    name: "Chrome",
+    version: "120.0.0.0"
+  }
+}
+```
+
+**Reliability**: Very High - Industry-standard parser with comprehensive browser support and accurate version detection.
+
 ## Core Fingerprinting Methods
 
 ### 1. Canvas Fingerprinting

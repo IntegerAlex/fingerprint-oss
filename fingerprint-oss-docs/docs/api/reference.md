@@ -83,6 +83,10 @@ systemInfo: {
     isBrave: boolean;     // Whether using Brave browser
     adBlocker: boolean;   // Whether ad blocker is detected
   },
+  browser: {
+    name?: string;        // Browser name (e.g., "Chrome", "Firefox", "Safari")
+    version?: string;     // Browser version (e.g., "120.0.0.0")
+  },
   userAgent: string;      // User agent string
   platform: string;       // Platform information
   languages: string[];    // Preferred languages
@@ -167,6 +171,7 @@ import userInfo from 'fingerprint-oss';
 const data = await userInfo();
 console.log(data.hash); // Get unique device identifier
 console.log(data.systemInfo.os); // Get OS information
+console.log(data.systemInfo.browser); // Get browser information { name: "Chrome", version: "120.0.0.0" }
 ```
 
 ### With GDPR Compliance
