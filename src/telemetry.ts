@@ -17,6 +17,7 @@ import {
     Counter,
     Histogram
 } from '@opentelemetry/api';
+import { StructuredLogger } from './config';
 
 /**
  * Telemetry configuration interface
@@ -102,21 +103,21 @@ class TelemetryManager {
                             (provider as any).addSpanProcessor(processor);
                         } catch (e) {
                             if (this.config.debug) {
-                                console.warn('[Telemetry] OTLP exporter setup skipped:', e);
+                                StructuredLogger.warn('Telemetry', 'OTLP exporter setup skipped', e);
                             }
                         }
                     }
 
                     provider.register();
                     if (this.config.debug) {
-                        console.log('[Telemetry] WebTracerProvider registered');
+                        StructuredLogger.debug('Telemetry', 'WebTracerProvider registered');
                     }
                 }).catch(() => {
                     // sdk-trace-web not present - safe to ignore
                 });
             } catch (e) {
                 if (this.config.debug) {
-                    console.warn('[Telemetry] Provider registration skipped:', e);
+                    StructuredLogger.warn('Telemetry', 'Provider registration skipped', e);
                 }
             }
 
@@ -138,10 +139,10 @@ class TelemetryManager {
             this.initialized = true;
 
             if (this.config.debug) {
-                console.log('[Telemetry] Initialized with config:', this.config);
+                StructuredLogger.debug('Telemetry', 'Initialized with config', this.config);
             }
         } catch (error) {
-            console.warn('[Telemetry] Failed to initialize:', error);
+            StructuredLogger.warn('Telemetry', 'Failed to initialize', error);
         }
     }
 
@@ -184,7 +185,7 @@ class TelemetryManager {
             );
 
         } catch (error) {
-            console.warn('[Telemetry] Failed to initialize metrics:', error);
+            StructuredLogger.warn('Telemetry', 'Failed to initialize metrics', error);
         }
     }
 
@@ -217,7 +218,7 @@ class TelemetryManager {
             return span;
         } catch (error) {
             if (this.config.debug) {
-                console.warn('[Telemetry] Failed to start span:', error);
+                StructuredLogger.warn('Telemetry', 'Failed to start span', error);
             }
             return null;
         }
@@ -235,7 +236,7 @@ class TelemetryManager {
             span.end();
         } catch (error) {
             if (this.config.debug) {
-                console.warn('[Telemetry] Failed to end span:', error);
+                StructuredLogger.warn('Telemetry', 'Failed to end span', error);
             }
         }
     }
@@ -259,7 +260,7 @@ class TelemetryManager {
             span.end();
         } catch (err) {
             if (this.config.debug) {
-                console.warn('[Telemetry] Failed to end span with error:', err);
+                StructuredLogger.warn('Telemetry', 'Failed to end span with error', err);
             }
         }
     }
@@ -279,7 +280,7 @@ class TelemetryManager {
             }
         } catch (error) {
             if (this.config.debug) {
-                console.warn('[Telemetry] Failed to increment counter:', error);
+                StructuredLogger.warn('Telemetry', 'Failed to increment counter', error);
             }
         }
     }
@@ -299,7 +300,7 @@ class TelemetryManager {
             }
         } catch (error) {
             if (this.config.debug) {
-                console.warn('[Telemetry] Failed to record histogram:', error);
+                StructuredLogger.warn('Telemetry', 'Failed to record histogram', error);
             }
         }
     }
@@ -320,11 +321,11 @@ class TelemetryManager {
             });
 
             if (this.config.debug) {
-                console.log('[Telemetry] Recorded error:', error.name, context);
+                StructuredLogger.debug('Telemetry', `Recorded error: ${error.name}`, context);
             }
         } catch (err) {
             if (this.config.debug) {
-                console.warn('[Telemetry] Failed to record error:', err);
+                StructuredLogger.warn('Telemetry', 'Failed to record error', err);
             }
         }
     }
@@ -350,11 +351,11 @@ class TelemetryManager {
             });
 
             if (this.config.debug) {
-                console.log('[Telemetry] Recorded function call:', functionName, executionTime + 'ms', success);
+                StructuredLogger.debug('Telemetry', `Recorded function call: ${functionName} ${executionTime}ms success:${success}`);
             }
         } catch (error) {
             if (this.config.debug) {
-                console.warn('[Telemetry] Failed to record function call:', error);
+                StructuredLogger.warn('Telemetry', 'Failed to record function call', error);
             }
         }
     }

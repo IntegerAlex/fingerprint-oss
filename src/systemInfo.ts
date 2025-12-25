@@ -13,6 +13,7 @@ import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
 import { getBrowserInfo } from './browserDetection.js';
 import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo, estimateCores} from './helper.js';
+import { StructuredLogger } from './config.js';
 /**
  * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
  *
@@ -133,83 +134,85 @@ function calculateConfidenceScore(hasIncognito: boolean, botInfo: { isBot: boole
 export async function getSystemInfo(): Promise<SystemInfo> {
     // Check if we're in a browser environment
     if (typeof window === 'undefined') {
-        console.log('Not in browser environment, returning mock data');
+        StructuredLogger.verbose('getSystemInfo', 'Not in browser environment, returning mock data');
         return getMockSystemInfo();
     }
 
-    // Get bot detection results
-    const botInfo = detectBot();
+    return StructuredLogger.logBlock('getSystemInfo', 'System information collection', async () => {
+        // Get bot detection results
+        const botInfo = detectBot();
 
-    // Check for incognito mode
-    const incognitoMode = await detectIncognito(); 
-    
-    // Calculate confidence score - now including bot info
-    const confidenceScore = calculateConfidenceScore(incognitoMode.isPrivate, botInfo);
+        // Check for incognito mode
+        const incognitoMode = await detectIncognito(); 
+        
+        // Calculate confidence score - now including bot info
+        const confidenceScore = calculateConfidenceScore(incognitoMode.isPrivate, botInfo);
 
-    const browserInfo = {
+        const browserInfo = {
 	    
-        // Privacy modes
-        incognito: incognitoMode,
-	adBlocker: await detectAdBlockers(),
- 
-        // Browser detection
-        browser: getBrowserInfo(),
+            // Privacy modes
+            incognito: incognitoMode,
+        adBlocker: await detectAdBlockers(),
+     
+            // Browser detection
+            browser: getBrowserInfo(),
 
-        // Basic info
-        userAgent: navigator.userAgent,
-        platform: navigator.platform,
-        languages: Array.from(navigator.languages),
-        cookiesEnabled: navigator.cookieEnabled,
-        doNotTrack: navigator.doNotTrack,
+            // Basic info
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            languages: Array.from(navigator.languages),
+            cookiesEnabled: navigator.cookieEnabled,
+            doNotTrack: navigator.doNotTrack,
 	        
-        // Screen & Display
-        screenResolution: [window.screen.width, window.screen.height] as [number, number],
-        colorDepth: window.screen.colorDepth,
-        colorGamut: getColorGamut(),
-	touchSupport: getTouchSupportInfo(),
-        
-        // Hardware
-        hardwareConcurrency: await estimateCores(),
-        deviceMemory: (navigator as any).deviceMemory,
-	os: getOSInfo(),
-        
-        // Audio capabilities
-        audio: await getAudioFingerprint(),
-        
-        // Browser features
-        localStorage: isLocalStorageEnabled(),
-        sessionStorage: isSessionStorageEnabled(),
-        indexedDB: isIndexedDBEnabled(),
-        
-        // Graphics & Canvas
-        webGL: await getWebGLInfo(), // getWebGLInfo is now async
-        canvas: getCanvasFingerprint(),
-        
-        // Plugins & MIME
-        plugins: getPluginsInfo(),
-        
-        // System
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        
-        // Vendor info
-        vendor: navigator.vendor,
-        vendorFlavors: getVendorFlavors(),
-        
-        // Additional features
-        mathConstants: getMathFingerprint(),
-        fontPreferences: getFontPreferences(),
-        
-        // Bot detection
-        bot: {
-            isBot: botInfo.isBot,
-            signals: botInfo.signals,
-            confidence: botInfo.confidence
-        },
-        
-        // Overall confidence score for the collected data
-        confidenceScore: confidenceScore
-    };
+            // Screen & Display
+            screenResolution: [window.screen.width, window.screen.height] as [number, number],
+            colorDepth: window.screen.colorDepth,
+            colorGamut: getColorGamut(),
+        touchSupport: getTouchSupportInfo(),
+            
+            // Hardware
+            hardwareConcurrency: await estimateCores(),
+            deviceMemory: (navigator as any).deviceMemory,
+        os: getOSInfo(),
+            
+            // Audio capabilities
+            audio: await getAudioFingerprint(),
+            
+            // Browser features
+            localStorage: isLocalStorageEnabled(),
+            sessionStorage: isSessionStorageEnabled(),
+            indexedDB: isIndexedDBEnabled(),
+            
+            // Graphics & Canvas
+            webGL: await getWebGLInfo(), // getWebGLInfo is now async
+            canvas: getCanvasFingerprint(),
+            
+            // Plugins & MIME
+            plugins: getPluginsInfo(),
+            
+            // System
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            
+            // Vendor info
+            vendor: navigator.vendor,
+            vendorFlavors: getVendorFlavors(),
+            
+            // Additional features
+            mathConstants: getMathFingerprint(),
+            fontPreferences: getFontPreferences(),
+            
+            // Bot detection
+            bot: {
+                isBot: botInfo.isBot,
+                signals: botInfo.signals,
+                confidence: botInfo.confidence
+            },
+            
+            // Overall confidence score for the collected data
+            confidenceScore: confidenceScore
+        };
 
-    return browserInfo;
+        return browserInfo;
+    });
 }
 

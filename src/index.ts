@@ -34,6 +34,16 @@ import {
     getFontPreferences,
     estimateCores
 } from './helper';
+import { 
+    initializeConfig, 
+    getConfig, 
+    updateConfig, 
+    detectEnvironment, 
+    isVerboseEnabled,
+    StructuredLogger,
+    PerformanceTimer
+} from './config';
+import type { UserInfoConfig } from './types';
 
 // Note: All individual functions are available as properties of the default export
 
@@ -96,94 +106,122 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  *   - `transparency`: When true, enables logging and Toast notifications for data collection transparency.
  *   - `message`: A custom message to log and display; defaults to "the software is gathering system data" if not specified.
  *   - `telemetry`: Configuration for OpenTelemetry data collection.
+ *   - `environment`: Override environment detection (TEST, DEV, STAGING, PROD).
+ *   - `verbose`: Enable verbose logging.
+ *   - `logLevel`: Set log level (error, warn, info, verbose, debug).
+ *   - `enableConsoleLogging`: Enable/disable console logging.
+ *   - `enablePerformanceLogging`: Enable performance metrics logging.
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
-async function userInfo(config:{transparency?:boolean, message?:string, telemetry?: TelemetryConfig}={}) {
-    const startTime = Date.now();
-    let span = null;
+async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig } = {}) {
+    // Always initialize configuration with provided options (initializeConfig handles undefined gracefully)
+    initializeConfig({
+        environment: config.environment,
+        verbose: config.verbose,
+        logLevel: config.logLevel,
+        enableConsoleLogging: config.enableConsoleLogging,
+        enablePerformanceLogging: config.enablePerformanceLogging,
+        transparency: config.transparency,
+        message: config.message
+    });
     
-    try {
-        // Initialize telemetry if configuration is provided
-        if (config.telemetry) {
-            Telemetry.initialize(config.telemetry);
+    const currentConfig = getConfig();
+    
+    return StructuredLogger.logBlock('userInfo', 'User fingerprint collection', async () => {
+        const startTime = Date.now();
+        let span = null;
+        
+        try {
+            // Initialize telemetry if configuration is provided
+            if (config.telemetry) {
+                Telemetry.initialize(config.telemetry);
+            }
+            
+            // Start telemetry span for this operation
+            span = Telemetry.startSpan('userInfo', {
+                'operation.type': 'fingerprint_collection',
+                'config.transparency': config.transparency || false,
+                'config.telemetry.enabled': config.telemetry?.enabled || false,
+                'config.environment': currentConfig.environment
+            });
+
+            // Parallel data fetching with block logging
+            // Note: fetchGeolocationInfo already has internal logBlock, so we don't wrap it again
+            const [systemInfo, geoInfo] = await Promise.all([
+                StructuredLogger.logBlock('getSystemInfo', 'System information collection', () => getSystemInfo()),
+                fetchGeolocationInfo()
+            ]);
+
+            // Handle transparency logging with config-aware console logging
+            if (config.transparency) {
+                const message = config.message || 'the software is gathering system data';
+                if (currentConfig.enableConsoleLogging) {
+                    StructuredLogger.info('TRANSPARENCY', `© fingerprint-oss ${message}`);
+                }
+                Toast.show(`© fingerprint-oss ${message}`);
+            } else if (config.message) {
+                Toast.show(`© fingerprint-oss ${config.message}`);
+            }
+
+            const result = await StructuredLogger.logBlock('generateJSON', 'JSON generation', () => 
+                generateJSON(
+                    geoInfo,
+                    systemInfo,
+                    calculateCombinedConfidence(systemInfo, geoInfo)
+                )
+            );
+
+            // Record successful execution
+            const executionTime = Date.now() - startTime;
+            const confidence = calculateCombinedConfidence(systemInfo, geoInfo);
+            Telemetry.recordFunctionCall('userInfo', executionTime, true, {
+                'data.systemInfo.available': !!systemInfo,
+                'data.geoInfo.available': !!geoInfo,
+                'data.confidence': confidence
+            });
+
+            Telemetry.endSpan(span, {
+                'result.success': true,
+                'result.confidence': confidence,
+                'execution.time': executionTime
+            });
+
+            return result;
+        } catch (error) {
+            StructuredLogger.error('userInfo', 'Data collection error', error);
+            
+            // Record error in telemetry
+            const executionTime = Date.now() - startTime;
+            Telemetry.recordError(error as Error, {
+                'function.name': 'userInfo',
+                'execution.time': executionTime
+            });
+            Telemetry.recordFunctionCall('userInfo', executionTime, false);
+            Telemetry.endSpanWithError(span, error as Error);
+
+            // Get fallback data - use mock directly to avoid potential infinite loop
+            const mockSystem = getMockSystemInfo();
+            const { getMockGeolocationData } = await import('./geo-ip.js');
+            const fallbackGeo = getMockGeolocationData();
+            
+            const fallbackResult = await StructuredLogger.logBlock('generateJSON', 'Fallback JSON generation', () =>
+                generateJSON(
+                    fallbackGeo,
+                    mockSystem,
+                    calculateCombinedConfidence(mockSystem, fallbackGeo)
+                )
+            );
+
+            // Record fallback usage
+            Telemetry.incrementCounter('function_calls', 1, {
+                'function.name': 'userInfo',
+                'function.success': true,
+                'data.source': 'fallback'
+            });
+
+            return fallbackResult;
         }
-        
-        // Start telemetry span for this operation
-        span = Telemetry.startSpan('userInfo', {
-            'operation.type': 'fingerprint_collection',
-            'config.transparency': config.transparency || false,
-            'config.telemetry.enabled': config.telemetry?.enabled || false
-        });
-
-        // Parallel data fetching
-        const [systemInfo, geoInfo] = await Promise.all([
-            getSystemInfo(),
-            fetchGeolocationInfo()
-        ]);
-	
-
- if(config.transparency) {
-   const message = config.message || 'the software is gathering system data';
-   console.log(`\u00A9 fingerprint-oss  ${message}`);
-   Toast.show(`\u00A9 fingerprint-oss  ${message}`);
- } else if(config.message) {
-   Toast.show(`\u00A9 fingerprint-oss  ${config.message}`);
- }
-
-        const result = await generateJSON(
-            geoInfo,
-            systemInfo,
-            calculateCombinedConfidence(systemInfo, geoInfo)
-        );
-
-        // Record successful execution
-        const executionTime = Date.now() - startTime;
-        const confidence = calculateCombinedConfidence(systemInfo, geoInfo);
-        Telemetry.recordFunctionCall('userInfo', executionTime, true, {
-            'data.systemInfo.available': !!systemInfo,
-            'data.geoInfo.available': !!geoInfo,
-            'data.confidence': confidence
-        });
-
-        Telemetry.endSpan(span, {
-            'result.success': true,
-            'result.confidence': confidence,
-            'execution.time': executionTime
-        });
-
-        return result;
-    } catch (error) {
-        console.error('Data collection error:', error);
-        
-        // Record error in telemetry
-        const executionTime = Date.now() - startTime;
-        Telemetry.recordError(error as Error, {
-            'function.name': 'userInfo',
-            'execution.time': executionTime
-        });
-        Telemetry.recordFunctionCall('userInfo', executionTime, false);
-        Telemetry.endSpanWithError(span, error as Error);
-
-        // Get fallback data
-        const mockSystem = getMockSystemInfo();
-        // fetchGeolocationInfo now always returns valid data, so we can use it as fallback too
-        const fallbackGeo = await fetchGeolocationInfo();
-        
-        const fallbackResult = await generateJSON(
-            fallbackGeo,
-            mockSystem,
-            calculateCombinedConfidence(mockSystem, fallbackGeo)
-        );
-
-        // Record fallback usage
-        Telemetry.incrementCounter('function_calls', 1, {
-            'function.name': 'userInfo',
-            'function.success': true,
-            'data.source': 'fallback'
-        });
-
-        return fallbackResult;
-    }
+    });
 }
 
 // Create default export with all functions as properties
@@ -230,7 +268,16 @@ const fingerprintOSS = Object.assign(userInfo, {
     
     // Telemetry
     Telemetry,
-    withTelemetry
+    withTelemetry,
+    
+    // Configuration
+    getConfig,
+    initializeConfig,
+    updateConfig,
+    detectEnvironment,
+    isVerboseEnabled,
+    StructuredLogger,
+    PerformanceTimer
 });
 
 export default fingerprintOSS;
@@ -238,6 +285,23 @@ export default fingerprintOSS;
 // Named exports to match docs and allow tree-shaking
 export { Telemetry, withTelemetry };
 export type { TelemetryConfig };
+
+// Export configuration functions and types
+export { 
+    getConfig, 
+    initializeConfig, 
+    updateConfig, 
+    detectEnvironment, 
+    isVerboseEnabled,
+    StructuredLogger,
+    PerformanceTimer
+} from './config';
+export type { 
+    FingerprintConfig, 
+    UserInfoConfig, 
+    Environment, 
+    LogLevel 
+} from './types';
 
 // Re-export core functions for named imports in consumers and tests
 export {
