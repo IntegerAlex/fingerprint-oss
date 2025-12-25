@@ -118,8 +118,8 @@ export async function generateJSON(
         // Geolocation information
         geolocation: geolocationInfo ? {
 	    vpnStatus,
-            ip: geolocationInfo.ipAddress || geolocationInfo.ipv4 || 'unknown', // Primary IP (IPv4 for backward compatibility)
-            ipv4: geolocationInfo.ipv4 || null, // IPv4 address (guaranteed, null if unavailable)
+            ip: geolocationInfo.ipAddress || geolocationInfo.ipv4 || null, // Primary IP (IPv4 for backward compatibility, null if unavailable)
+            ipv4: geolocationInfo.ipv4 || null, // IPv4 address (null if unavailable)
             ipv6: geolocationInfo.ipv6 || null, // IPv6 address (null if not available)
             city: geolocationInfo.city?.name || 'unknown',
             region: geolocationInfo.subdivisions?.[0] || { isoCode: '', name: '' },

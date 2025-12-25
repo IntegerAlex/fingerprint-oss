@@ -79,29 +79,29 @@ export async function getIpInfo(ipAddress: string): Promise<SimplifiedCityRespon
     const simplifiedResponse: SimplifiedCityResponse = {
       country: {
         isoCode: countryResponse.country?.isoCode ?? cityResponse.country?.isoCode,
-        name: getEnName(countryResponse.country?.names) ?? getEnName(cityResponse.country?.names),
+        name: getEnName(countryResponse.country?.names as unknown as Record<string, string>) ?? getEnName(cityResponse.country?.names as unknown as Record<string, string>),
       },
       registeredCountry: cityResponse.registeredCountry ? {
         isoCode: cityResponse.registeredCountry.isoCode,
-        name: getEnName(cityResponse.registeredCountry.names),
+        name: getEnName(cityResponse.registeredCountry.names as unknown as Record<string, string>),
         isInEuropeanUnion: cityResponse.registeredCountry.isInEuropeanUnion,
       } : undefined,
       city: cityResponse.city ? {
-        name: getEnName(cityResponse.city.names),
+        name: getEnName(cityResponse.city.names as unknown as Record<string, string>),
         geonameId: cityResponse.city.geonameId,
       } : undefined,
       continent: cityResponse.continent ? {
         code: cityResponse.continent.code,
-        name: getEnName(cityResponse.continent.names),
+        name: getEnName(cityResponse.continent.names as unknown as Record<string, string>),
       } : undefined,
       subdivisions: cityResponse.subdivisions?.map(sub => ({
         isoCode: sub.isoCode,
-        name: getEnName(sub.names),
+        name: getEnName(sub.names as unknown as Record<string, string>),
       })),
-      location: cityResponse.location,
+      location: cityResponse.location as { latitude: number; longitude: number; timeZone: string; accuracyRadius: number; },
       postal: cityResponse.postal,
       traits: cityResponse.traits,
-      asn: asnResponse.asn,
+      asn: asnResponse as { autonomousSystemNumber: number; autonomousSystemOrganization: string; },
     };
 
     // Return the simplified response as a JavaScript object

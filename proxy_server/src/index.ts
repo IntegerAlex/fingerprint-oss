@@ -18,21 +18,29 @@ const API_KEY = process.env.API_KEY || '123';
 //  res.handleOptions(req);
 //});
 /**
- * Check if an IP address is IPv4
+ * Check if an IP address is IPv4 with proper octet validation
  */
 function isIPv4(ip: string): boolean {
   if (!ip) return false;
-  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
-  return ipv4Regex.test(ip);
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+  const match = ipv4Regex.exec(ip);
+  if (!match) return false;
+  return match.slice(1, 5).every(octet => {
+    const num = parseInt(octet, 10);
+    return num >= 0 && num <= 255;
+  });
 }
 
 /**
- * Check if an IP address is IPv6
+ * Check if an IP address is IPv6 with proper validation
  */
 function isIPv6(ip: string): boolean {
   if (!ip) return false;
-  // IPv6 can be in various formats: full, compressed, with brackets, etc.
-  return ip.includes(':') && !ip.startsWith('::ffff:'); // Exclude IPv4-mapped IPv6
+  // Exclude IPv4-mapped IPv6 addresses
+  if (ip.startsWith('::ffff:')) return false;
+  // Basic IPv6 check: must contain colons and only valid hex chars/colons
+  const ipv6Regex = /^[0-9a-fA-F:]+$/;
+  return ip.includes(':') && ipv6Regex.test(ip);
 }
 
 /**
@@ -64,30 +72,33 @@ const getClientIps = (req: any): { ipv4: string; ipv6: string | null } => {
   // Get socket remote address
   const socketIp = req.socket.remoteAddress;
   
-  // Process forwarded IPs
+  // Process forwarded IPs (X-Forwarded-For format: client, proxy1, proxy2...)
+  // We want the FIRST IP which is the original client IP
   if (forwardedIps) {
-    const ipArray = forwardedIps.split(',').map(ip => ip.trim());
-    for (const ip of ipArray) {
-      const mappedIpv4 = extractIPv4FromMapped(ip);
+    const ipArray = forwardedIps.split(',').map((ip: string) => ip.trim());
+    // Process first IP only (original client IP)
+    const firstIp = ipArray[0];
+    if (firstIp) {
+      const mappedIpv4 = extractIPv4FromMapped(firstIp);
       if (mappedIpv4 && isIPv4(mappedIpv4)) {
         ipv4 = mappedIpv4;
-      } else if (isIPv4(ip)) {
-        ipv4 = ip;
-      } else if (isIPv6(ip)) {
-        ipv6 = ip;
+      } else if (isIPv4(firstIp)) {
+        ipv4 = firstIp;
+      } else if (isIPv6(firstIp)) {
+        ipv6 = firstIp;
       }
     }
   }
   
-  // Process real IP
+  // Process real IP (only if not already set from x-forwarded-for)
   if (realIp) {
     const mappedIpv4 = extractIPv4FromMapped(realIp);
     if (mappedIpv4 && isIPv4(mappedIpv4)) {
-      ipv4 = mappedIpv4;
+      if (!ipv4) ipv4 = mappedIpv4;
     } else if (isIPv4(realIp)) {
-      ipv4 = realIp;
+      if (!ipv4) ipv4 = realIp;
     } else if (isIPv6(realIp)) {
-      ipv6 = realIp;
+      if (!ipv6) ipv6 = realIp;
     }
   }
   
@@ -162,7 +173,8 @@ server.get('/', async(req, res) => {
     res.json(response);
   }
   catch(e){
-    res.json({error: null})
+    console.error('Error fetching IP info:', e);
+    res.status(500).json({ error: 'Failed to retrieve geolocation data' });
   }
   finally{
     // db.insert({ip: req.ip, date: new Date()});

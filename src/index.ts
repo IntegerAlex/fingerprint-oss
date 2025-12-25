@@ -114,19 +114,16 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
 async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig } = {}) {
-    // Initialize configuration system if config is provided
-    if (config.environment || config.verbose !== undefined || config.logLevel || 
-        config.enableConsoleLogging !== undefined || config.enablePerformanceLogging !== undefined) {
-        initializeConfig({
-            environment: config.environment,
-            verbose: config.verbose,
-            logLevel: config.logLevel,
-            enableConsoleLogging: config.enableConsoleLogging,
-            enablePerformanceLogging: config.enablePerformanceLogging,
-            transparency: config.transparency,
-            message: config.message
-        });
-    }
+    // Always initialize configuration with provided options (initializeConfig handles undefined gracefully)
+    initializeConfig({
+        environment: config.environment,
+        verbose: config.verbose,
+        logLevel: config.logLevel,
+        enableConsoleLogging: config.enableConsoleLogging,
+        enablePerformanceLogging: config.enablePerformanceLogging,
+        transparency: config.transparency,
+        message: config.message
+    });
     
     const currentConfig = getConfig();
     
@@ -149,9 +146,10 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
             });
 
             // Parallel data fetching with block logging
+            // Note: fetchGeolocationInfo already has internal logBlock, so we don't wrap it again
             const [systemInfo, geoInfo] = await Promise.all([
                 StructuredLogger.logBlock('getSystemInfo', 'System information collection', () => getSystemInfo()),
-                StructuredLogger.logBlock('fetchGeolocationInfo', 'Geolocation information fetch', () => fetchGeolocationInfo())
+                fetchGeolocationInfo()
             ]);
 
             // Handle transparency logging with config-aware console logging
@@ -201,11 +199,10 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
             Telemetry.recordFunctionCall('userInfo', executionTime, false);
             Telemetry.endSpanWithError(span, error as Error);
 
-            // Get fallback data with block logging
+            // Get fallback data - use mock directly to avoid potential infinite loop
             const mockSystem = getMockSystemInfo();
-            const fallbackGeo = await StructuredLogger.logBlock('fetchGeolocationInfo', 'Fallback geolocation fetch', () => 
-                fetchGeolocationInfo()
-            );
+            const { getMockGeolocationData } = await import('./geo-ip.js');
+            const fallbackGeo = getMockGeolocationData();
             
             const fallbackResult = await StructuredLogger.logBlock('generateJSON', 'Fallback JSON generation', () =>
                 generateJSON(

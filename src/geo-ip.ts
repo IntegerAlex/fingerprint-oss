@@ -17,49 +17,63 @@ if (!PROXY_API_KEY || !GEOIP_URL) {
 }
 
 /**
- * Check if an IP address is IPv4
+ * Check if an IP address is IPv4 with proper octet validation
  */
 function isIPv4(ip: string): boolean {
-    const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
-    return ipv4Regex.test(ip);
+    if (!ip) return false;
+    const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+    const match = ipv4Regex.exec(ip);
+    if (!match) return false;
+    return match.slice(1, 5).every(octet => {
+        const num = parseInt(octet, 10);
+        return num >= 0 && num <= 255;
+    });
 }
 
 /**
- * Check if an IP address is IPv6
+ * Check if an IP address is IPv6 with proper validation
  */
 function isIPv6(ip: string): boolean {
+    if (!ip) return false;
+    // Exclude IPv4-mapped IPv6 addresses
+    if (ip.startsWith('::ffff:')) return false;
+    // Comprehensive IPv6 regex for various formats
     const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$|^([0-9a-fA-F]{1,4}:)*::([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$/;
-    return ipv6Regex.test(ip) || ip.includes(':');
+    // Basic check: must contain colons and only valid hex chars/colons
+    const basicIpv6Regex = /^[0-9a-fA-F:]+$/;
+    return (ipv6Regex.test(ip) || (ip.includes(':') && basicIpv6Regex.test(ip)));
 }
 
 /**
  * Parse IP addresses from various sources and return structured IP info
  */
-function parseIPAddresses(data: any): { ip: string; ipv4: string | null; ipv6: string | null } {
+function parseIPAddresses(data: any): { ip: string | null; ipv4: string | null; ipv6: string | null } {
     // Try to get IP from various possible locations in the response
-    const possibleIp = data.traits?.ipAddress || data.ipAddress || data.ip || '192.168.1.1';
+    const possibleIp = data.traits?.ipAddress || data.ipAddress || data.ip || null;
     
     // Handle case where we might have both IPv4 and IPv6 in the response
     let ipv4: string | null = null;
     let ipv6: string | null = null;
     
     // Check if the IP is IPv4 or IPv6
-    if (isIPv4(possibleIp)) {
-        ipv4 = possibleIp;
-    } else if (isIPv6(possibleIp)) {
-        ipv6 = possibleIp;
+    if (possibleIp) {
+        if (isIPv4(possibleIp)) {
+            ipv4 = possibleIp;
+        } else if (isIPv6(possibleIp)) {
+            ipv6 = possibleIp;
+        }
     }
     
     // Check for explicit ipv4 and ipv6 fields in response
-    if (data.ipv4) {
+    if (data.ipv4 && isIPv4(data.ipv4)) {
         ipv4 = data.ipv4;
     }
-    if (data.ipv6) {
+    if (data.ipv6 && isIPv6(data.ipv6)) {
         ipv6 = data.ipv6;
     }
     
     // Primary IP (for backward compatibility) should always be IPv4 if available
-    const primaryIp = ipv4 || ipv6 || possibleIp;
+    const primaryIp = ipv4 || ipv6 || null;
     
     return {
         ip: primaryIp,
@@ -70,9 +84,9 @@ function parseIPAddresses(data: any): { ip: string; ipv4: string | null; ipv6: s
 
 // Updated Interface to match the server response
 export interface GeolocationInfo {
-    /** Primary IP address (IPv4 for backward compatibility) */
-    ipAddress: string;
-    /** IPv4 address (guaranteed to be present, null if unavailable) */
+    /** Primary IP address (IPv4 for backward compatibility, null if unavailable) */
+    ipAddress: string | null;
+    /** IPv4 address (null if unavailable) */
     ipv4: string | null;
     /** IPv6 address (null if not available) */
     ipv6: string | null;
@@ -125,7 +139,7 @@ export interface GeolocationInfo {
 /**
  * Get mock geolocation data for fallback scenarios
  */
-function getMockGeolocationData(): GeolocationInfo {
+export function getMockGeolocationData(): GeolocationInfo {
     return {
         ipAddress: '192.168.1.1',
         ipv4: '192.168.1.1',
@@ -167,8 +181,16 @@ function getMockGeolocationData(): GeolocationInfo {
 export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
     return StructuredLogger.logBlock('fetchGeolocationInfo', 'Geolocation information fetch', async () => {
         try {
+            // Validate API key is available
+            if (!PROXY_API_KEY) {
+                StructuredLogger.warn('fetchGeolocationInfo', 'PROXY_API_KEY is not set, request may fail');
+            }
+
             const response = await fetch(GEOIP_URL, {
-                method: 'GET'
+                method: 'GET',
+                headers: {
+                    'x-api-key': PROXY_API_KEY
+                }
             });
 
             if (!response.ok) {
@@ -187,8 +209,14 @@ export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
             // Parse IP addresses (IPv4 and IPv6)
             const ipInfo = parseIPAddresses(data);
 
+            // If no valid IP found, return mock data
+            if (!ipInfo.ip && !ipInfo.ipv4 && !ipInfo.ipv6) {
+                StructuredLogger.warn('fetchGeolocationInfo', 'No valid IP address found in response, using mock data');
+                return getMockGeolocationData();
+            }
+
             return {
-                ipAddress: ipInfo.ip, // Primary IP (IPv4 for backward compatibility)
+                ipAddress: ipInfo.ip, // Primary IP (IPv4 for backward compatibility, null if unavailable)
                 ipv4: ipInfo.ipv4,
                 ipv6: ipInfo.ipv6,
                 country: data.country || { isoCode: 'US', name: 'United States' },
