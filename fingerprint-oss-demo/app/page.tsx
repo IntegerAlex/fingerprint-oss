@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import userInfo from "../../dist/index.esm.js";
+import userInfo from "fingerprint-oss";
 import { Loader2 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
