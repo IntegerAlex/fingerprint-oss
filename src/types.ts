@@ -62,6 +62,7 @@ export interface SystemInfo {
         signals: string[];
         confidence: number;
     };
+    browser: { name?: string; version?: string };
     userAgent: string;
     platform: string;
     languages: string[];

@@ -49,6 +49,7 @@ export function getMockSystemInfo() {
         mathConstants: getMathFingerprint(),
         fontPreferences: { detectedFonts: [] },
         incognito: { isPrivate: false, browserName: 'Test Browser' },
+        browser: { name: 'Test Browser', version: '1.0' },
         bot: botInfo,
         confidenceScore: 0.85,
         // Hash will be generated dynamically by generateId function

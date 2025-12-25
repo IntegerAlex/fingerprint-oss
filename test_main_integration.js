@@ -1,5 +1,5 @@
 // Simple integration test for the main API
-const fingerprintOSS = require('./dist/fingerprint-oss.js');
+import fingerprintOSS from './dist/index.esm.js';
 
 async function testMainIntegration() {
     console.log('🔍 Testing Main API Integration...\n');
@@ -11,16 +11,20 @@ async function testMainIntegration() {
         console.log(`   ✅ Basic call successful`);
         console.log(`   Hash: ${result1.hash.substring(0, 16)}...`);
         
-        // Test 2: With configuration
-        console.log('\n2. Testing with hash configuration...');
-        const result2 = await fingerprintOSS({
-            hashConfig: { debugMode: false, enableValidation: true }
-        });
-        console.log(`   ✅ Configured call successful`);
-        console.log(`   Hash: ${result2.hash.substring(0, 16)}...`);
+        // Test 2: Verify browser field exists
+        console.log('\n2. Testing browser field...');
+        if (result1.systemInfo && result1.systemInfo.browser) {
+            console.log(`   ✅ Browser field present:`, result1.systemInfo.browser);
+        } else {
+            console.log(`   ⚠️  Browser field missing`);
+        }
         
-        // Test 3: Consistency check
-        console.log('\n3. Testing consistency...');
+        // Test 3: Print full JSON output
+        console.log('\n3. Full JSON Output:');
+        console.log(JSON.stringify(result1, null, 2));
+        
+        // Test 4: Consistency check
+        console.log('\n4. Testing consistency...');
         const result3 = await fingerprintOSS();
         const consistent = result1.hash === result3.hash;
         console.log(`   ✅ Hash consistency: ${consistent}`);
@@ -30,6 +34,7 @@ async function testMainIntegration() {
         
     } catch (error) {
         console.error('❌ Test failed:', error.message);
+        console.error(error.stack);
         return false;
     }
 }

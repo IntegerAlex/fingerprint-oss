@@ -11,6 +11,7 @@ import { SystemInfo} from './types.js';
 import { detectIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
+import { getBrowserInfo } from './browserDetection.js';
 import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo, estimateCores} from './helper.js';
 /**
  * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
@@ -151,6 +152,9 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         incognito: incognitoMode,
 	adBlocker: await detectAdBlockers(),
  
+        // Browser detection
+        browser: getBrowserInfo(),
+
         // Basic info
         userAgent: navigator.userAgent,
         platform: navigator.platform,

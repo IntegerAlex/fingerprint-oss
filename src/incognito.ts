@@ -38,6 +38,8 @@
  * Please keep this comment intact in order to properly abide by the MIT License.
  *
  **/
+import Bowser from './bowser/bowser.js';
+
 declare global {
   interface Window {
     detectIncognito: typeof detectIncognito;
@@ -64,18 +66,34 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
     function identifyChromium(): string {
       if (typeof navigator === 'undefined') return 'Unknown';
       
-      const ua = navigator.userAgent
-      if (ua.match(/Chrome/)) {
-        if ((navigator as any).brave !== undefined) {
-          return 'Brave'
-        } else if (ua.match(/Edg/)) {
-          return 'Edge'
-        } else if (ua.match(/OPR/)) {
-          return 'Opera'
+      // Use Bowser for better browser detection
+      try {
+        const result = Bowser.parse(navigator.userAgent);
+        const browserName = result.browser.name;
+        
+        // Handle special cases
+        if (browserName === 'Chrome') {
+          if ((navigator as any).brave !== undefined) {
+            return 'Brave';
+          }
         }
-        return 'Chrome'
-      } else {
-        return 'Chromium'
+        
+        return browserName || 'Unknown';
+      } catch (error) {
+        // Fallback to original logic if Bowser fails
+        const ua = navigator.userAgent;
+        if (ua.match(/Chrome/)) {
+          if ((navigator as any).brave !== undefined) {
+            return 'Brave';
+          } else if (ua.match(/Edg/)) {
+            return 'Edge';
+          } else if (ua.match(/OPR/)) {
+            return 'Opera';
+          }
+          return 'Chrome';
+        } else {
+          return 'Chromium';
+        }
       }
     }
 
