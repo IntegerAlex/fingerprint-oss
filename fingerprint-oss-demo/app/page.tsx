@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import userInfo from "fingerprint-oss";
+import userInfo from "../../dist/index.esm.js";
 import { Loader2 } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -53,8 +53,10 @@ export default function Home() {
 
         if (data.geolocation && !data.geolocation.vpnStatus) {
           data.geolocation.vpnStatus = {
-            status: data.geolocation.traits?.isAnonymousVpn || false,
-            probability: data.geolocation.traits?.isAnonymousVpn ? 0.85 : 0.15,
+            vpn: {
+              status: data.geolocation.traits?.isAnonymousVpn || false,
+              probability: data.geolocation.traits?.isAnonymousVpn ? 0.85 : 0.15,
+            }
           };
         }
 
@@ -113,8 +115,10 @@ export default function Home() {
               network: "192.168.1.0/24",
             },
             vpnStatus: {
-              status: false,
-              probability: 0.15,
+              vpn: {
+                status: false,
+                probability: 0.15,
+              }
             },
           },
           systemInfo: {
@@ -125,6 +129,10 @@ export default function Home() {
             adBlocker: {
               isBrave: false,
               adBlocker: false,
+            },
+            browser: {
+              name: "Chrome",
+              version: "108.0.0.0",
             },
             userAgent:
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",

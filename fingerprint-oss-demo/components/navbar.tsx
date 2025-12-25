@@ -23,7 +23,7 @@ export default function Navbar() {
             <span className="ml-2 text-xl font-semibold text-foreground">Fingerprint OSS</span>
           </div>
           <div className="hidden md:flex space-x-6">
-            <NavLink href="https://github.com/IntegerAlex/fingerprint-oss?tab=readme-ov-file#usage">Docs</NavLink>
+            <NavLink href="https://docs.fingerprint-oss.gossorg.in/">Docs</NavLink>
             <NavLink href="https://github.com/IntegerAlex/fingerprint-oss" target="_blank">
               GitHub
             </NavLink>
