@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BackToTop from "@/components/back-to-top";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -200,8 +202,16 @@ export default function RootLayout({
       <body
         className={`bg-background text-foreground font-sans antialiased ${inter.className}`}
       >
-        {children}
-        <BackToTop />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <BackToTop />
+        </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   );

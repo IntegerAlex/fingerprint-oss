@@ -4,21 +4,25 @@ import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 /**
  * Renders an installation guide UI with npm and pnpm install snippets and a usage example.
  *
  * The component displays two tabs (npm, pnpm) containing install commands and a Usage Example code block.
  * Each code block has a hover-revealed copy button that copies the corresponding snippet to the clipboard
- * via `navigator.clipboard.writeText`. No props are accepted and there is no additional state or data fetching.
- *
- * Note: clipboard writes have no error handling in this component.
+ * via `navigator.clipboard.writeText` and shows a toast notification on success.
  *
  * @returns The installation guide as a JSX element.
  */
 export default function InstallationGuide() {
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success("Copied to clipboard!")
+    } catch (error) {
+      toast.error("Failed to copy")
+    }
   }
 
   return (
