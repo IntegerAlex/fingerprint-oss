@@ -3,6 +3,12 @@ import path from 'path';
 
 // Define types for the response with only essential fields and 'en' names
 interface SimplifiedCityResponse {
+  /** Primary IP address (IPv4 for backward compatibility) */
+  ip?: string;
+  /** IPv4 address (guaranteed to be present) */
+  ipv4?: string;
+  /** IPv6 address (null if not available) */
+  ipv6?: string | null;
   country?: {
     isoCode?: string;
     name?: string;
