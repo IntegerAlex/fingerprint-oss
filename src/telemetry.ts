@@ -43,7 +43,7 @@ export interface TelemetryConfig {
 const DEFAULT_CONFIG: TelemetryConfig = {
     enabled: false,
     serviceName: 'fingerprint-oss',
-    serviceVersion: '0.9.0',
+    serviceVersion: '0.9.3',
     sampleRate: 0.1, // Collect 10% of events by default for minimal impact
     debug: false,
     endpoint: 'https://otl.fingerprint.gossorg.in/v1/traces'

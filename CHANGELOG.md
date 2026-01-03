@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.3] - 2025-01-21
+
+### Added
+- **IPv4 and IPv6 Support**: Enhanced IP address handling with separate IPv4 and IPv6 fields
+  - Added separate `ipv4` and `ipv6` fields to geolocation response
+  - UI now displays IPv4 and IPv6 addresses separately with clear labels
+  - Maintains backward compatibility with legacy `ip` field
+- **Structured Logging**: Implemented structured logging system for proxy server
+  - Added StructuredLogger class for Cloudflare Workers with consistent formatting
+  - All console.log/warn/error calls replaced with structured logging
+  - Logs include structured data fields (ip, error, response) for better queryability
+- **Shared IP Utilities**: Extracted IP helper functions into reusable module
+  - Created `proxy_server/src/ip-utils.ts` with `isIPv4()`, `isIPv6()`, and `extractIPv4FromMapped()` functions
+  - Eliminated code duplication across worker-entry.ts and index.ts
+  - Improved maintainability and consistency
+
+### Fixed
+- **Location Object Validation**: Fixed potential undefined field errors in geo-worker.ts
+  - Added validation to ensure `data.lat`, `data.lon`, and `data.timezone` are present before constructing location object
+  - Location field is now conditionally assigned, preventing runtime errors
+  - Updated TypeScript types to allow location to be undefined
+- **IPv6 Fallback for Primary IP**: Fixed backward compatibility issue for IPv6-only users
+  - Updated `response.ip` to use `ipv4 || ipv6` fallback instead of `ipv4` only
+  - Ensures IPv6-only users receive their IP address in the primary `ip` field
+  - Matches client-side logic in `src/geo-ip.ts` for consistency
+  - Also updated `response.traits.ipAddress` to use same fallback logic
+
+### Improved
+- **Code Organization**: Better separation of concerns with shared utility modules
+- **Logging Consistency**: Standardized logging format across proxy server codebase
+- **Type Safety**: Enhanced type safety with proper validation and conditional assignment
+
 ## [0.9.2] - 2025-01-20
 
 ### Added
