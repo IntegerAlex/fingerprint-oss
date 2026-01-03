@@ -162,10 +162,10 @@ export default {
         // Add IP addresses to response
         response.ipv4 = ipv4;
         response.ipv6 = ipv6;
-        response.ip = ipv4; // Primary IP for backward compatibility
+        response.ip = ipv4 || ipv6; // Primary IP for backward compatibility
 
         // Update traits with IP info
-        response.traits.ipAddress = ipv4 || null;
+        response.traits.ipAddress = ipv4 || ipv6 || null;
       }
 
       return new Response(JSON.stringify(response), {
