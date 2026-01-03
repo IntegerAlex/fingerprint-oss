@@ -3,6 +3,39 @@
 // This implementation uses IP-API as the primary geolocation service
 // MaxMind database support can be added later with a Workers-compatible library
 
+/**
+ * Simple structured logger for Cloudflare Workers
+ * Provides consistent logging format with structured data
+ */
+class StructuredLogger {
+  private static formatMessage(level: string, operation: string, message: string, data?: any): string {
+    const timestamp = new Date().toISOString();
+    let formattedMessage = `[${timestamp}] [${level.toUpperCase()}] [${operation}] ${message}`;
+    
+    if (data) {
+      formattedMessage += ` ${JSON.stringify(data)}`;
+    }
+    
+    return formattedMessage;
+  }
+  
+  static error(operation: string, message: string, data?: any): void {
+    console.error(this.formatMessage('error', operation, message, data));
+  }
+  
+  static warn(operation: string, message: string, data?: any): void {
+    console.warn(this.formatMessage('warn', operation, message, data));
+  }
+  
+  static info(operation: string, message: string, data?: any): void {
+    console.info(this.formatMessage('info', operation, message, data));
+  }
+  
+  static debug(operation: string, message: string, data?: any): void {
+    console.log(this.formatMessage('debug', operation, message, data));
+  }
+}
+
 // Define types for the response
 interface SimplifiedCityResponse {
   /** Primary IP address (IPv4 for backward compatibility) */
@@ -37,7 +70,7 @@ interface SimplifiedCityResponse {
     longitude: number;
     timeZone: string;
     accuracyRadius: number;
-  };
+  } | undefined;
   postal?: {
     code?: string;
   };
@@ -163,12 +196,15 @@ async function getIpInfoFromAPI(ipAddress: string): Promise<SimplifiedCityRespon
             },
           ]
         : undefined,
-      location: {
-        latitude: data.lat,
-        longitude: data.lon,
-        timeZone: data.timezone,
-        accuracyRadius: 0,
-      },
+      location:
+        data.lat !== undefined && data.lon !== undefined && data.timezone !== undefined
+          ? {
+              latitude: data.lat,
+              longitude: data.lon,
+              timeZone: data.timezone,
+              accuracyRadius: 0,
+            }
+          : undefined,
       postal: {
         code: data.zip,
       },
@@ -192,7 +228,7 @@ async function getIpInfoFromAPI(ipAddress: string): Promise<SimplifiedCityRespon
       },
     };
   } catch (error) {
-    console.error('Error getting IP geo info from API:', error);
+    StructuredLogger.error('getIpInfoFromAPI', 'Error getting IP geo info from API', { error, ip: ipAddress });
     return null;
   }
 }
@@ -205,11 +241,11 @@ export async function getIpInfo(
   ipAddress: string,
   env: any
 ): Promise<SimplifiedCityResponse | null> {
-  console.log('Looking up IP:', ipAddress);
+  StructuredLogger.info('getIpInfo', 'Looking up IP', { ip: ipAddress });
 
   // Skip localhost/private IPs
   if (isPrivateOrLocalhost(ipAddress)) {
-    console.warn(`Skipping geolocation lookup for localhost/private IP: ${ipAddress}`);
+    StructuredLogger.warn('getIpInfo', 'Skipping geolocation lookup for localhost/private IP', { ip: ipAddress });
     return null;
   }
 
