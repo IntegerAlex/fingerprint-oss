@@ -468,13 +468,33 @@ export default function FingerprintDisplay({
 
         <Card className="p-6 border-border/50 hover:border-primary/20 transition-all duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <InfoCard
-              title="IP Address"
-              value={geolocation?.ip || "Unknown"}
-              icon={Info}
-              copyable
-              description="Public IP address from which the request originated"
-            />
+            {geolocation?.ipv4 && (
+              <InfoCard
+                title="IPv4 Address"
+                value={geolocation.ipv4}
+                icon={Info}
+                copyable
+                description="IPv4 address from which the request originated"
+              />
+            )}
+            {geolocation?.ipv6 && (
+              <InfoCard
+                title="IPv6 Address"
+                value={geolocation.ipv6}
+                icon={Info}
+                copyable
+                description="IPv6 address from which the request originated"
+              />
+            )}
+            {!geolocation?.ipv4 && !geolocation?.ipv6 && (
+              <InfoCard
+                title="IP Address"
+                value={geolocation?.ip || "Unknown"}
+                icon={Info}
+                copyable
+                description="Public IP address from which the request originated (legacy format)"
+              />
+            )}
             <InfoCard
               title="Country"
               value={`${geolocation?.country?.name || "Unknown"} (${geolocation?.country?.isoCode || "N/A"})`}
