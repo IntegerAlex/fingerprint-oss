@@ -9,11 +9,14 @@
  */
 import { StructuredLogger } from './config.js';
 
-const PROXY_API_KEY = 'tester';
+// DEPRECATED: PROXY_API_KEY is no longer used
+// @deprecated PROXY_API_KEY - Authentication has been removed from the proxy server
+const PROXY_API_KEY_DEPRECATED = 'tester';
 const GEOIP_URL = 'https://fingerprint-proxy.gossorg.in/';
-// Warn if required environment variables are missing
-if (!PROXY_API_KEY || !GEOIP_URL) {
-    StructuredLogger.warn('geo-ip', 'PROXY_API_KEY or GEOIP_URL environment variables are not set. Geolocation functionality may not work correctly.');
+
+// Warn if GEOIP_URL is missing
+if (!GEOIP_URL) {
+    StructuredLogger.warn('geo-ip', 'GEOIP_URL environment variable is not set. Geolocation functionality may not work correctly.');
 }
 
 /**
@@ -46,25 +49,13 @@ function isIPv6(ip: string): boolean {
 
 /**
  * Parse IP addresses from various sources and return structured IP info
+ * Supports both old format (ipAddress in traits) and new format (ip, ipv4, ipv6 at root)
  */
 function parseIPAddresses(data: any): { ip: string | null; ipv4: string | null; ipv6: string | null } {
-    // Try to get IP from various possible locations in the response
-    const possibleIp = data.traits?.ipAddress || data.ipAddress || data.ip || null;
-    
-    // Handle case where we might have both IPv4 and IPv6 in the response
     let ipv4: string | null = null;
     let ipv6: string | null = null;
     
-    // Check if the IP is IPv4 or IPv6
-    if (possibleIp) {
-        if (isIPv4(possibleIp)) {
-            ipv4 = possibleIp;
-        } else if (isIPv6(possibleIp)) {
-            ipv6 = possibleIp;
-        }
-    }
-    
-    // Check for explicit ipv4 and ipv6 fields in response
+    // Priority 1: Check for explicit ipv4 and ipv6 fields at root level (new format)
     if (data.ipv4 && isIPv4(data.ipv4)) {
         ipv4 = data.ipv4;
     }
@@ -72,7 +63,37 @@ function parseIPAddresses(data: any): { ip: string | null; ipv4: string | null; 
         ipv6 = data.ipv6;
     }
     
-    // Primary IP (for backward compatibility) should always be IPv4 if available
+    // Priority 2: Check for explicit ip field at root level (backward compatibility)
+    if (data.ip) {
+        if (isIPv4(data.ip)) {
+            if (!ipv4) ipv4 = data.ip;
+        } else if (isIPv6(data.ip)) {
+            if (!ipv6) ipv6 = data.ip;
+        }
+    }
+    
+    // Priority 3: Check traits.ipAddress (old format)
+    const traitsIp = data.traits?.ipAddress;
+    if (traitsIp) {
+        if (isIPv4(traitsIp)) {
+            if (!ipv4) ipv4 = traitsIp;
+        } else if (isIPv6(traitsIp)) {
+            if (!ipv6) ipv6 = traitsIp;
+        }
+    }
+    
+    // Priority 4: Check data.ipAddress (legacy format)
+    const dataIp = data.ipAddress;
+    if (dataIp) {
+        if (isIPv4(dataIp)) {
+            if (!ipv4) ipv4 = dataIp;
+        } else if (isIPv6(dataIp)) {
+            if (!ipv6) ipv6 = dataIp;
+        }
+    }
+    
+    // Primary IP (for backward compatibility) should always be IPv4 if available, otherwise IPv6
+    // This ensures backward compatibility with code expecting ipAddress to be IPv4
     const primaryIp = ipv4 || ipv6 || null;
     
     return {
@@ -181,16 +202,12 @@ export function getMockGeolocationData(): GeolocationInfo {
 export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
     return StructuredLogger.logBlock('fetchGeolocationInfo', 'Geolocation information fetch', async () => {
         try {
-            // Validate API key is available
-            if (!PROXY_API_KEY) {
-                StructuredLogger.warn('fetchGeolocationInfo', 'PROXY_API_KEY is not set, request may fail');
-            }
-
+            // DEPRECATED: API key authentication has been removed
+            // The x-api-key header is no longer sent or required
+            // @deprecated x-api-key header - No longer used
             const response = await fetch(GEOIP_URL, {
-                method: 'GET',
-                headers: {
-                    'x-api-key': PROXY_API_KEY
-                }
+                method: 'GET'
+                // Removed: headers with x-api-key (deprecated)
             });
 
             if (!response.ok) {
