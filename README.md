@@ -98,7 +98,7 @@ const config = {
     telemetry: {
         enabled: true,
         serviceName: 'my-app',
-        serviceVersion: '0.9.1',
+        serviceVersion: '0.9.3',
         sampleRate: 0.1, 
         debug: false
     }

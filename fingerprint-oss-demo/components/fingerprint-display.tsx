@@ -145,7 +145,9 @@ export default function FingerprintDisplay({
 
   const country = geolocation?.country?.name || "Unknown";
   const city = geolocation?.city || "Unknown";
-  const ip = geolocation?.ip || "Unknown";
+  const ip = geolocation?.ip || geolocation?.ipv4 || "Unknown"; // Backward compatibility
+  const ipv4 = geolocation?.ipv4 || null;
+  const ipv6 = geolocation?.ipv6 || null;
 
   const vpnStatus = geolocation?.vpnStatus?.status || false;
   const vpnProbability = geolocation?.vpnStatus?.probability || 0;
@@ -252,13 +254,33 @@ export default function FingerprintDisplay({
               </h3>
             </div>
             <div className="space-y-3">
-              <InfoCard 
-                title="IP Address" 
-                value={ip} 
-                icon={Info} 
-                copyable 
-                description="Public IP address detected from the network connection"
-              />
+              {ipv4 && (
+                <InfoCard 
+                  title="IPv4 Address" 
+                  value={ipv4} 
+                  icon={Info} 
+                  copyable 
+                  description="IPv4 address detected from the network connection"
+                />
+              )}
+              {ipv6 && (
+                <InfoCard 
+                  title="IPv6 Address" 
+                  value={ipv6} 
+                  icon={Info} 
+                  copyable 
+                  description="IPv6 address detected from the network connection"
+                />
+              )}
+              {!ipv4 && !ipv6 && (
+                <InfoCard 
+                  title="IP Address" 
+                  value={ip} 
+                  icon={Info} 
+                  copyable 
+                  description="Public IP address detected from the network connection (legacy format)"
+                />
+              )}
               <InfoCard 
                 title="Country" 
                 value={country} 
@@ -446,13 +468,33 @@ export default function FingerprintDisplay({
 
         <Card className="p-6 border-border/50 hover:border-primary/20 transition-all duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <InfoCard
-              title="IP Address"
-              value={geolocation?.ip || "Unknown"}
-              icon={Info}
-              copyable
-              description="Public IP address from which the request originated"
-            />
+            {geolocation?.ipv4 && (
+              <InfoCard
+                title="IPv4 Address"
+                value={geolocation.ipv4}
+                icon={Info}
+                copyable
+                description="IPv4 address from which the request originated"
+              />
+            )}
+            {geolocation?.ipv6 && (
+              <InfoCard
+                title="IPv6 Address"
+                value={geolocation.ipv6}
+                icon={Info}
+                copyable
+                description="IPv6 address from which the request originated"
+              />
+            )}
+            {!geolocation?.ipv4 && !geolocation?.ipv6 && (
+              <InfoCard
+                title="IP Address"
+                value={geolocation?.ip || "Unknown"}
+                icon={Info}
+                copyable
+                description="Public IP address from which the request originated (legacy format)"
+              />
+            )}
             <InfoCard
               title="Country"
               value={`${geolocation?.country?.name || "Unknown"} (${geolocation?.country?.isoCode || "N/A"})`}

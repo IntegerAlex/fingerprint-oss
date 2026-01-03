@@ -39,6 +39,7 @@
  *
  **/
 import Bowser from './bowser/bowser.js';
+import { StructuredLogger } from './config.js';
 
 declare global {
   interface Window {
@@ -281,7 +282,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
           __callback(quotaInMib < quotaLimitInMib)
         },
         function (e: any) {
-          console.warn('detectIncognito failed to query storage quota:', e.message, '- defaulting to not private');
+          StructuredLogger.warn('detectIncognito', `Failed to query storage quota: ${e.message}, defaulting to not private`);
           __callback(false);
         }
       )
@@ -363,7 +364,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
         browserName = 'Internet Explorer'
         msiePrivateTest()
       } else {
-        console.warn('detectIncognito cannot determine the browser, defaulting to not private');
+        StructuredLogger.warn('detectIncognito', 'Cannot determine the browser, defaulting to not private');
         __callback(false);
       }
     }

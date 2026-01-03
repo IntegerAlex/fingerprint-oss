@@ -8,6 +8,7 @@
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
 import { BraveInfo } from './types';
+import { StructuredLogger } from './config';
 
 /**
  * Detects Brave browser 
@@ -49,7 +50,7 @@ async function isBraveBrowserUAData(): Promise<boolean> {
   try {
     result = await detectAdBlock();
   } catch (error) {
-    console.error('Error detecting ad blocker:', error);
+    StructuredLogger.error('detectAdBlockers', 'Error detecting ad blocker', error);
   }
   return result;
 }

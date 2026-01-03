@@ -7,6 +7,8 @@
  *
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
+import { StructuredLogger } from './config';
+
 /**
  * Toast notification system with glassmorphism styling and smooth animation.
  */
@@ -21,7 +23,7 @@ export class Toast {
   public static show(message: string, duration = 3000): void {
     // Safety check for DOM availability
     if (typeof document === 'undefined' || !document.body || !document.createElement) {
-      console.warn('Toast notification cannot be displayed: DOM not available');
+      StructuredLogger.warn('Toast', 'Toast notification cannot be displayed: DOM not available');
       return;
     }
 
@@ -54,7 +56,7 @@ export class Toast {
   private static injectStyles(): void {
     // Safety check for DOM availability
     if (typeof document === 'undefined' || !document.head || !document.createElement) {
-      console.warn('Toast styles cannot be injected: DOM not available');
+      StructuredLogger.warn('Toast', 'Toast styles cannot be injected: DOM not available');
       return;
     }
 

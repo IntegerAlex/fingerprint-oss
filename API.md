@@ -242,7 +242,7 @@ The telemetry system uses OpenTelemetry to provide observability into the finger
 |--------|------|---------|-------------|
 | `enabled` | boolean | false | Enable/disable telemetry collection |
 | `serviceName` | string | 'fingerprint-oss' | Service name for telemetry |
-| `serviceVersion` | string | '0.9.0' | Service version |
+| `serviceVersion` | string | '0.9.3' | Service version |
 | `endpoint` | string | undefined | Custom endpoint for telemetry export |
 | `sampleRate` | number | 0.1 | Sample rate (0.0 to 1.0) |
 | `debug` | boolean | false | Enable debug logging |

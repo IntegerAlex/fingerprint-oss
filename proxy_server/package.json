@@ -4,7 +4,12 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "npx tsc --skipLibCheck || true",
-    "start": "node dist/index.js"
+    "build:worker": "npx tsc --project tsconfig.worker.json --skipLibCheck || true",
+    "start": "node dist/index.js",
+    "deploy": "npm run build:worker && wrangler deploy --env=\"\"",
+    "deploy:prod": "npm run build:worker && wrangler deploy --env production",
+    "upload-db": "bash scripts/upload-databases.sh",
+    "deploy:all": "npm run upload-db && npm run deploy"
   },
   "keywords": [],
   "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",
@@ -19,9 +24,11 @@
     "hasty-server": "^0.9.52"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.9",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "wrangler": "^3.0.0"
   }
 }

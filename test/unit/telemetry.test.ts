@@ -54,7 +54,7 @@ describe('Telemetry Module', () => {
       
       expect(config.enabled).toBe(false);
       expect(config.serviceName).toBe('fingerprint-oss');
-      expect(config.serviceVersion).toBe('0.9.0');
+      expect(config.serviceVersion).toBe('0.9.3');
       expect(config.sampleRate).toBe(0.1);
       expect(config.debug).toBe(false);
     });
@@ -89,7 +89,7 @@ describe('Telemetry Module', () => {
       
       expect(config.enabled).toBe(true);
       expect(config.serviceName).toBe('partial-service');
-      expect(config.serviceVersion).toBe('0.9.0'); // should use default
+      expect(config.serviceVersion).toBe('0.9.3'); // should use default
       expect(config.sampleRate).toBe(0.1); // should use default
     });
 

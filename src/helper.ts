@@ -12,6 +12,7 @@
  */
 import { sha256 } from 'hash-wasm';
 import { FontPreferencesInfo , MathInfo, PluginInfo, MimeType , TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
+import { StructuredLogger } from './config';
 
 /**
  * Get color gamut of the device
@@ -61,7 +62,7 @@ export async function getAudioFingerprint(): Promise<number | null> {
 
         return audioData.reduce((a, b) => a + b, 0);
     } catch (e) {
-        console.warn('Error getting audio fingerprint:', e);
+        StructuredLogger.warn('getAudioFingerprint', 'Error getting audio fingerprint', e);
         return null;
     }
 }
@@ -168,7 +169,7 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
                 renderer = gl.getParameter(gl.RENDERER) || renderer;
             }
         } catch (e) {
-            console.warn('Error getting WebGL vendor/renderer strings:', e);
+            StructuredLogger.warn('getWebGLInfo', 'Error getting WebGL vendor/renderer strings', e);
         }
 
         // Render scene for image hash
@@ -192,7 +193,7 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
 
             const vertexShader = gl.createShader(gl.VERTEX_SHADER);
             if (!vertexShader) {
-                console.warn('Failed to create vertex shader');
+                StructuredLogger.warn('getWebGLInfo', 'Failed to create vertex shader');
                 imageHash = 'shader_creation_error';
                 return { vendor, renderer, imageHash };
             }
@@ -201,7 +202,7 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
 
             const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
             if (!fragmentShader) {
-                console.warn('Failed to create fragment shader');
+                StructuredLogger.warn('getWebGLInfo', 'Failed to create fragment shader');
                 imageHash = 'shader_creation_error';
                 return { vendor, renderer, imageHash };
             }
@@ -210,7 +211,7 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
 
             const program = gl.createProgram();
             if (!program) {
-                console.warn('Failed to create program');
+                StructuredLogger.warn('getWebGLInfo', 'Failed to create program');
                 imageHash = 'program_creation_error';
                 return { vendor, renderer, imageHash };
             }
@@ -254,14 +255,14 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
             imageHash = await sha256(pixelString);
 
         } catch (renderError) {
-            console.warn('Error rendering WebGL scene for hash:', renderError);
+            StructuredLogger.warn('getWebGLInfo', 'Error rendering WebGL scene for hash', renderError);
             imageHash = 'webgl_render_error';
         }
 
         return { vendor, renderer, imageHash };
 
     } catch (error) {
-        console.error('Error retrieving WebGL information:', error);
+        StructuredLogger.error('getWebGLInfo', 'Error retrieving WebGL information', error);
         return { vendor: 'unknown', renderer: 'unknown', imageHash: 'webgl_overall_error' };
     }
 }
@@ -316,7 +317,7 @@ export function getCanvasFingerprint(): CanvasInfo {
 export function getPluginsInfo(): PluginInfo[] {
     // Safety check for navigator availability
     if (typeof navigator === 'undefined' || !navigator.plugins) {
-        console.warn('Navigator plugins not available');
+        StructuredLogger.warn('getPluginsInfo', 'Navigator plugins not available');
         return [];
     }
     
@@ -336,7 +337,7 @@ export function getPluginsInfo(): PluginInfo[] {
                     }
                 }
             } catch (mimeError) {
-                console.warn('Error enumerating mime types for plugin:', plugin.name, mimeError);
+                StructuredLogger.warn('getPluginsInfo', `Error enumerating mime types for plugin: ${plugin.name}`, mimeError);
             }
             
             return {
@@ -346,7 +347,7 @@ export function getPluginsInfo(): PluginInfo[] {
             };
         }).filter(Boolean) as PluginInfo[];
     } catch (error) {
-        console.error('Error getting plugins:', error);
+        StructuredLogger.error('getPluginsInfo', 'Error getting plugins', error);
         return [];
     }
 }
@@ -470,7 +471,7 @@ export function getFontPreferences(): FontPreferencesInfo {
         return { detectedFonts: uniqueDetectedFonts.sort() };
 
     } catch (error) {
-        console.warn('Error detecting font preferences:', error);
+        StructuredLogger.warn('getFontPreferences', 'Error detecting font preferences', error);
         return { detectedFonts: [] };
     }
 }
@@ -581,7 +582,7 @@ export function getOSInfo() {
       os = platform;
     }
   } catch (err) {
-    console.error('Error parsing OS info:', err);
+    StructuredLogger.error('getOSInfo', 'Error parsing OS info', err);
   }
 
   return { os, version };
@@ -657,7 +658,7 @@ export async function estimateCores(): Promise<number> {
       
       return Math.min(Math.max(coreEstimate, 1), 12);
     })().catch((err: any) => {
-      console.warn("Core estimation failed:", err); // Changed to warn
+      StructuredLogger.warn('estimateCores', 'Core estimation failed', err);
       return browserReportedCores;
     });
 
@@ -674,7 +675,7 @@ export async function estimateCores(): Promise<number> {
     return Math.min(results, 12);
     
   } catch (e) {
-    console.warn('Overall error in estimateCores:', e); // Changed to warn
+    StructuredLogger.warn('estimateCores', 'Overall error in estimateCores', e);
     return browserReportedCores;
   } finally {
     workers.forEach(w => w.terminate());

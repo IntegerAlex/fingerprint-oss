@@ -8,6 +8,7 @@
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
 import Bowser from './bowser/bowser.js';
+import { StructuredLogger } from './config.js';
 
 /**
  * Detects browser information using Bowser library
@@ -25,7 +26,7 @@ export function getBrowserInfo(): { name?: string; version?: string } {
       version: result.browser.version
     };
   } catch (error) {
-    console.warn('Browser detection failed:', error);
+    StructuredLogger.warn('getBrowserInfo', 'Browser detection failed', error);
     return {};
   }
 }
@@ -43,7 +44,7 @@ export function getBrowserName(): string {
     const result = Bowser.parse(navigator.userAgent);
     return result.browser.name || 'Unknown';
   } catch (error) {
-    console.warn('Browser name detection failed:', error);
+    StructuredLogger.warn('getBrowserName', 'Browser name detection failed', error);
     return 'Unknown';
   }
 }
