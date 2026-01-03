@@ -59,49 +59,126 @@ interface SimplifiedCityResponse {
   };
 }
 
+/**
+ * Check if an IP address is localhost or private (not routable on the internet)
+ */
+function isPrivateOrLocalhost(ip: string): boolean {
+  if (!ip) return false;
+  
+  // IPv6 localhost
+  if (ip === '::1' || ip === '::ffff:127.0.0.1') return true;
+  
+  // IPv4 localhost
+  if (ip === '127.0.0.1' || ip.startsWith('127.')) return true;
+  
+  // Private IP ranges
+  if (ip.startsWith('192.168.')) return true;
+  if (ip.startsWith('10.')) return true;
+  
+  // 172.16.0.0 - 172.31.255.255
+  if (ip.startsWith('172.')) {
+    const parts = ip.split('.');
+    if (parts.length >= 2) {
+      const secondOctet = parseInt(parts[1], 10);
+      if (secondOctet >= 16 && secondOctet <= 31) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
 export async function getIpInfo(ipAddress: string): Promise<SimplifiedCityResponse | null> {
   console.log(ipAddress);
+  
+  // Skip localhost/private IPs that won't be in the database
+  if (isPrivateOrLocalhost(ipAddress)) {
+    console.warn(`Skipping geolocation lookup for localhost/private IP: ${ipAddress}`);
+    return null;
+  }
+  
   try {
     // Open the MaxMind databases
     const cityReader = await Reader.open(path.join(__dirname, '../city/city.mmdb'));
     const countryReader = await Reader.open(path.join(__dirname, '../country/country.mmdb'));
     const asnReader = await Reader.open(path.join(__dirname, '../asn/asn.mmdb'));
 
-    // Query databases
-    const cityResponse = cityReader.city(ipAddress);
-    const countryResponse = countryReader.country(ipAddress);
-    const asnResponse = asnReader.asn(ipAddress);
+    // Query databases with error handling for addresses not in database
+    let cityResponse, countryResponse, asnResponse;
+    
+    try {
+      cityResponse = cityReader.city(ipAddress);
+    } catch (error: any) {
+      if (error.name === 'AddressNotFoundError') {
+        console.warn(`Address ${ipAddress} not found in city database`);
+        cityResponse = null;
+      } else {
+        throw error;
+      }
+    }
+    
+    try {
+      countryResponse = countryReader.country(ipAddress);
+    } catch (error: any) {
+      if (error.name === 'AddressNotFoundError') {
+        console.warn(`Address ${ipAddress} not found in country database`);
+        countryResponse = null;
+      } else {
+        throw error;
+      }
+    }
+    
+    try {
+      asnResponse = asnReader.asn(ipAddress);
+    } catch (error: any) {
+      if (error.name === 'AddressNotFoundError') {
+        console.warn(`Address ${ipAddress} not found in ASN database`);
+        asnResponse = null;
+      } else {
+        throw error;
+      }
+    }
+    
+    // If no data found in any database, return null
+    if (!cityResponse && !countryResponse && !asnResponse) {
+      console.warn(`No geolocation data found for IP: ${ipAddress}`);
+      return null;
+    }
 
     // Helper to get 'en' name safely
     const getEnName = (names?: Record<string, string>) => names?.en;
 
-    // Build simplified response
+    // Build simplified response (handle null responses gracefully)
     const simplifiedResponse: SimplifiedCityResponse = {
       country: {
-        isoCode: countryResponse.country?.isoCode ?? cityResponse.country?.isoCode,
-        name: getEnName(countryResponse.country?.names as unknown as Record<string, string>) ?? getEnName(cityResponse.country?.names as unknown as Record<string, string>),
+        isoCode: countryResponse?.country?.isoCode ?? cityResponse?.country?.isoCode,
+        name: getEnName(countryResponse?.country?.names as unknown as Record<string, string>) ?? getEnName(cityResponse?.country?.names as unknown as Record<string, string>),
       },
-      registeredCountry: cityResponse.registeredCountry ? {
+      registeredCountry: cityResponse?.registeredCountry ? {
         isoCode: cityResponse.registeredCountry.isoCode,
         name: getEnName(cityResponse.registeredCountry.names as unknown as Record<string, string>),
         isInEuropeanUnion: cityResponse.registeredCountry.isInEuropeanUnion,
       } : undefined,
-      city: cityResponse.city ? {
+      city: cityResponse?.city ? {
         name: getEnName(cityResponse.city.names as unknown as Record<string, string>),
         geonameId: cityResponse.city.geonameId,
       } : undefined,
-      continent: cityResponse.continent ? {
+      continent: cityResponse?.continent ? {
         code: cityResponse.continent.code,
         name: getEnName(cityResponse.continent.names as unknown as Record<string, string>),
       } : undefined,
-      subdivisions: cityResponse.subdivisions?.map(sub => ({
+      subdivisions: cityResponse?.subdivisions?.map(sub => ({
         isoCode: sub.isoCode,
         name: getEnName(sub.names as unknown as Record<string, string>),
       })),
-      location: cityResponse.location as { latitude: number; longitude: number; timeZone: string; accuracyRadius: number; },
-      postal: cityResponse.postal,
-      traits: cityResponse.traits,
-      asn: asnResponse as { autonomousSystemNumber: number; autonomousSystemOrganization: string; },
+      location: cityResponse?.location as { latitude: number; longitude: number; timeZone: string; accuracyRadius: number; } | undefined,
+      postal: cityResponse?.postal,
+      traits: cityResponse?.traits,
+      asn: asnResponse ? {
+        autonomousSystemNumber: asnResponse.autonomousSystemNumber,
+        autonomousSystemOrganization: asnResponse.autonomousSystemOrganization,
+      } : undefined,
     };
 
     // Return the simplified response as a JavaScript object

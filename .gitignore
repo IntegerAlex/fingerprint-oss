@@ -7,3 +7,7 @@ proxy_server/country
 
 # Local Netlify folder
 .netlify
+proxy_server/.wrangler/
+proxy_server/dist/
+*.mmdb
+*.sqlite*

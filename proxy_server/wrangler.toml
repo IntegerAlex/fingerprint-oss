@@ -1,0 +1,29 @@
+name = "proxy-server"
+main = "dist/worker-entry.js"
+compatibility_date = "2024-09-23"
+# Note: nodejs_compat kept for potential future MaxMind support
+# Currently using IP-API which doesn't require Node.js modules
+compatibility_flags = ["nodejs_compat"]
+
+# R2 bucket configuration commented out - not needed for IP-API service
+# Enable R2 in Cloudflare Dashboard if you want to use MaxMind databases in the future
+# Then uncomment the R2 bucket configuration below:
+#
+# [[r2_buckets]]
+# binding = "GEOIP_DB_BUCKET"
+# bucket_name = "geoip-databases"
+
+[env.production]
+name = "proxy-server-prod"
+# Production R2 bucket binding (commented out - not needed for IP-API)
+# [[env.production.r2_buckets]]
+# binding = "GEOIP_DB_BUCKET"
+# bucket_name = "geoip-databases"
+
+[observability.logs]
+enabled = true
+
+[vars]
+# Public worker - no API key required
+# Uses IP-API for geolocation data (free, no API key needed)
+

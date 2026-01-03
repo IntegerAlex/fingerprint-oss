@@ -10,7 +10,14 @@ dotenv.config();
 const server = express();
 server.use(cors());
 const PORT = process.env.PORT || 8080;
-const API_KEY = process.env.API_KEY || '123';
+
+// DEPRECATED: API_KEY authentication has been removed
+// The API_KEY environment variable is no longer used
+// @deprecated API_KEY - Authentication removed for public access
+const API_KEY_DEPRECATED = process.env.API_KEY;
+if (API_KEY_DEPRECATED) {
+  console.warn('⚠️  DEPRECATED: API_KEY environment variable is set but no longer used. Authentication has been removed.');
+}
 
 // Add OPTIONS handler for the preflight request
 //server.options('*', (req, res) => {
@@ -119,40 +126,56 @@ const getClientIps = (req: any): { ipv4: string; ipv6: string | null } => {
     }
   }
   
-  // Ensure we always have at least IPv4 (guaranteed)
-  // If we don't have IPv4, use a fallback
-  if (!ipv4) {
-    ipv4 = '127.0.0.1'; // Fallback to localhost if no IPv4 found
-  }
-  
+  // Return IPs (ipv4 may be null if not found, which is acceptable)
+  // Note: We don't use 127.0.0.1 as fallback because MaxMind databases don't contain localhost data
   return {
-    ipv4: ipv4,
+    ipv4: ipv4 || null,
     ipv6: ipv6 || null
   };
 };
 server.get('/', async(req, res) => {
  	const { ipv4, ipv6 } = getClientIps(req);
   
-  // Skip API key check for OPTIONS requests
-    if(req.headers === undefined){
-      console.log('headers undefined');
-      res.status(403).send('Forbidden');
-      return;
-    }
-    if(!req.headers['x-api-key']){
-      console.log('api key not found');
-      res.status(403).send('Forbidden');
-      return;
-    }
-    if(req.headers['x-api-key'] !== API_KEY){
-      console.log('api key not match');
-      res.status(403).send('Forbidden');
-      return;
+  // DEPRECATED: API key authentication has been removed
+  // The x-api-key header is no longer required or checked
+  // @deprecated x-api-key header - No longer used, requests are accepted without authentication
+  if (req.headers['x-api-key']) {
+    console.warn('⚠️  DEPRECATED: x-api-key header is present but no longer required. Authentication has been removed.');
+  }
+
+  // Check if we have a valid IP address
+  if (!ipv4 && !ipv6) {
+    console.warn('No valid IP address found in request');
+    res.status(400).json({ 
+      error: 'Unable to determine client IP address',
+      message: 'No valid IPv4 or IPv6 address found in request headers or socket'
+    });
+    return;
   }
 
   try{
-    // Use IPv4 for geolocation lookup (guaranteed to exist)
-    const response = await getIpInfo(ipv4);
+    // Use IPv4 for geolocation lookup if available, otherwise use IPv6
+    const lookupIp = ipv4 || ipv6;
+    if (!lookupIp) {
+      res.status(400).json({ 
+        error: 'No IP address available for geolocation lookup'
+      });
+      return;
+    }
+    
+    const response = await getIpInfo(lookupIp);
+    
+    // If no geolocation data found (e.g., localhost/private IP), return error
+    if (!response) {
+      res.status(404).json({ 
+        error: 'Geolocation data not available',
+        message: `No geolocation data found for IP address: ${lookupIp}. This may be a localhost or private IP address.`,
+        ip: lookupIp,
+        ipv4: ipv4,
+        ipv6: ipv6
+      });
+      return;
+    }
     
     // Add IP information to the response
     if (response) {
