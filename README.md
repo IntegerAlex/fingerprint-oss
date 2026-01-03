@@ -41,7 +41,11 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
 
 <p>Fingerprint-OSS is now backed by Cloudflare OSS, Neon, and Netlify.</p>
 
+## Usage Statistics
 
+Fingerprint-OSS is actively used across multiple production sites, serving **more than 100K monthly hits** across sites where Fingerprint-OSS is integrated.
+
+<img src="assets/map.png" alt="Fingerprint-OSS usage map showing global distribution" width="800" height="400" />
 
 ## Demo
 
