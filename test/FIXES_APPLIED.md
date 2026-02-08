@@ -1,4 +1,4 @@
-# Playwright Tests & GitHub Actions Fixes
+# Cypress Tests & GitHub Actions Fixes
 
 ## Issues Fixed
 
@@ -14,7 +14,7 @@ import userInfo from 'fingerprint-oss';
 ```
 
 ### 2. Overly Strict Geolocation Tests
-**Problem**: `test/e2e/geoInfo.test.js` expected all geolocation properties to be defined, but in CI environments or when network requests fail, geolocation data might be null.
+**Problem**: `test/e2e/cypress/e2e/geoInfo.cy.js` expected all geolocation properties to be defined, but in CI environments or when network requests fail, geolocation data might be null.
 
 **Fix**: Made assertions conditional and handle null geolocation gracefully:
 - Check if geolocation is null and accept it as valid
@@ -22,7 +22,7 @@ import userInfo from 'fingerprint-oss';
 - Added logging for null geolocation cases
 
 ### 3. Inflexible SystemInfo Tests  
-**Problem**: `test/e2e/systemInfo.test.js` had hardcoded expectations that don't work in all browser environments:
+**Problem**: `test/e2e/cypress/e2e/systemInfo.cy.js` had hardcoded expectations that don't work in all browser environments:
 - Assumed specific browser names not including CI browsers like "Chromium" or "HeadlessChrome"
 - Required storage features to always be `true`
 - Had strict bot confidence requirements
@@ -32,14 +32,13 @@ import userInfo from 'fingerprint-oss';
 - Used conditional assertions for storage capabilities
 - Made bot confidence check more flexible (≥ 0 instead of > 0.1)
 
-### 4. Playwright Configuration Issues
-**Problem**: Configuration wasn't optimized for CI environments.
+### 4. Cypress Configuration Issues
+**Problem**: Configuration wasn't aligned with the Cypress-based runner.
 
-**Fix**: Enhanced `test/e2e/playwright.config.js`:
-- Added retry logic (2 retries for failed tests)
-- Enabled headless mode by default
-- Added CI-friendly Chrome args (`--no-sandbox`, `--disable-dev-shm-usage`)
-- Added screenshot and video capture on failure
+**Fix**: Added Cypress config and support helpers:
+- Added `test/e2e/cypress.config.cjs`
+- Added shared `cy.loadFingerprintOSS()` helper
+- Ensured the ESM bundle is available via pretest copy
 
 ### 5. GitHub Actions Workflow Issues
 **Problem**: 
@@ -47,11 +46,10 @@ import userInfo from 'fingerprint-oss';
 - Unit tests had `continue-on-error: true` masking real issues
 - Browser installation didn't handle dependencies properly
 
-**Fix**: Enhanced `.github/workflows/playwright_tests.yml`:
-- Improved server startup with retry loop and better verification
-- Removed `continue-on-error` from unit tests
-- Simplified browser installation command
-- Added CORS support to HTTP server
+**Fix**: Updated `.github/workflows/playwright_tests.yml`:
+- Removed Playwright-specific steps
+- Run Cypress via `npm test` in `test/e2e`
+- Upload Cypress screenshots/videos on failure
 
 ## Verification
 
@@ -77,12 +75,10 @@ To test the fixes locally:
    npm run build
    ```
 
-2. Run e2e tests:
+2. Run Cypress tests:
    ```bash
    cd test/e2e
    npm install
-   npx playwright install chromium firefox webkit
-   npx http-server -p 8080 --cors &
    npm test
    ```
 
@@ -90,8 +86,6 @@ To test the fixes locally:
 
 ## GitHub Actions Status
 The workflow should now pass because:
-- Server startup is more reliable
+- Server startup is managed by `start-server-and-test`
 - Tests are more flexible and handle edge cases
-- Browser installation is simplified
-- Proper retry logic is in place
-- Unit tests will fail the build if there are real issues (no more continue-on-error) 
+- Cypress handles browser setup automatically

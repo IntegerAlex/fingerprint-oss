@@ -1,6 +1,6 @@
 # Fingerprint OSS Tests
 
-This directory contains end-to-end tests for the fingerprint-oss library.
+This directory contains browser-based tests for the fingerprint-oss library.
 
 ## Running Tests Locally
 
@@ -25,33 +25,21 @@ chmod +x local-ci-test.sh
    cd ..
    npm install
    npm run build
-   npm run rollup
-   npm link
    ```
 
-2. Install test dependencies:
+2. Install and run Cypress tests:
    ```bash
-   cd test
+   cd test/e2e
    npm install
-   npm link ../
-   ```
-
-3. Start the HTTP server:
-   ```bash
-   npx http-server -p 8080
-   ```
-
-4. In a new terminal, run the tests:
-   ```bash
-   cd test
-   npx playwright test
+   npm test
    ```
 
 ## Test Structure
 
-- `geoInfo.test.js` - Tests for geolocation functionality
-- `systemInfo.test.js` - Tests for system information functionality
-- `index.html` - Test page that loads the fingerprint-oss library
+- `e2e/cypress/e2e/geoInfo.cy.js` - Cypress tests for geolocation functionality
+- `e2e/cypress/e2e/systemInfo.cy.js` - Cypress tests for system information functionality
+- `e2e/cypress/e2e/unit/*.cy.js` - Cypress-based unit test coverage
+- `e2e/index.html` - Test page that loads the fingerprint-oss library
 
 ## GitHub Actions CI
 
