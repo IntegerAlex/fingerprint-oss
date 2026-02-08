@@ -8,38 +8,12 @@ npm install
 npm run build
 # npm run rollup is redundant since build already runs rollup
 
-# Create symlink for local package
-echo "Creating symlink for local package..."
-npm link
-
-# Navigate to test folder and link local module
-echo "Installing test dependencies and linking local module..."
-cd test
+echo "Installing test dependencies..."
+cd test/e2e
 npm install
-npm link ../
 
-# Kill any existing process on port 8080 to prevent EADDRINUSE
-echo "Attempting to free port 8080..."
-fuser -k 8080/tcp || true
-
-# Start HTTP server in background
-echo "Starting HTTP server..."
-npx http-server -p 8080 &
-SERVER_PID=$!
-
-# Allow server to start up
-sleep 2
-
-# Install Playwright browsers if needed
-echo "Installing Playwright browsers..."
-npx playwright install chromium firefox webkit
-
-# Run Playwright tests
-echo "Running Playwright tests..."
-npx playwright test
-
-# Clean up - kill the server
-echo "Cleaning up..."
-kill $SERVER_PID
+# Run Cypress tests (server is managed by start-server-and-test)
+echo "Running Cypress tests..."
+npm test
 
 echo "Local CI test completed!" 
