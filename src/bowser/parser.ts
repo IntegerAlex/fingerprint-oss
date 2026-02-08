@@ -10,6 +10,21 @@ import platformParsersList from './parser-platforms.js';
 import enginesParsersList from './parser-engines.js';
 import Utils from './utils.js';
 
+export interface ClientHintsBrand {
+  brand: string;
+  version: string;
+}
+
+export interface ClientHints {
+  brands?: ClientHintsBrand[];
+  mobile?: boolean;
+  platform?: string;
+  platformVersion?: string;
+  architecture?: string;
+  model?: string;
+  wow64?: boolean;
+}
+
 export interface BrowserDetails {
   name?: string;
   version?: string;
@@ -44,7 +59,8 @@ export interface ParsedResult {
  */
 class Parser {
   private _ua: string;
-  public parsedResult: ParsedResult;
+  private _hints: ClientHints | null;
+  public parsedResult: Partial<ParsedResult>;
 
   /**
    * Create instance of Parser
@@ -58,22 +74,76 @@ class Parser {
    *
    * @constructor
    */
-  constructor(UA: string, skipParsing: boolean = false) {
+  constructor(
+    UA: string,
+    skipParsingOrHints: boolean | ClientHints = false,
+    clientHints: ClientHints | null = null
+  ) {
     if (UA === void (0) || UA === null || UA === '') {
       throw new Error("UserAgent parameter can't be empty");
     }
 
     this._ua = UA;
-    this.parsedResult = {
-      browser: {},
-      os: {},
-      platform: {},
-      engine: {}
-    };
+    let skipParsing = false;
+    if (typeof skipParsingOrHints === 'boolean') {
+      skipParsing = skipParsingOrHints;
+      this._hints = clientHints;
+    } else if (skipParsingOrHints != null && typeof skipParsingOrHints === 'object') {
+      this._hints = skipParsingOrHints;
+    } else {
+      this._hints = null;
+    }
+
+    this.parsedResult = {};
 
     if (skipParsing !== true) {
       this.parse();
     }
+  }
+
+  /**
+   * Get Client Hints data
+   * @return {ClientHints|null}
+   *
+   * @public
+   */
+  getHints(): ClientHints | null {
+    return this._hints;
+  }
+
+  /**
+   * Check if a brand exists in Client Hints brands array
+   * @param {string} brandName The brand name to check for
+   * @return {boolean}
+   *
+   * @public
+   */
+  hasBrand(brandName: string): boolean {
+    if (!this._hints || !Array.isArray(this._hints.brands)) {
+      return false;
+    }
+    const brandLower = brandName.toLowerCase();
+    return this._hints.brands.some(
+      b => b.brand && b.brand.toLowerCase() === brandLower,
+    );
+  }
+
+  /**
+   * Get brand version from Client Hints
+   * @param {string} brandName The brand name to get version for
+   * @return {string|undefined}
+   *
+   * @public
+   */
+  getBrandVersion(brandName: string): string | undefined {
+    if (!this._hints || !Array.isArray(this._hints.brands)) {
+      return undefined;
+    }
+    const brandLower = brandName.toLowerCase();
+    const brand = this._hints.brands.find(
+      b => b.brand && b.brand.toLowerCase() === brandLower,
+    );
+    return brand ? brand.version : undefined;
   }
 
   /**
@@ -115,10 +185,10 @@ class Parser {
     });
 
     if (browserDescriptor) {
-      this.parsedResult.browser = browserDescriptor.describe(this.getUA());
+      this.parsedResult.browser = browserDescriptor.describe(this.getUA(), this);
     }
 
-    return this.parsedResult.browser;
+    return this.parsedResult.browser as BrowserDetails;
   }
 
   /**
@@ -128,8 +198,8 @@ class Parser {
    * @public
    */
   getBrowser(): BrowserDetails {
-    if (this.parsedResult.browser && Object.keys(this.parsedResult.browser).length > 0) {
-      return this.parsedResult.browser;
+    if (this.parsedResult.browser) {
+      return this.parsedResult.browser as BrowserDetails;
     }
 
     return this.parseBrowser();
@@ -170,8 +240,8 @@ class Parser {
    * }
    */
   getOS(): OSDetails {
-    if (this.parsedResult.os && Object.keys(this.parsedResult.os).length > 0) {
-      return this.parsedResult.os;
+    if (this.parsedResult.os) {
+      return this.parsedResult.os as OSDetails;
     }
 
     return this.parseOS();
@@ -200,7 +270,7 @@ class Parser {
       this.parsedResult.os = os.describe(this.getUA());
     }
 
-    return this.parsedResult.os;
+    return this.parsedResult.os as OSDetails;
   }
 
   /**
@@ -231,8 +301,8 @@ class Parser {
    * @return {{}}
    */
   getPlatform(): PlatformDetails {
-    if (this.parsedResult.platform && Object.keys(this.parsedResult.platform).length > 0) {
-      return this.parsedResult.platform;
+    if (this.parsedResult.platform) {
+      return this.parsedResult.platform as PlatformDetails;
     }
 
     return this.parsePlatform();
@@ -276,7 +346,7 @@ class Parser {
       this.parsedResult.platform = platform.describe(this.getUA());
     }
 
-    return this.parsedResult.platform;
+    return this.parsedResult.platform as PlatformDetails;
   }
 
   /**
@@ -284,8 +354,8 @@ class Parser {
    * @return {{}}
    */
   getEngine(): EngineDetails {
-    if (this.parsedResult.engine && Object.keys(this.parsedResult.engine).length > 0) {
-      return this.parsedResult.engine;
+    if (this.parsedResult.engine) {
+      return this.parsedResult.engine as EngineDetails;
     }
 
     return this.parseEngine();
@@ -327,7 +397,7 @@ class Parser {
       this.parsedResult.engine = engine.describe(this.getUA());
     }
 
-    return this.parsedResult.engine;
+    return this.parsedResult.engine as EngineDetails;
   }
 
   /**
@@ -348,7 +418,12 @@ class Parser {
    * @return {ParsedResult}
    */
   getResult(): ParsedResult {
-    return Utils.assign({} as ParsedResult, this.parsedResult) as ParsedResult;
+    return Utils.assign({
+      browser: {},
+      os: {},
+      platform: {},
+      engine: {}
+    } as ParsedResult, this.parsedResult) as ParsedResult;
   }
 
   /**

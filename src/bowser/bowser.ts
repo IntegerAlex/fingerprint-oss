@@ -1,10 +1,10 @@
 /*!
- * Bowser - a browser detector
+ * Bowser - a browser detector (v2.13.1)
  * https://github.com/bowser-js/bowser
  * MIT License | (c) Dustin Diaz 2012-2015
  * MIT License | (c) Denis Demchenko 2015-2019
  */
-import Parser, { ParsedResult } from './parser.js';
+import Parser, { ParsedResult, ClientHints } from './parser.js';
 import {
   BROWSER_MAP,
   ENGINE_MAP,
@@ -28,8 +28,9 @@ class Bowser {
    * Creates a {@link Parser} instance
    *
    * @param {String} UA UserAgent string
-   * @param {Boolean} [skipParsing=false] Will make the Parser postpone parsing until you ask it
-   * explicitly. Same as `skipParsing` for {@link Parser}.
+   * @param {Boolean|Object} [skipParsingOrHints=false] Either a boolean to skip parsing,
+   * or a ClientHints object (navigator.userAgentData)
+   * @param {Object} [clientHints] User-Agent Client Hints data (navigator.userAgentData)
    * @returns {Parser}
    * @throws {Error} when UA is not a String
    *
@@ -37,24 +38,29 @@ class Bowser {
    * const parser = Bowser.getParser(window.navigator.userAgent);
    * const result = parser.getResult();
    */
-  static getParser(UA: string, skipParsing: boolean = false): Parser {
+  static getParser(
+    UA: string,
+    skipParsingOrHints: boolean | ClientHints = false,
+    clientHints: ClientHints | null = null
+  ): Parser {
     if (typeof UA !== 'string') {
       throw new Error('UserAgent should be a string');
     }
-    return new Parser(UA, skipParsing);
+    return new Parser(UA, skipParsingOrHints, clientHints);
   }
 
   /**
    * Creates a {@link Parser} instance and runs {@link Parser.getResult} immediately
    *
-   * @param UA
+   * @param {String} UA UserAgent string
+   * @param {Object} [clientHints] User-Agent Client Hints data (navigator.userAgentData)
    * @return {ParsedResult}
    *
    * @example
    * const result = Bowser.parse(window.navigator.userAgent);
    */
-  static parse(UA: string): ParsedResult {
-    return (new Parser(UA)).getResult();
+  static parse(UA: string, clientHints?: ClientHints): ParsedResult {
+    return (new Parser(UA, clientHints)).getResult();
   }
 
   static get BROWSER_MAP() {

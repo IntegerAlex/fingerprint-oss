@@ -11,3 +11,4 @@ proxy_server/.wrangler/
 proxy_server/dist/
 *.mmdb
 *.sqlite*
+.gitbotrc.json

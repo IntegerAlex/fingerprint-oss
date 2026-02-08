@@ -41,7 +41,7 @@ interface BrowserResult {
 
 interface BrowserDescriptor {
   test: RegExp[] | ((parser: Parser) => boolean);
-  describe: (ua: string) => BrowserResult;
+  describe: (ua: string, parser?: Parser) => BrowserResult;
 }
 
 const browsersList: BrowserDescriptor[] = [
@@ -982,6 +982,61 @@ const browsersList: BrowserDescriptor[] = [
 
       if (version) {
         browser.version = version;
+      }
+
+      return browser;
+    },
+  },
+  /* DuckDuckGo Browser */
+  {
+    test(parser) {
+      // Chromium platforms (Android, Windows): check Client Hints brands first
+      if (parser.hasBrand('DuckDuckGo')) {
+        return true;
+      }
+      // WebKit platforms (iOS, macOS): check UA string for Ddg/version suffix
+      return parser.test(/\sDdg\/[\d.]+$/i);
+    },
+    describe(ua, parser) {
+      const browser: BrowserResult = {
+        name: 'DuckDuckGo',
+      };
+
+      // Try Client Hints brand version first
+      if (parser) {
+        const hintsVersion = parser.getBrandVersion('DuckDuckGo');
+        if (hintsVersion) {
+          browser.version = hintsVersion;
+          return browser;
+        }
+      }
+
+      // Fall back to WebKit UA pattern
+      const uaVersion = Utils.getFirstMatch(/\sDdg\/([\d.]+)$/i, ua);
+      if (uaVersion) {
+        browser.version = uaVersion;
+      }
+
+      return browser;
+    },
+  },
+  /* Brave Browser */
+  {
+    test(parser) {
+      // Check Client Hints brands for Brave
+      return parser.hasBrand('Brave');
+    },
+    describe(ua, parser) {
+      const browser: BrowserResult = {
+        name: 'Brave',
+      };
+
+      if (parser) {
+        const hintsVersion = parser.getBrandVersion('Brave');
+        if (hintsVersion) {
+          browser.version = hintsVersion;
+          return browser;
+        }
       }
 
       return browser;

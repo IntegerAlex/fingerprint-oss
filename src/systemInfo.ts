@@ -40,6 +40,8 @@ export function detectBot(): { isBot: boolean; signals: string[]; confidence: nu
         medium: 0.15,
         weak: 0.05
     };
+    const win = window as any;
+    const docEl = document?.documentElement;
 
     // Strong signals (high confidence)
     const strongPatterns = ['bot', 'crawler', 'selenium', 'webdriver', 'headless', 'puppeteer', 'playwright'];
@@ -52,6 +54,24 @@ export function detectBot(): { isBot: boolean; signals: string[]; confidence: nu
     if (navigator.webdriver) {
         signals.push('strong:webdriver-flag');
     }
+    if (docEl?.getAttribute && docEl.getAttribute('webdriver')) {
+        signals.push('strong:webdriver-attr');
+    }
+    if (win.Cypress || win.__cypress) {
+        signals.push('strong:automation-cypress');
+    }
+    if (win.__nightmare) {
+        signals.push('strong:automation-nightmare');
+    }
+    if (win._phantom || win.callPhantom) {
+        signals.push('strong:automation-phantom');
+    }
+    if (win.__webdriver_evaluate || win.__driver_evaluate || win.__selenium_unwrapped || win.__fxdriver_unwrapped) {
+        signals.push('strong:automation-webdriver');
+    }
+    if (win.domAutomation || win.domAutomationController) {
+        signals.push('strong:automation-dom');
+    }
 
     // Medium signals
     if (!window.localStorage || !window.sessionStorage) {
@@ -60,6 +80,12 @@ export function detectBot(): { isBot: boolean; signals: string[]; confidence: nu
 
     if (!navigator.plugins || navigator.plugins.length < 2) {
         signals.push('medium:few-plugins');
+    }
+    if (!navigator.languages || navigator.languages.length === 0) {
+        signals.push('medium:missing-languages');
+    }
+    if (!navigator.mimeTypes || navigator.mimeTypes.length === 0) {
+        signals.push('medium:missing-mimetypes');
     }
 
     // Weak signals
