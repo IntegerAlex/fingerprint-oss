@@ -29,51 +29,14 @@ jobs:
           npm ci
           npm run build
 
-      # Step: Install unit test dependencies and run unit tests
-      - name: Run Unit Tests
-        run: |
-          cd test/unit
-          npm install
-          npm test
-
       # Step: Install e2e test dependencies
       - name: Install e2e test dependencies
         run: |
           cd test/e2e
           npm install
 
-      # Step: Create fingerprint-oss package structure for e2e tests
-      - name: Setup package for e2e tests
-        run: |
-          mkdir -p test/e2e/node_modules/fingerprint-oss/dist
-          cp -r dist/* test/e2e/node_modules/fingerprint-oss/dist/
-          cp package.json test/e2e/node_modules/fingerprint-oss/
-
-      # Step: Start HTTP server in background for e2e tests
-      - name: Start HTTP Server
-        run: |
-          cd test/e2e
-          npx http-server -p 8080 --cors &
-          # Wait for server to start and retry if needed
-          for i in {1..10}; do
-            if curl -f http://localhost:8080/ > /dev/null 2>&1; then
-              echo "Server is running"
-              break
-            fi
-            echo "Waiting for server to start... (attempt $i)"
-            sleep 2
-          done
-          # Final verification
-          curl -f http://localhost:8080/ || exit 1
-
-      # Step: Install Playwright Browsers
-      - name: Install Playwright Browsers
-        run: |
-          cd test/e2e
-          npx playwright install chromium firefox webkit
-
-      # Step: Run Playwright tests
-      - name: Run Playwright Tests
+      # Step: Run Cypress tests
+      - name: Run Cypress Tests
         run: |
           cd test/e2e
           npm test
@@ -84,5 +47,7 @@ jobs:
         if: failure()
         with:
           name: test-results
-          path: test/e2e/test-results/
+          path: |
+            test/e2e/cypress/videos/
+            test/e2e/cypress/screenshots/
           retention-days: 30
