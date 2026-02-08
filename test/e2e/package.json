@@ -3,14 +3,18 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "test": "npx playwright test",
-    "install": "npx playwright install"
+    "pretest": "cd ../.. && npm run build && mkdir -p test/e2e/node_modules/fingerprint-oss/dist && cp -r dist/* test/e2e/node_modules/fingerprint-oss/dist/",
+    "serve": "http-server . -p 8080 --cors -c-1",
+    "cy:run": "cypress run",
+    "cy:open": "cypress open",
+    "test": "start-server-and-test serve http://localhost:8080 cy:run"
   },
   "devDependencies": {
-    "@playwright/test": "^1.51.1",
-    "playwright": "^1.51.1"
+    "cypress": "^13.17.0",
+    "start-server-and-test": "^2.0.4"
   },
   "dependencies": {
+    "fingerprint-oss": "file:../..",
     "http-server": "^14.1.1"
   }
 } 
