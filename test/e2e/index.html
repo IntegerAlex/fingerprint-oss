@@ -25,6 +25,8 @@
 
       console.log('[TEST_HTML] Script start. Initializing window.testStatus = loading');
       window.testStatus = 'loading';
+      window.fingerprintOSS = userInfo;
+      window.fingerprintOSSReady = true;
       
       document.addEventListener("DOMContentLoaded", function () {
         const statusElement = document.getElementById('status');
@@ -42,6 +44,10 @@
           // Display some basic data on the page
           document.getElementById('browserInfo').textContent = 
             `Browser: ${result.systemInfo.incognito.browserName}`;
+          const resultElement = document.getElementById('result');
+          if (resultElement) {
+            resultElement.textContent = JSON.stringify(result, null, 2);
+          }
           console.log('[TEST_HTML] Displayed browser info.');
         }).catch((error) => {
           console.error('[TEST_HTML] userInfo() promise REJECTED. Setting window.testStatus = error');
@@ -58,6 +64,7 @@
     <h1>Fingerprint OSS Test</h1>
     <div id="status">Initializing...</div>
     <div id="browserInfo"></div>
+    <pre id="result"></pre>
   </body>
 </html>
 
