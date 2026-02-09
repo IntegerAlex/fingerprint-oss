@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "pretest": "cd ../.. && npm run build && mkdir -p test/e2e/node_modules/fingerprint-oss/dist && cp -r dist/* test/e2e/node_modules/fingerprint-oss/dist/",
+    "pretest": "cd ../.. && npm run build && mkdir -p test/e2e/node_modules/fingerprint-oss/dist && if [ \"$(realpath dist)\" != \"$(realpath test/e2e/node_modules/fingerprint-oss/dist)\" ]; then cp -r dist/* test/e2e/node_modules/fingerprint-oss/dist/; fi",
     "serve": "http-server . -p 8080 --cors -c-1",
     "cy:run": "cypress run",
     "cy:open": "cypress open",
