@@ -78,6 +78,9 @@ export async function generateId(systemInfo: SystemInfo): Promise<string> {
                      )
                    : {}, // Provide an empty object if mathConstants is undefined
 
+    // Device type classification
+    deviceType: systemInfo.deviceType?.type ?? 'unknown',
+
     // Plugins (filtered)
     plugins: systemInfo.plugins 
              ? systemInfo.plugins
@@ -196,6 +199,7 @@ export async function generateIdWithDebug(systemInfo: SystemInfo, config: HashGe
     mathConstants: systemInfo.mathConstants
       ? Object.fromEntries(Object.entries(systemInfo.mathConstants).map(([k, v]) => [k, reliableRound(Number(v), 3)]))
       : {},
+    deviceType: systemInfo.deviceType?.type ?? 'unknown',
     plugins: systemInfo.plugins
       ? systemInfo.plugins
           .filter(p => p && p.name && !p.name.includes('Brave'))
@@ -244,6 +248,7 @@ export async function compareInputs(left: SystemInfo, right: SystemInfo, _config
     mathConstants: left.mathConstants
       ? Object.fromEntries(Object.entries(left.mathConstants).map(([k, v]) => [k, reliableRound(Number(v), 3)]))
       : {},
+    deviceType: left.deviceType?.type ?? 'unknown',
     plugins: left.plugins
       ? left.plugins
           .filter(p => p && p.name && !p.name.includes('Brave'))
@@ -267,6 +272,7 @@ export async function compareInputs(left: SystemInfo, right: SystemInfo, _config
     mathConstants: right.mathConstants
       ? Object.fromEntries(Object.entries(right.mathConstants).map(([k, v]) => [k, reliableRound(Number(v), 3)]))
       : {},
+    deviceType: right.deviceType?.type ?? 'unknown',
     plugins: right.plugins
       ? right.plugins
           .filter(p => p && p.name && !p.name.includes('Brave'))

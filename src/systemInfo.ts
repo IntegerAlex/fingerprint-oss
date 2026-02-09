@@ -13,6 +13,7 @@ import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
 import { getBrowserInfo } from './browserDetection.js';
 import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo, estimateCores} from './helper.js';
+import { detectDeviceType } from './deviceType.js';
 import { StructuredLogger } from './config.js';
 /**
  * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
@@ -233,6 +234,9 @@ export async function getSystemInfo(): Promise<SystemInfo> {
                 signals: botInfo.signals,
                 confidence: botInfo.confidence
             },
+
+            // Device type detection (multi-signal fusion)
+            deviceType: detectDeviceType(),
             
             // Overall confidence score for the collected data
             confidenceScore: confidenceScore

@@ -55,6 +55,20 @@ export interface BraveInfo {
     brands: string[];
 }
 
+export interface DeviceTypeSignal {
+    name: string;
+    value: any;
+    weight: number;
+    detected: boolean;
+}
+
+export interface DeviceTypeInfo {
+    type: 'mobile' | 'tablet' | 'desktop' | 'tv' | 'unknown';
+    confidence: number;
+    signals: DeviceTypeSignal[];
+    method: string;
+}
+
 export interface SystemInfo {	
     incognito: { isPrivate: boolean; browserName: string }; 
     bot: {
@@ -91,6 +105,7 @@ export interface SystemInfo {
     vendorFlavors: string[];
     mathConstants: MathInfo;
     fontPreferences: FontPreferencesInfo; // Updated name
+    deviceType: DeviceTypeInfo;
     confidenceScore: number;
 }
 

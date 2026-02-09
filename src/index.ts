@@ -10,6 +10,7 @@
 import { generateJSON } from './json';
 import { fetchGeolocationInfo } from './geo-ip';
 import { getSystemInfo, detectBot } from './systemInfo';
+import { detectDeviceType } from './deviceType';
 import { getMockSystemInfo } from './mock';
 import { isRiskyASN, getUAPlatformMismatch, getLanguageConsistency, checkBrowserConsistency } from './confidence';
 import { Toast } from './compliance';
@@ -233,6 +234,9 @@ const fingerprintOSS = Object.assign(userInfo, {
     generateJSON,
     generateId,
     
+    // Device type detection
+    detectDeviceType,
+
     // Privacy detection functions
     detectIncognito,
     detectAdBlockers,
@@ -315,6 +319,8 @@ export { generateId, generateIdWithDebug, compareInputs } from './hash';
 export { detectIncognito } from './incognito';
 export { detectAdBlockers } from './adblocker';
 export { getVpnStatus } from './vpn';
+export { detectDeviceType } from './deviceType';
+export type { DeviceTypeInfo, DeviceTypeSignal } from './deviceType';
 
 export {
     getColorGamut,
