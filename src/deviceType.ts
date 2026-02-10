@@ -400,9 +400,8 @@ function applyEdgeCaseOverrides(scores: DeviceScores, signals: DeviceTypeSignal[
     const ua = navigator.userAgent.toLowerCase();
     if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) {
         // Almost certainly an iPad pretending to be a Mac
-        scores.tablet += 0.20;
-        scores.desktop -= 0.10;
-        signals.push({ name: 'override.iPadDesktopMode', value: true, weight: 0.20, detected: true });
+        scores.tablet += 0.30;  // Strong boost to tablet instead of penalizing desktop
+        signals.push({ name: 'override.iPadDesktopMode', value: true, weight: 0.30, detected: true });
     }
 
     // Android tablet: UA says Android but no "Mobile" token
@@ -410,6 +409,12 @@ function applyEdgeCaseOverrides(scores: DeviceScores, signals: DeviceTypeSignal[
         scores.tablet += 0.05;
         signals.push({ name: 'override.androidTablet', value: true, weight: 0.05, detected: true });
     }
+
+    // Ensure scores remain non-negative (safeguard against future issues)
+    scores.mobile  = Math.max(0, scores.mobile);
+    scores.tablet  = Math.max(0, scores.tablet);
+    scores.desktop = Math.max(0, scores.desktop);
+    scores.tv      = Math.max(0, scores.tv);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
