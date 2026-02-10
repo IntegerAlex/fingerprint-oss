@@ -7,6 +7,8 @@
  *
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
+import type { DeviceTypeInfo } from './deviceType.js';
+
 // Add WebKit FileSystem types
 declare global {
  interface Navigator {
@@ -91,6 +93,7 @@ export interface SystemInfo {
     vendorFlavors: string[];
     mathConstants: MathInfo;
     fontPreferences: FontPreferencesInfo; // Updated name
+    deviceType: DeviceTypeInfo;
     confidenceScore: number;
 }
 

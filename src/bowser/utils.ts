@@ -204,10 +204,10 @@ export default class Utils {
       const delta = precision - Utils.getVersionPrecision(version);
 
       // 2) "9" -> "9.0" (for precision = 2)
-      const _version = version + new Array(delta + 1).join('.0');
+      const _version = version + new Array(Math.max(0, delta + 1)).join('.0');
 
       // 3) "9.0" -> ["000000000"", "000000009"]
-      return Utils.map(_version.split('.'), chunk => new Array(20 - chunk.length).join('0') + chunk).reverse();
+      return Utils.map(_version.split('.'), chunk => new Array(Math.max(0, 20 - chunk.length)).join('0') + chunk).reverse();
     });
 
     // adjust precision for loose comparison

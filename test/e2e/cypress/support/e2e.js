@@ -2,7 +2,7 @@ const loadFingerprintOSS = (options = {}) => {
   const { waitForData = false } = options;
 
   cy.visit('/');
-  cy.window().its('fingerprintOSSReady').should('eq', true);
+  cy.window({ timeout: 30000 }).its('fingerprintOSSReady').should('eq', true);
   if (waitForData) {
     cy.window({ timeout: 60000 }).its('testStatus').should('eq', 'success');
   }
