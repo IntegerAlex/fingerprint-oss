@@ -35,6 +35,7 @@ const InfoCard = ({
   className = "",
   copyable = false,
   description,
+  titleBadge,
 }: {
   title: string;
   value: string | number;
@@ -42,6 +43,7 @@ const InfoCard = ({
   className?: string;
   copyable?: boolean;
   description?: string;
+  titleBadge?: React.ReactNode;
 }) => {
   const [copied, setCopied] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -61,9 +63,10 @@ const InfoCard = ({
       onMouseLeave={() => setShowTooltip(false)}
     >
       <div className="flex items-center justify-between text-muted-foreground mb-2">
-        <div className="flex items-center">
-          <Icon className="h-4 w-4 mr-2 text-primary" />
+        <div className="flex items-center flex-wrap gap-2">
+          <Icon className="h-4 w-4 mr-2 text-primary flex-shrink-0" />
           <p className="text-sm font-medium">{title}</p>
+          {titleBadge}
         </div>
         {copyable && (
           <button
@@ -141,7 +144,9 @@ export default function FingerprintDisplay({
   const osVersion = systemInfo?.os?.version || "Unknown";
 
   const isMobile = systemInfo?.touchSupport?.maxTouchPoints > 0;
-  const deviceType = isMobile ? "Mobile" : "Desktop";
+  const deviceTypeRaw = systemInfo?.deviceType?.type ?? (isMobile ? "mobile" : "desktop");
+  const deviceType = deviceTypeRaw.charAt(0).toUpperCase() + deviceTypeRaw.slice(1);
+  const deviceTypeConfidence = systemInfo?.deviceType?.confidence;
 
   const country = geolocation?.country?.name || "Unknown";
   const city = geolocation?.city || "Unknown";
@@ -227,9 +232,16 @@ export default function FingerprintDisplay({
             <div className="space-y-3">
               <InfoCard 
                 title="Device Type" 
-                value={deviceType} 
+                value={deviceTypeConfidence != null 
+                  ? `${deviceType} (${Math.round(deviceTypeConfidence * 100)}%)` 
+                  : deviceType} 
                 icon={Monitor} 
-                description="Detected device category based on touch support and screen characteristics"
+                description="Multi-signal detection: client hints, screen, touch, UA patterns (v0.9.4)"
+                titleBadge={
+                  <span className="inline-flex items-center rounded-full bg-primary/20 text-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                    New
+                  </span>
+                }
               />
               <InfoCard 
                 title="Browser" 

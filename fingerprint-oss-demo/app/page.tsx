@@ -177,6 +177,12 @@ export default function Home() {
               signals: [],
               confidence: 0.5,
             },
+            deviceType: {
+              type: "desktop",
+              confidence: 0.82,
+              signals: [],
+              method: "fallback",
+            },
           },
           hash: "demo" + Math.random().toString(36).substring(2, 15),
         };
@@ -230,8 +236,13 @@ export default function Home() {
       <main className="container mx-auto px-4 py-16">
         <section className="mb-16">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center rounded-lg bg-secondary text-sm font-medium py-1 px-3 mb-4">
-              Backed by Cloudflare OSS
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+              <div className="inline-flex items-center rounded-lg bg-secondary text-sm font-medium py-1 px-3">
+                Backed by Cloudflare OSS and Netlify Open Source
+              </div>
+              <span className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/10 text-primary text-sm font-medium py-1 px-3">
+                v0.9.4
+              </span>
             </div>
             <h1 className="text-5xl font-bold text-primary mb-4">
               Fingerprint OSS Demo

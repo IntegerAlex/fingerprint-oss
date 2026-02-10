@@ -6,7 +6,7 @@ import Image from "next/image"
 /**
  * Top navigation bar for the demo app with branding and responsive navigation links.
  *
- * Renders a sticky header containing the project logo, a Cloudflare logo, the brand label,
+ * Renders a sticky header containing the project logo, Cloudflare and Netlify logos, the brand label,
  * and navigation actions. On medium and larger screens it shows "Docs", "GitHub", and a
  * "Buy Me A Coffee" button; on small screens it shows a hamburger button (no click handler).
  *
@@ -20,6 +20,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Image src="/logo.png" alt="Logo" width={40} height={40} className="h-8 w-8" />
             <Image src="/cloudflare.png" alt="Cloudflare Logo" width={120} height={40} className="h-8 w-auto ml-2" />
+            <Image src="/netlify-logo.png" alt="Netlify Logo" width={100} height={40} className="h-8 w-auto ml-2" />
             <span className="ml-2 text-xl font-semibold text-foreground">Fingerprint OSS</span>
           </div>
           <div className="hidden md:flex space-x-6">
