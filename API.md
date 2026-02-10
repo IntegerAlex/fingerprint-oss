@@ -137,6 +137,17 @@ systemInfo: {
       width: number;      // Font width
     }>
   },
+  deviceType: {
+    type: 'mobile' | 'tablet' | 'desktop' | 'tv' | 'unknown'; // Device type classification
+    confidence: number;    // Classification confidence (0-1)
+    signals: Array<{      // Detection signals used
+      name: string;       // Signal name
+      value: any;         // Signal value
+      weight: number;     // Signal weight
+      detected: boolean;  // Whether signal was detected
+    }>;
+    method: string;       // Primary detection method used
+  },
   bot: {
     isBot: boolean;       // Whether detected as bot
     signals: string[];    // Bot detection signals

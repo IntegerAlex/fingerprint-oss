@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.4] - 2025-02-08
 
+### Added
+- **Advanced Device Type Detection**: Implemented multi-signal device classification system
+  - Added `deviceType` object to `SystemInfo` with robust device categorization (mobile, tablet, desktop, tv, unknown)
+  - Uses 8 detection techniques: User-Agent Client Hints, Bowser platform parsing, screen characteristics, touch/pointer analysis, CSS media queries, hardware patterns, behavioral heuristics, and UA pattern fallback
+  - Provides confidence scores and detailed signal breakdown for transparency
+  - Handles edge cases like iPad desktop mode, touchscreen laptops, and Android tablets
+  - Maintains full backward compatibility with existing fingerprints
+
 ### Changed
 - **Bowser**: Updated integrated Bowser browser detection to version 2.13.1
 

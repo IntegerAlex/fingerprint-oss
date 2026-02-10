@@ -127,6 +127,7 @@ Fingerprint OSS can collect information about:
 
 - Browser type and version
 - Operating system
+- Device type (mobile, tablet, desktop, TV)
 - Screen resolution
 - Installed plugins
 - Language settings
