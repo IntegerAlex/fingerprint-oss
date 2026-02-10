@@ -7,6 +7,8 @@
  *
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
+import type { DeviceTypeInfo } from './deviceType.js';
+
 // Add WebKit FileSystem types
 declare global {
  interface Navigator {
@@ -53,20 +55,6 @@ export interface BraveInfo {
     };
     userAgent: string;
     brands: string[];
-}
-
-export interface DeviceTypeSignal {
-    name: string;
-    value: any;
-    weight: number;
-    detected: boolean;
-}
-
-export interface DeviceTypeInfo {
-    type: 'mobile' | 'tablet' | 'desktop' | 'tv' | 'unknown';
-    confidence: number;
-    signals: DeviceTypeSignal[];
-    method: string;
 }
 
 export interface SystemInfo {	

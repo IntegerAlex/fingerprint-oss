@@ -426,8 +426,8 @@ function resolveDeviceType(
     const [topType, topScore] = entries[0];
     const [, runnerUp] = entries[1];
 
-    // If all scores are zero fallback to unknown
-    if (topScore === 0) {
+    // If scores are zero or negative, fallback to unknown
+    if (topScore <= 0) {
         return { type: 'unknown', confidence: 0.3 };
     }
 
