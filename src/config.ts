@@ -32,6 +32,46 @@ export interface FingerprintConfig {
     enableConsoleLogging: boolean;
     /** Enable performance metrics logging */
     enablePerformanceLogging: boolean;
+    /** Geolocation timeout in milliseconds */
+    geoTimeout?: number;
+    /** Runtime preset profile */
+    preset?: 'default' | 'minimal';
+    /** Skip heavy collectors for minimal compute */
+    skipCanvasFingerprint?: boolean;
+    skipAudioFingerprint?: boolean;
+    skipWebGLFingerprint?: boolean;
+    reduceFontDetection?: boolean;
+    skipGeolocation?: boolean;
+}
+
+/**
+ * User-facing config accepted by userInfo().
+ */
+export interface UserInfoConfigInput {
+    transparency?: boolean;
+    message?: string;
+    environment?: Environment;
+    verbose?: boolean;
+    logLevel?: LogLevel;
+    enableConsoleLogging?: boolean;
+    enablePerformanceLogging?: boolean;
+    geoTimeout?: number;
+    preset?: 'default' | 'minimal';
+    strictConfig?: boolean;
+    telemetry?: {
+        enabled?: boolean;
+        serviceName?: string;
+        serviceVersion?: string;
+        endpoint?: string;
+        sampleRate?: number;
+        debug?: boolean;
+    };
+}
+
+export interface UserInfoValidationResult {
+    normalizedConfig: UserInfoConfigInput;
+    warnings: string[];
+    errors: string[];
 }
 
 /**
@@ -64,7 +104,9 @@ const DEFAULT_CONFIGS: Record<Environment, Partial<FingerprintConfig>> = {
         logLevel: 'error',
         enableConsoleLogging: false,
         enablePerformanceLogging: false,
-        transparency: false
+        transparency: false,
+        geoTimeout: 6000,
+        preset: 'default'
     }
 };
 
@@ -134,11 +176,119 @@ export function initializeConfig(customConfig?: Partial<FingerprintConfig>): Fin
         logLevel: 'error',
         enableConsoleLogging: false,
         enablePerformanceLogging: false,
+        geoTimeout: 6000,
+        preset: 'default',
+        skipCanvasFingerprint: false,
+        skipAudioFingerprint: false,
+        skipWebGLFingerprint: false,
+        reduceFontDetection: false,
+        skipGeolocation: false,
         ...defaultConfig,
         ...customConfig
     };
     
     return currentConfig;
+}
+
+/**
+ * Applies the minimal preset flags used to reduce client compute.
+ */
+export function applyPresetMinimal(config: UserInfoConfigInput): UserInfoConfigInput {
+    return {
+        ...config,
+        preset: 'minimal',
+        geoTimeout: Math.min(typeof config.geoTimeout === 'number' ? config.geoTimeout : 3000, 3000)
+    };
+}
+
+function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
+    if (typeof value !== 'number' || Number.isNaN(value) || !Number.isFinite(value)) return fallback;
+    return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * Lightweight validator for userInfo configuration.
+ *
+ * This normalizes primitives, clamps numeric ranges, and reports warnings/errors
+ * without adding expensive runtime work.
+ */
+export function validateUserInfoConfig(config: UserInfoConfigInput = {}): UserInfoValidationResult {
+    const warnings: string[] = [];
+    const errors: string[] = [];
+    const strictConfig = config.strictConfig === true;
+
+    const allowedKeys = new Set([
+        'transparency',
+        'message',
+        'environment',
+        'verbose',
+        'logLevel',
+        'enableConsoleLogging',
+        'enablePerformanceLogging',
+        'geoTimeout',
+        'preset',
+        'strictConfig',
+        'telemetry'
+    ]);
+
+    for (const key of Object.keys(config)) {
+        if (!allowedKeys.has(key)) {
+            const message = `Unknown config key "${key}"`;
+            if (strictConfig) {
+                errors.push(message);
+            } else {
+                warnings.push(message);
+            }
+        }
+    }
+
+    const normalized: UserInfoConfigInput = {
+        transparency: typeof config.transparency === 'boolean' ? config.transparency : undefined,
+        message: typeof config.message === 'string' ? config.message : undefined,
+        environment:
+            config.environment === 'TEST' || config.environment === 'DEV' || config.environment === 'STAGING' || config.environment === 'PROD'
+                ? config.environment
+                : undefined,
+        verbose: typeof config.verbose === 'boolean' ? config.verbose : undefined,
+        logLevel:
+            config.logLevel === 'error' || config.logLevel === 'warn' || config.logLevel === 'info' || config.logLevel === 'verbose' || config.logLevel === 'debug'
+                ? config.logLevel
+                : undefined,
+        enableConsoleLogging: typeof config.enableConsoleLogging === 'boolean' ? config.enableConsoleLogging : undefined,
+        enablePerformanceLogging: typeof config.enablePerformanceLogging === 'boolean' ? config.enablePerformanceLogging : undefined,
+        geoTimeout: clampNumber(config.geoTimeout, 1000, 20000, 6000),
+        preset: config.preset === 'minimal' ? 'minimal' : 'default',
+        strictConfig
+    };
+
+    if (config.message != null && typeof config.message !== 'string') {
+        warnings.push('Invalid "message" type; expected string');
+    }
+    if (config.environment != null && normalized.environment == null) {
+        warnings.push('Invalid "environment"; expected TEST|DEV|STAGING|PROD');
+    }
+    if (config.logLevel != null && normalized.logLevel == null) {
+        warnings.push('Invalid "logLevel"; expected error|warn|info|verbose|debug');
+    }
+    if (typeof config.geoTimeout === 'number' && config.geoTimeout !== normalized.geoTimeout) {
+        warnings.push(`"geoTimeout" clamped to ${normalized.geoTimeout}ms`);
+    }
+
+    if (config.telemetry && typeof config.telemetry === 'object') {
+        const telemetry = { ...config.telemetry } as NonNullable<UserInfoConfigInput['telemetry']>;
+        if (telemetry.sampleRate != null) {
+            telemetry.sampleRate = clampNumber(telemetry.sampleRate, 0, 1, 0.1);
+        }
+        normalized.telemetry = telemetry;
+    } else if (config.telemetry != null) {
+        warnings.push('Invalid "telemetry" type; expected object');
+    }
+
+    if (normalized.preset === 'minimal') {
+        Object.assign(normalized, applyPresetMinimal(normalized));
+    }
+
+    return { normalizedConfig: normalized, warnings, errors };
 }
 
 /**

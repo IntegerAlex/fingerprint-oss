@@ -156,6 +156,13 @@ export interface FingerprintConfig {
     logLevel: LogLevel;
     enableConsoleLogging: boolean;
     enablePerformanceLogging: boolean;
+    geoTimeout?: number;
+    preset?: 'default' | 'minimal';
+    skipCanvasFingerprint?: boolean;
+    skipAudioFingerprint?: boolean;
+    skipWebGLFingerprint?: boolean;
+    reduceFontDetection?: boolean;
+    skipGeolocation?: boolean;
 }
 
 export interface UserInfoConfig {
@@ -169,4 +176,10 @@ export interface UserInfoConfig {
     logLevel?: LogLevel;
     enableConsoleLogging?: boolean;
     enablePerformanceLogging?: boolean;
+    /** Geolocation request timeout in milliseconds */
+    geoTimeout?: number;
+    /** Preset profile to tune client compute cost */
+    preset?: 'default' | 'minimal';
+    /** If true, unknown config keys are treated as validation errors */
+    strictConfig?: boolean;
 }

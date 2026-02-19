@@ -12,7 +12,7 @@
  */
 import { sha256 } from 'hash-wasm';
 import { FontPreferencesInfo , MathInfo, PluginInfo, MimeType , TouchSupportInfo, WebGLInfo, CanvasInfo } from './types';
-import { StructuredLogger } from './config';
+import { StructuredLogger, getConfig } from './config';
 
 /**
  * Get color gamut of the device
@@ -33,6 +33,9 @@ export function getColorGamut(): string {
  * @returns A numeric fingerprint representing the device's audio profile, or `null` if fingerprinting fails.
  */
 export async function getAudioFingerprint(): Promise<number | null> {
+    if (getConfig().skipAudioFingerprint) {
+        return null;
+    }
     try {
         // Safety check for window and audio context availability
         if (typeof window === 'undefined' || (!window.AudioContext && !(window as any).webkitAudioContext)) {
@@ -139,6 +142,9 @@ export function isIndexedDBEnabled(): boolean {
  * @returns A Promise that resolves to an object containing the WebGL vendor, renderer, and an imageHash representing the rendered scene. If WebGL is unavailable or an error occurs, the imageHash will contain an error string.
  */
 export async function getWebGLInfo(): Promise<WebGLInfo> {
+    if (getConfig().skipWebGLFingerprint) {
+        return { vendor: 'skipped', renderer: 'skipped', imageHash: 'minimal_preset' };
+    }
     let vendor = 'unknown';
     let renderer = 'unknown';
     let imageHash: string | null = null;
@@ -273,6 +279,9 @@ export async function getWebGLInfo(): Promise<WebGLInfo> {
  * @returns An object containing the winding rule support, a data URL of the rendered canvas, and the font used.
  */
 export function getCanvasFingerprint(): CanvasInfo {
+    if (getConfig().skipCanvasFingerprint) {
+        return { winding: false, geometry: '', text: '' };
+    }
     try {
         // Safety check for DOM availability
         if (typeof document === 'undefined' || !document.createElement) {
@@ -376,6 +385,9 @@ export function getMathFingerprint(): MathInfo {
  * @returns An object containing the sorted array of detected font names under `detectedFonts`.
  */
 export function getFontPreferences(): FontPreferencesInfo {
+    if (getConfig().reduceFontDetection) {
+        return { detectedFonts: [] };
+    }
     const fontList = [
         // Common Windows fonts
         'Arial', 'Arial Black', 'Calibri', 'Cambria', 'Candara', 'Comic Sans MS', 'Consolas', 'Constantia', 

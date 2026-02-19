@@ -110,7 +110,7 @@ const RELEASE_HISTORY = [
 ];
 
 const FUTURE_ROADMAP = [
-  { version: "0.9.5", theme: "Robustness & DX", focus: ["Config validation", "Structured errors", "Geo timeout", "Minimal preset"] },
+  { version: "0.9.5", theme: "Robustness & DX", focus: ["Config validation", "Structured errors", "Geo timeout", "Low-compute minimal preset"] },
   { version: "0.9.6", theme: "Config & Extensibility", focus: ["Custom geo endpoint", "Feature flags", "Plugin hooks", "Lazy loading"] },
   { version: "0.9.7", theme: "Advanced & Hardening", focus: ["Connection type", "CSP-friendly", "SRI hashes", "Pre-1.0 audit"] },
 ];

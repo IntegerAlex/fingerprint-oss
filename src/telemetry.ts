@@ -251,6 +251,7 @@ class TelemetryManager {
             span.setAttributes({
                 'error.name': error.name,
                 'error.type': error.constructor.name,
+                'error.code': (error as any)?.code || 'UNKNOWN',
                 ...attributes
             });
             span.setStatus({ 
@@ -317,6 +318,7 @@ class TelemetryManager {
             this.incrementCounter('errors', 1, {
                 'error.name': error.name,
                 'error.type': error.constructor.name,
+                'error.code': (error as any)?.code || 'UNKNOWN',
                 ...context
             });
 

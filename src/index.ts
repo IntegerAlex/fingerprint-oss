@@ -19,6 +19,7 @@ import { detectIncognito } from './incognito';
 import { detectAdBlockers } from './adblocker';
 import { getVpnStatus } from './vpn';
 import { Telemetry, TelemetryConfig, withTelemetry } from './telemetry';
+import { FingerprintError, toFingerprintError } from './errors';
 import { 
     getColorGamut, 
     getVendorFlavors, 
@@ -41,6 +42,7 @@ import {
     updateConfig, 
     detectEnvironment, 
     isVerboseEnabled,
+    validateUserInfoConfig,
     StructuredLogger,
     PerformanceTimer
 } from './config';
@@ -115,15 +117,33 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
 async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig } = {}) {
+    const validation = validateUserInfoConfig(config);
+    const normalizedConfig = validation.normalizedConfig as UserInfoConfig & { telemetry?: TelemetryConfig };
+    const runtimeWarnings: string[] = [...validation.warnings];
+    if (normalizedConfig.preset === 'minimal') {
+        runtimeWarnings.push('Minimal preset enabled: heavy collectors are skipped to reduce client compute');
+    }
+    if (validation.errors.length > 0) {
+        throw new FingerprintError('CONFIG_INVALID', `Invalid configuration: ${validation.errors.join('; ')}`, {
+            details: validation.errors
+        });
+    }
+
     // Always initialize configuration with provided options (initializeConfig handles undefined gracefully)
     initializeConfig({
-        environment: config.environment,
-        verbose: config.verbose,
-        logLevel: config.logLevel,
-        enableConsoleLogging: config.enableConsoleLogging,
-        enablePerformanceLogging: config.enablePerformanceLogging,
-        transparency: config.transparency,
-        message: config.message
+        environment: normalizedConfig.environment,
+        verbose: normalizedConfig.verbose,
+        logLevel: normalizedConfig.logLevel,
+        enableConsoleLogging: normalizedConfig.enableConsoleLogging,
+        enablePerformanceLogging: normalizedConfig.enablePerformanceLogging,
+        transparency: normalizedConfig.transparency,
+        message: normalizedConfig.message,
+        geoTimeout: normalizedConfig.geoTimeout,
+        preset: normalizedConfig.preset,
+        skipCanvasFingerprint: normalizedConfig.preset === 'minimal',
+        skipAudioFingerprint: normalizedConfig.preset === 'minimal',
+        skipWebGLFingerprint: normalizedConfig.preset === 'minimal',
+        reduceFontDetection: normalizedConfig.preset === 'minimal'
     });
     
     const currentConfig = getConfig();
@@ -134,34 +154,43 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
         
         try {
             // Initialize telemetry if configuration is provided
-            if (config.telemetry) {
-                Telemetry.initialize(config.telemetry);
+            if (normalizedConfig.telemetry) {
+                Telemetry.initialize(normalizedConfig.telemetry);
             }
             
             // Start telemetry span for this operation
             span = Telemetry.startSpan('userInfo', {
                 'operation.type': 'fingerprint_collection',
-                'config.transparency': config.transparency || false,
-                'config.telemetry.enabled': config.telemetry?.enabled || false,
+                'config.transparency': normalizedConfig.transparency || false,
+                'config.telemetry.enabled': normalizedConfig.telemetry?.enabled || false,
                 'config.environment': currentConfig.environment
             });
 
             // Parallel data fetching with block logging
             // Note: fetchGeolocationInfo already has internal logBlock, so we don't wrap it again
-            const [systemInfo, geoInfo] = await Promise.all([
-                StructuredLogger.logBlock('getSystemInfo', 'System information collection', () => getSystemInfo()),
-                fetchGeolocationInfo()
-            ]);
+            let systemInfo: any;
+            let geoInfo: any;
+            try {
+                [systemInfo, geoInfo] = await Promise.all([
+                    StructuredLogger.logBlock('getSystemInfo', 'System information collection', () => getSystemInfo()),
+                    fetchGeolocationInfo({
+                        timeoutMs: normalizedConfig.geoTimeout,
+                        onWarning: (warning) => runtimeWarnings.push(warning)
+                    })
+                ]);
+            } catch (fetchError) {
+                throw toFingerprintError(fetchError, 'SYSTEM_INFO_FAILED', 'System information collection failed');
+            }
 
             // Handle transparency logging with config-aware console logging
-            if (config.transparency) {
-                const message = config.message || 'the software is gathering system data';
+            if (normalizedConfig.transparency) {
+                const message = normalizedConfig.message || 'the software is gathering system data';
                 if (currentConfig.enableConsoleLogging) {
                     StructuredLogger.info('TRANSPARENCY', `© fingerprint-oss ${message}`);
                 }
                 Toast.show(`© fingerprint-oss ${message}`);
-            } else if (config.message) {
-                Toast.show(`© fingerprint-oss ${config.message}`);
+            } else if (normalizedConfig.message) {
+                Toast.show(`© fingerprint-oss ${normalizedConfig.message}`);
             }
 
             const result = await StructuredLogger.logBlock('generateJSON', 'JSON generation', () => 
@@ -187,18 +216,23 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'execution.time': executionTime
             });
 
+            if (runtimeWarnings.length > 0) {
+                return { ...result, warnings: runtimeWarnings };
+            }
             return result;
         } catch (error) {
-            StructuredLogger.error('userInfo', 'Data collection error', error);
+            const fingerprintError = toFingerprintError(error, 'UNKNOWN', 'Data collection failed');
+            StructuredLogger.error('userInfo', `Data collection error [${fingerprintError.code}]`, fingerprintError);
             
             // Record error in telemetry
             const executionTime = Date.now() - startTime;
-            Telemetry.recordError(error as Error, {
+            Telemetry.recordError(fingerprintError, {
                 'function.name': 'userInfo',
-                'execution.time': executionTime
+                'execution.time': executionTime,
+                'error.code': fingerprintError.code
             });
             Telemetry.recordFunctionCall('userInfo', executionTime, false);
-            Telemetry.endSpanWithError(span, error as Error);
+            Telemetry.endSpanWithError(span, fingerprintError, { 'error.code': fingerprintError.code });
 
             // Get fallback data - use mock directly to avoid potential infinite loop
             const mockSystem = getMockSystemInfo();
@@ -220,6 +254,9 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'data.source': 'fallback'
             });
 
+            if (runtimeWarnings.length > 0) {
+                return { ...fallbackResult, warnings: runtimeWarnings };
+            }
             return fallbackResult;
         }
     });
@@ -321,6 +358,8 @@ export { detectAdBlockers } from './adblocker';
 export { getVpnStatus } from './vpn';
 export { detectDeviceType } from './deviceType';
 export type { DeviceTypeInfo, DeviceTypeSignal } from './deviceType';
+export { FingerprintError, toFingerprintError } from './errors';
+export type { FingerprintErrorCode } from './errors';
 
 export {
     getColorGamut,

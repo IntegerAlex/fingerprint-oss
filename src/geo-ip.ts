@@ -8,6 +8,7 @@
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
 import { StructuredLogger } from './config.js';
+import { FingerprintError, toFingerprintError } from './errors.js';
 
 // DEPRECATED: PROXY_API_KEY is no longer used
 // @deprecated PROXY_API_KEY - Authentication has been removed from the proxy server
@@ -157,6 +158,11 @@ export interface GeolocationInfo {
     };
 }
 
+export interface GeoFetchOptions {
+    timeoutMs?: number;
+    onWarning?: (warning: string) => void;
+}
+
 /**
  * Get mock geolocation data for fallback scenarios
  */
@@ -199,18 +205,48 @@ export function getMockGeolocationData(): GeolocationInfo {
  * Always returns valid GeolocationInfo data, falling back to mock data if needed.
  * @returns Geolocation information (never null)
  */
-export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
+export async function fetchGeolocationInfo(options: GeoFetchOptions = {}): Promise<GeolocationInfo> {
     return StructuredLogger.logBlock('fetchGeolocationInfo', 'Geolocation information fetch', async () => {
+        const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 6000;
+        const onWarning = options.onWarning;
         try {
             // DEPRECATED: API key authentication has been removed
             // The x-api-key header is no longer sent or required
             // @deprecated x-api-key header - No longer used
-            const response = await fetch(GEOIP_URL, {
-                method: 'GET'
-                // Removed: headers with x-api-key (deprecated)
-            });
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timeout = setTimeout(() => {
+                if (controller) {
+                    controller.abort();
+                }
+            }, timeoutMs);
+
+            let response: Response;
+            try {
+                response = await fetch(GEOIP_URL, {
+                    method: 'GET',
+                    signal: controller?.signal
+                    // Removed: headers with x-api-key (deprecated)
+                });
+            } catch (fetchError) {
+                const normalizedError = toFingerprintError(fetchError, 'GEO_FAILED', 'Geolocation fetch failed');
+                if ((fetchError as any)?.name === 'AbortError') {
+                    const timeoutError = new FingerprintError('GEO_TIMEOUT', `Geolocation request timed out after ${timeoutMs}ms`, {
+                        cause: fetchError
+                    });
+                    onWarning?.(timeoutError.message);
+                    StructuredLogger.warn('fetchGeolocationInfo', `${timeoutError.message}, using mock data`, timeoutError);
+                    return getMockGeolocationData();
+                }
+
+                onWarning?.('Geolocation request failed, using mock data');
+                StructuredLogger.warn('fetchGeolocationInfo', 'Error fetching geolocation information, using mock data', normalizedError);
+                return getMockGeolocationData();
+            } finally {
+                clearTimeout(timeout);
+            }
 
             if (!response.ok) {
+                onWarning?.(`Geolocation API request failed (${response.status}), using mock data`);
                 StructuredLogger.warn('fetchGeolocationInfo', `Geolocation API request failed: ${response.statusText}, using mock data`);
                 return getMockGeolocationData();
             }
@@ -219,6 +255,7 @@ export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
             
             // Validate and structure the response
             if (!data || typeof data !== 'object') {
+                onWarning?.('Invalid geolocation API response, using mock data');
                 StructuredLogger.warn('fetchGeolocationInfo', 'Invalid API response, using mock data');
                 return getMockGeolocationData();
             }
@@ -228,6 +265,7 @@ export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
 
             // If no valid IP found, return mock data
             if (!ipInfo.ip && !ipInfo.ipv4 && !ipInfo.ipv6) {
+                onWarning?.('No valid IP address in geolocation response, using mock data');
                 StructuredLogger.warn('fetchGeolocationInfo', 'No valid IP address found in response, using mock data');
                 return getMockGeolocationData();
             }
@@ -264,7 +302,9 @@ export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
                 }
             };
         } catch (error) {
-            StructuredLogger.warn('fetchGeolocationInfo', 'Error fetching geolocation information, using mock data', error);
+            const normalizedError = toFingerprintError(error, 'GEO_FAILED', 'Error fetching geolocation information');
+            onWarning?.('Error fetching geolocation information, using mock data');
+            StructuredLogger.warn('fetchGeolocationInfo', 'Error fetching geolocation information, using mock data', normalizedError);
             return getMockGeolocationData();
         }
     });
