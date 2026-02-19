@@ -8,14 +8,14 @@ export default [
   {
     input: 'src/index.ts',
     output: [
-      { file: 'dist/index.cjs.js', format: 'cjs', sourcemap: true, plugins: [terser()], inlineDynamicImports: true },
-      { file: 'dist/index.esm.js', format: 'esm', sourcemap: true, plugins: [terser()], inlineDynamicImports: true },
+      { file: 'dist/index.cjs.js', format: 'cjs', sourcemap: false, plugins: [terser()], inlineDynamicImports: true },
+      { file: 'dist/index.esm.js', format: 'esm', sourcemap: false, plugins: [terser()], inlineDynamicImports: true },
       {
         file: 'dist/index.min.js',
         format: 'umd',
         name: 'fingerprintOss', // UMD name, corrected to camelCase
         plugins: [terser()],
-        sourcemap: true,
+        sourcemap: false,
         inlineDynamicImports: true,
         globals: { // Required if any external deps are not bundled for UMD
           // Example: 'hash-wasm': 'hashWasm' 
