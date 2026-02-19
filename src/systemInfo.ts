@@ -15,6 +15,7 @@ import { getBrowserInfo } from './browserDetection.js';
 import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo, estimateCores} from './helper.js';
 import { detectDeviceType } from './deviceType.js';
 import { StructuredLogger } from './config.js';
+import { getConfig } from './config.js';
 /**
  * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
  *
@@ -166,6 +167,9 @@ export async function getSystemInfo(): Promise<SystemInfo> {
     }
 
     return StructuredLogger.logBlock('getSystemInfo', 'System information collection', async () => {
+        const runtimeConfig = getConfig();
+        const minimalPreset = runtimeConfig.preset === 'minimal';
+
         // Get bot detection results
         const botInfo = detectBot();
 
@@ -198,12 +202,12 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         touchSupport: getTouchSupportInfo(),
             
             // Hardware
-            hardwareConcurrency: await estimateCores(),
+            hardwareConcurrency: minimalPreset ? (navigator.hardwareConcurrency || 4) : await estimateCores(),
             deviceMemory: (navigator as any).deviceMemory,
         os: getOSInfo(),
             
             // Audio capabilities
-            audio: await getAudioFingerprint(),
+            audio: runtimeConfig.skipAudioFingerprint ? null : await getAudioFingerprint(),
             
             // Browser features
             localStorage: isLocalStorageEnabled(),
@@ -211,8 +215,12 @@ export async function getSystemInfo(): Promise<SystemInfo> {
             indexedDB: isIndexedDBEnabled(),
             
             // Graphics & Canvas
-            webGL: await getWebGLInfo(), // getWebGLInfo is now async
-            canvas: getCanvasFingerprint(),
+            webGL: runtimeConfig.skipWebGLFingerprint
+                ? { vendor: 'skipped', renderer: 'skipped', imageHash: 'minimal_preset' }
+                : await getWebGLInfo(), // getWebGLInfo is now async
+            canvas: runtimeConfig.skipCanvasFingerprint
+                ? { winding: false, geometry: '', text: '' }
+                : getCanvasFingerprint(),
             
             // Plugins & MIME
             plugins: getPluginsInfo(),
@@ -226,7 +234,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
             
             // Additional features
             mathConstants: getMathFingerprint(),
-            fontPreferences: getFontPreferences(),
+            fontPreferences: runtimeConfig.reduceFontDetection ? { detectedFonts: [] } : getFontPreferences(),
             
             // Bot detection
             bot: {
