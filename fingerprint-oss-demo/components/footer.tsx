@@ -42,7 +42,7 @@ export default function Footer() {
         <div className="text-center md:text-right">
           <p className="text-muted-foreground text-sm">&copy; {new Date().getFullYear()} Global Open Source Softwares. All rights reserved.</p>
           <div className="mt-2">
-            <Link href="https://github.com/globalopensourcesoftwares" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="https://github.com/IntegerAlex" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               GitHub Profile
             </Link>
             <span className="mx-2 text-muted-foreground">|</span>
