@@ -2,6 +2,11 @@
 const nextConfig = {
   // Build optimization for OpenNext
   output: 'standalone',
+
+  // Serve llms.txt at root via API route
+  async rewrites() {
+    return [{ source: '/llms.txt', destination: '/api/llms' }]
+  },
   
   // Performance optimizations for Cloudflare Workers
   compress: true,
