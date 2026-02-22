@@ -49,6 +49,10 @@ export default function Footer() {
             <Link href="https://gossorg.in" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Enterprise Solution
             </Link>
+            <span className="mx-2 text-muted-foreground">|</span>
+            <Link href="/llms.txt" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              llms.txt
+            </Link>
           </div>
           <p className="text-muted-foreground text-sm mt-2">A product of <strong>Global Open Source Softwares (GOSS)</strong></p>
         </div>

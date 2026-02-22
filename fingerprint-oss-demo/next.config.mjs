@@ -63,7 +63,17 @@ const nextConfig = {
         },
       ],
     },
-    // API routes caching
+    // /api/llms: cacheable (static llms.txt content)
+    {
+      source: '/api/llms',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=3600, s-maxage=3600',
+        },
+      ],
+    },
+    // API routes: no-store by default
     {
       source: '/api/(.*)',
       headers: [

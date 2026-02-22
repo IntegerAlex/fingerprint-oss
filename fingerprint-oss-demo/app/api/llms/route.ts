@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { siteBaseUrl, siteInfo } from '@/lib/site'
+import { siteBaseUrl, siteInfo, siteWhatWeDo, siteHowToUse } from '@/lib/site'
 
 /** Prerender at build time so /llms.txt is static like sitemap and robots. */
 export const dynamic = 'force-static'
@@ -14,6 +14,20 @@ export async function GET() {
     `# ${siteInfo.name}`,
     '',
     `> ${siteInfo.description}`,
+    '',
+    '## What We Do',
+    '',
+    ...siteWhatWeDo.map((line) => `- ${line}`),
+    '',
+    '## How To Use',
+    '',
+    'Install the library:',
+    `\`\`\`\n${siteHowToUse.install}\n\`\`\``,
+    '',
+    'Basic usage in JavaScript/TypeScript:',
+    `\`\`\`\n${siteHowToUse.usage}\n\`\`\``,
+    '',
+    siteHowToUse.docs,
     '',
     '## Services',
     '',
@@ -43,7 +57,6 @@ export async function GET() {
     status: 200,
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
     },
   })
 }

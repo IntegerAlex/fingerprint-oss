@@ -27,3 +27,23 @@ export const siteInfo = {
   organization: 'Global Open Source Softwares (GOSS)',
   organizationUrl: 'https://gossorg.in',
 }
+
+/** What fingerprint-oss does: features and use cases for llms.txt. */
+export const siteWhatWeDo = [
+  'Browser fingerprinting: generate a stable visitor ID from device and browser signals.',
+  'Device detection: device type, OS, browser, screen resolution, and hardware hints.',
+  'Geolocation: approximate location (country/region) from IP when permitted.',
+  'VPN and proxy detection: flag likely VPN or proxy usage for fraud or analytics.',
+  'Canvas and WebGL fingerprinting: additional signals for uniqueness and bot detection.',
+  'Privacy-focused: runs client-side; no PII required; configurable transparency and data retention.',
+  'Use cases: fraud prevention, analytics, A/B testing, rate limiting, and anonymous visitor identification.',
+]
+
+/** How to use fingerprint-oss: install and basic API for llms.txt. */
+export const siteHowToUse = {
+  install: 'npm install fingerprint-oss@latest',
+  usage: `import userInfo from 'fingerprint-oss';
+const data = await userInfo({ transparency: true });
+// data: visitorId, device, location, vpn, canvas, webgl, etc.`,
+  docs: 'Full API and options: see the Live Demo and Installation Guide on the site.',
+}
