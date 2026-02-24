@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Config Validation**: Added lightweight `validateUserInfoConfig()` with normalization and warnings
+  - Supports validation for `environment`, `logLevel`, `geoTimeout`, and telemetry sample rate
+  - Supports `strictConfig` mode for rejecting unknown keys
+- **Structured Errors**: Added `FingerprintError` with typed codes
+  - Codes include: `CONFIG_INVALID`, `GEO_TIMEOUT`, `GEO_FAILED`, `SYSTEM_INFO_FAILED`, `HASH_FAILED`, `UNKNOWN`
+- **Geolocation Timeout**: Added `geoTimeout` support for geolocation fetch
+  - Uses low-overhead abort-based timeout handling
+  - Falls back gracefully to mock data and emits warning metadata
+- **Minimal Preset**: Added `preset: 'minimal'` for reduced client compute
+  - Skips heavy collectors (Canvas fingerprint, Audio fingerprint, WebGL image hash, full font detection)
+  - Uses shorter timeout behavior and surfaces runtime warnings
+- **Warnings Surface**: Added optional top-level `warnings?: string[]` in `userInfo()` output
+
+### Improved
+- **Telemetry Error Context**: Error metrics/spans now include structured error codes where available
+- **Performance Focus**: New validation and timeout logic designed with O(field-count) checks and single-timer geo timeout
+
 ## [0.9.4] - 2025-02-08
 
 ### Added

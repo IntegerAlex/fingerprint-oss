@@ -2,6 +2,11 @@
 const nextConfig = {
   // Build optimization for OpenNext
   output: 'standalone',
+
+  // Serve llms.txt at root via API route
+  async rewrites() {
+    return [{ source: '/llms.txt', destination: '/api/llms' }]
+  },
   
   // Performance optimizations for Cloudflare Workers
   compress: true,
@@ -58,7 +63,17 @@ const nextConfig = {
         },
       ],
     },
-    // API routes caching
+    // /api/llms: cacheable (static llms.txt content)
+    {
+      source: '/api/llms',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=3600, s-maxage=3600',
+        },
+      ],
+    },
+    // API routes: no-store by default
     {
       source: '/api/(.*)',
       headers: [
