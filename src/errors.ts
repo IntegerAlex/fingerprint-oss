@@ -38,4 +38,3 @@ export class FingerprintError extends Error {
         };
     }
 }
-
