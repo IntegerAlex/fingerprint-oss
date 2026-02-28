@@ -147,6 +147,7 @@ export interface PluginInfo {
 // Configuration system types for environment-aware logging
 export type Environment = 'TEST' | 'DEV' | 'STAGING' | 'PROD';
 export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
+export type FingerprintPreset = 'full' | 'minimal';
 
 export interface FingerprintConfig {
     environment: Environment;
@@ -156,6 +157,8 @@ export interface FingerprintConfig {
     logLevel: LogLevel;
     enableConsoleLogging: boolean;
     enablePerformanceLogging: boolean;
+    geoTimeout: number;
+    preset: FingerprintPreset;
 }
 
 export interface UserInfoConfig {
@@ -169,4 +172,20 @@ export interface UserInfoConfig {
     logLevel?: LogLevel;
     enableConsoleLogging?: boolean;
     enablePerformanceLogging?: boolean;
+
+    // Runtime controls
+    geoTimeout?: number;
+    preset?: FingerprintPreset;
+}
+
+export interface ResolvedUserInfoConfig {
+    environment: Environment;
+    verbose: boolean;
+    logLevel: LogLevel;
+    enableConsoleLogging: boolean;
+    enablePerformanceLogging: boolean;
+    transparency: boolean;
+    message?: string;
+    geoTimeout: number;
+    preset: FingerprintPreset;
 }

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5] - 2026-02-28
+
+### Added
+- **Configuration validation**: User-facing options are now validated and normalized with structured warnings surfaced through `userInfo` responses.
+- **Structured errors**: Introduced `FingerprintError` and `FingerprintWarning` for consistent error reporting and diagnostics.
+- **Configurable geolocation timeout**: Geolocation requests support configurable timeouts with AbortController-based cancellation and graceful fallback on timeout.
+- **Minimal preset**: New `preset: 'minimal'` reduces client compute by skipping heavy steps such as WebGL/canvas rendering, audio fingerprinting, and font scanning.
+
 ## [0.9.4] - 2025-02-08
 
 ### Added
