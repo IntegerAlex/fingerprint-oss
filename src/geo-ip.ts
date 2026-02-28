@@ -7,7 +7,8 @@
  *
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
-import { StructuredLogger } from './config.js';
+import { DEFAULT_GEO_TIMEOUT_MS, StructuredLogger } from './config.js';
+import { FingerprintWarning } from './errors.js';
 
 // DEPRECATED: PROXY_API_KEY is no longer used
 // @deprecated PROXY_API_KEY - Authentication has been removed from the proxy server
@@ -157,6 +158,11 @@ export interface GeolocationInfo {
     };
 }
 
+export interface GeolocationFetchOptions {
+    timeoutMs?: number;
+    onWarning?: (warning: FingerprintWarning) => void;
+}
+
 /**
  * Get mock geolocation data for fallback scenarios
  */
@@ -199,19 +205,29 @@ export function getMockGeolocationData(): GeolocationInfo {
  * Always returns valid GeolocationInfo data, falling back to mock data if needed.
  * @returns Geolocation information (never null)
  */
-export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
+export async function fetchGeolocationInfo(options: GeolocationFetchOptions = {}): Promise<GeolocationInfo> {
     return StructuredLogger.logBlock('fetchGeolocationInfo', 'Geolocation information fetch', async () => {
+        const timeoutMs = options.timeoutMs ?? DEFAULT_GEO_TIMEOUT_MS;
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+
         try {
             // DEPRECATED: API key authentication has been removed
             // The x-api-key header is no longer sent or required
             // @deprecated x-api-key header - No longer used
             const response = await fetch(GEOIP_URL, {
-                method: 'GET'
+                method: 'GET',
+                ...(controller ? { signal: controller.signal } : {})
                 // Removed: headers with x-api-key (deprecated)
             });
 
             if (!response.ok) {
                 StructuredLogger.warn('fetchGeolocationInfo', `Geolocation API request failed: ${response.statusText}, using mock data`);
+                options.onWarning?.({
+                    code: 'GEO_HTTP_ERROR',
+                    message: `Geolocation API responded with status ${response.status}`,
+                    details: { status: response.status, statusText: response.statusText }
+                });
                 return getMockGeolocationData();
             }
 
@@ -220,6 +236,10 @@ export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
             // Validate and structure the response
             if (!data || typeof data !== 'object') {
                 StructuredLogger.warn('fetchGeolocationInfo', 'Invalid API response, using mock data');
+                options.onWarning?.({
+                    code: 'GEO_INVALID_RESPONSE',
+                    message: 'Geolocation API returned invalid payload'
+                });
                 return getMockGeolocationData();
             }
 
@@ -229,6 +249,10 @@ export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
             // If no valid IP found, return mock data
             if (!ipInfo.ip && !ipInfo.ipv4 && !ipInfo.ipv6) {
                 StructuredLogger.warn('fetchGeolocationInfo', 'No valid IP address found in response, using mock data');
+                options.onWarning?.({
+                    code: 'GEO_INVALID_RESPONSE',
+                    message: 'Geolocation response missing valid IP address'
+                });
                 return getMockGeolocationData();
             }
 
@@ -263,10 +287,27 @@ export async function fetchGeolocationInfo(): Promise<GeolocationInfo> {
                     network: '192.168.1.0/24'
                 }
             };
-        } catch (error) {
-            StructuredLogger.warn('fetchGeolocationInfo', 'Error fetching geolocation information, using mock data', error);
+        } catch (error: any) {
+            if (error?.name === 'AbortError') {
+                StructuredLogger.warn('fetchGeolocationInfo', `Geolocation request timed out after ${timeoutMs}ms, using mock data`);
+                options.onWarning?.({
+                    code: 'GEO_TIMEOUT',
+                    message: 'Geolocation request timed out',
+                    details: { timeoutMs }
+                });
+            } else {
+                StructuredLogger.warn('fetchGeolocationInfo', 'Error fetching geolocation information, using mock data', error);
+                options.onWarning?.({
+                    code: 'GEO_FETCH_FAILED',
+                    message: 'Geolocation request failed',
+                    details: { error: error?.message || String(error) }
+                });
+            }
             return getMockGeolocationData();
+        } finally {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
         }
     });
 }
-

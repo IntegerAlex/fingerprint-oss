@@ -42,8 +42,10 @@ import {
     detectEnvironment, 
     isVerboseEnabled,
     StructuredLogger,
-    PerformanceTimer
+    PerformanceTimer,
+    DEFAULT_GEO_TIMEOUT_MS
 } from './config';
+import { FingerprintError, FingerprintWarning } from './errors';
 import type { UserInfoConfig } from './types';
 
 // Note: All individual functions are available as properties of the default export
@@ -98,6 +100,19 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
     return Math.max(0.1, Math.min(0.9, confidence));
 }
 
+function normalizeError(error: unknown): FingerprintError {
+    if (error instanceof FingerprintError) {
+        return error;
+    }
+    if (error instanceof Error) {
+        return new FingerprintError('UNKNOWN_ERROR', error.message, {
+            name: error.name,
+            stack: error.stack
+        });
+    }
+    return new FingerprintError('UNKNOWN_ERROR', 'Unknown error', { error });
+}
+
 /**
  * Retrieves user system and geolocation data concurrently, computes a confidence score, and returns a JSON object summarizing these details.
  *
@@ -115,6 +130,9 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
 async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig } = {}) {
+    const warnings: FingerprintWarning[] = [];
+    const addWarning = (warning: FingerprintWarning) => warnings.push(warning);
+
     // Always initialize configuration with provided options (initializeConfig handles undefined gracefully)
     initializeConfig({
         environment: config.environment,
@@ -123,8 +141,10 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
         enableConsoleLogging: config.enableConsoleLogging,
         enablePerformanceLogging: config.enablePerformanceLogging,
         transparency: config.transparency,
-        message: config.message
-    });
+        message: config.message,
+        geoTimeout: config.geoTimeout,
+        preset: config.preset
+    }, warnings);
     
     const currentConfig = getConfig();
     
@@ -143,14 +163,18 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'operation.type': 'fingerprint_collection',
                 'config.transparency': config.transparency || false,
                 'config.telemetry.enabled': config.telemetry?.enabled || false,
-                'config.environment': currentConfig.environment
+                'config.environment': currentConfig.environment,
+                'config.preset': currentConfig.preset
             });
 
             // Parallel data fetching with block logging
             // Note: fetchGeolocationInfo already has internal logBlock, so we don't wrap it again
             const [systemInfo, geoInfo] = await Promise.all([
-                StructuredLogger.logBlock('getSystemInfo', 'System information collection', () => getSystemInfo()),
-                fetchGeolocationInfo()
+                StructuredLogger.logBlock('getSystemInfo', 'System information collection', () => getSystemInfo({ preset: currentConfig.preset })),
+                fetchGeolocationInfo({
+                    timeoutMs: currentConfig.geoTimeout ?? DEFAULT_GEO_TIMEOUT_MS,
+                    onWarning: addWarning
+                })
             ]);
 
             // Handle transparency logging with config-aware console logging
@@ -171,6 +195,7 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                     calculateCombinedConfidence(systemInfo, geoInfo)
                 )
             );
+            const successResult = warnings.length ? { ...result, warnings } : result;
 
             // Record successful execution
             const executionTime = Date.now() - startTime;
@@ -187,9 +212,15 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'execution.time': executionTime
             });
 
-            return result;
+            return successResult;
         } catch (error) {
-            StructuredLogger.error('userInfo', 'Data collection error', error);
+            const structuredError = normalizeError(error);
+            addWarning({
+                code: structuredError.code,
+                message: structuredError.message,
+                details: structuredError.details
+            });
+            StructuredLogger.error('userInfo', 'Data collection error', structuredError);
             
             // Record error in telemetry
             const executionTime = Date.now() - startTime;
@@ -212,6 +243,7 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                     calculateCombinedConfidence(mockSystem, fallbackGeo)
                 )
             );
+            const finalFallback = warnings.length ? { ...fallbackResult, warnings } : fallbackResult;
 
             // Record fallback usage
             Telemetry.incrementCounter('function_calls', 1, {
@@ -220,7 +252,7 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'data.source': 'fallback'
             });
 
-            return fallbackResult;
+            return finalFallback;
         }
     });
 }
@@ -304,8 +336,12 @@ export type {
     FingerprintConfig, 
     UserInfoConfig, 
     Environment, 
-    LogLevel 
+    LogLevel,
+    FingerprintPreset,
+    ResolvedUserInfoConfig
 } from './types';
+export { FingerprintError } from './errors';
+export type { FingerprintWarning } from './errors';
 
 // Re-export core functions for named imports in consumers and tests
 export {
