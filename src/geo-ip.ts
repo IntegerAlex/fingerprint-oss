@@ -207,19 +207,40 @@ export function getMockGeolocationData(): GeolocationInfo {
  */
 export async function fetchGeolocationInfo(options: GeolocationFetchOptions = {}): Promise<GeolocationInfo> {
     return StructuredLogger.logBlock('fetchGeolocationInfo', 'Geolocation information fetch', async () => {
-        const timeoutMs = options.timeoutMs ?? DEFAULT_GEO_TIMEOUT_MS;
+        const MIN_TIMEOUT_MS = 100;
+        const rawTimeout = options.timeoutMs ?? DEFAULT_GEO_TIMEOUT_MS;
+        const timeoutMs = (Number.isFinite(rawTimeout) && rawTimeout >= MIN_TIMEOUT_MS)
+            ? rawTimeout
+            : DEFAULT_GEO_TIMEOUT_MS;
+        if (timeoutMs !== rawTimeout) {
+            StructuredLogger.warn('fetchGeolocationInfo', `Invalid timeoutMs value (${rawTimeout}), using default ${DEFAULT_GEO_TIMEOUT_MS}ms`);
+        }
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+
+        // Always enforce timeout via Promise.race; also abort the controller (if available)
+        // to cancel the underlying network request and free resources
+        const fetchWithTimeout = (fetchPromise: Promise<Response>): Promise<Response> => {
+            let fallbackId: ReturnType<typeof setTimeout> | null = null;
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                fallbackId = setTimeout(() => {
+                    controller?.abort();
+                    reject(Object.assign(new Error(`Geolocation request timed out after ${timeoutMs}ms`), { name: 'AbortError' }));
+                }, timeoutMs);
+            });
+            return Promise.race([fetchPromise, timeoutPromise]).finally(() => {
+                if (fallbackId) clearTimeout(fallbackId);
+            }) as Promise<Response>;
+        };
 
         try {
             // DEPRECATED: API key authentication has been removed
             // The x-api-key header is no longer sent or required
             // @deprecated x-api-key header - No longer used
-            const response = await fetch(GEOIP_URL, {
+            const response = await fetchWithTimeout(fetch(GEOIP_URL, {
                 method: 'GET',
                 ...(controller ? { signal: controller.signal } : {})
                 // Removed: headers with x-api-key (deprecated)
-            });
+            }));
 
             if (!response.ok) {
                 StructuredLogger.warn('fetchGeolocationInfo', `Geolocation API request failed: ${response.statusText}, using mock data`);
@@ -304,10 +325,6 @@ export async function fetchGeolocationInfo(options: GeolocationFetchOptions = {}
                 });
             }
             return getMockGeolocationData();
-        } finally {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
         }
     });
 }

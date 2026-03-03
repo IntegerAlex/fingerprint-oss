@@ -183,10 +183,10 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'config.preset': currentConfig.preset
             });
 
-            // Parallel data fetching with block logging
-            // Note: fetchGeolocationInfo already has internal logBlock, so we don't wrap it again
+            // Parallel data fetching
+            // Note: both getSystemInfo and fetchGeolocationInfo already have internal logBlocks
             const [systemInfo, geoInfo] = await Promise.all([
-                StructuredLogger.logBlock('getSystemInfo', 'System information collection', () => getSystemInfo({ preset: currentConfig.preset })),
+                getSystemInfo({ preset: currentConfig.preset }),
                 fetchGeolocationInfo({
                     timeoutMs: currentConfig.geoTimeout ?? DEFAULT_GEO_TIMEOUT_MS,
                     onWarning: addWarning
