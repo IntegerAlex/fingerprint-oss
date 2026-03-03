@@ -210,31 +210,31 @@ export function initializeConfig(customConfig?: Partial<FingerprintConfig>, warn
         verbose: normalizeBoolean(
             customConfig?.verbose ?? defaultConfig.verbose ?? false,
             'verbose',
-            false,
+            defaultConfig.verbose ?? false,
             warnings
         ),
         transparency: normalizeBoolean(
             customConfig?.transparency ?? defaultConfig.transparency ?? false,
             'transparency',
-            false,
+            defaultConfig.transparency ?? false,
             warnings
         ),
         message: normalizeMessage(customConfig?.message ?? defaultConfig.message, warnings),
         logLevel: normalizeLogLevel(
             customConfig?.logLevel ?? defaultConfig.logLevel ?? 'error',
-            'error',
+            defaultConfig.logLevel ?? 'error',
             warnings
         ),
         enableConsoleLogging: normalizeBoolean(
             customConfig?.enableConsoleLogging ?? defaultConfig.enableConsoleLogging ?? false,
             'enableConsoleLogging',
-            false,
+            defaultConfig.enableConsoleLogging ?? false,
             warnings
         ),
         enablePerformanceLogging: normalizeBoolean(
             customConfig?.enablePerformanceLogging ?? defaultConfig.enablePerformanceLogging ?? false,
             'enablePerformanceLogging',
-            false,
+            defaultConfig.enablePerformanceLogging ?? false,
             warnings
         ),
         geoTimeout: normalizeTimeout(
