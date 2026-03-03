@@ -104,13 +104,29 @@ function normalizeError(error: unknown): FingerprintError {
     if (error instanceof FingerprintError) {
         return error;
     }
+
+    // Only include detailed/internal error information (like stack traces)
+    // when running in a non-production environment or when verbose logging
+    // is explicitly enabled. This prevents leaking internal implementation
+    // details via user-facing warnings in production.
+    const env = detectEnvironment();
+    const includeInternalDetails =
+        isVerboseEnabled() || env === 'DEV' || env === 'TEST';
+
     if (error instanceof Error) {
-        return new FingerprintError('UNKNOWN_ERROR', error.message, {
+        const details: Record<string, unknown> = {
             name: error.name,
-            stack: error.stack
-        });
+        };
+
+        if (includeInternalDetails && error.stack) {
+            details.stack = error.stack;
+        }
+
+        return new FingerprintError('UNKNOWN_ERROR', error.message, details);
     }
-    return new FingerprintError('UNKNOWN_ERROR', 'Unknown error', { error });
+
+    const fallbackDetails = includeInternalDetails ? { error } : {};
+    return new FingerprintError('UNKNOWN_ERROR', 'Unknown error', fallbackDetails);
 }
 
 /**
