@@ -201,9 +201,8 @@ export function detectEnvironment(): Environment {
  */
 export function initializeConfig(customConfig?: Partial<FingerprintConfig>, warnings: FingerprintWarning[] = []): FingerprintConfig {
     const detectedEnv = detectEnvironment();
-    const defaultConfig = DEFAULT_CONFIGS[detectedEnv];
-
     const environment = normalizeEnvironment(customConfig?.environment, detectedEnv, warnings);
+    const defaultConfig = DEFAULT_CONFIGS[environment];
 
     currentConfig = {
         environment,
