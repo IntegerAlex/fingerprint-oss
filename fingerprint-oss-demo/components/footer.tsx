@@ -22,6 +22,9 @@ export default function Footer() {
           <Link href="https://cloudflare.com" target="_blank">
             <Image src="/cloudflare.png" alt="Cloudflare Logo" width={160} height={40} className="h-10 w-auto ml-4" />
           </Link>
+          <Link href="https://macroscope.ai" target="_blank">
+            <Image src="/macroscope.svg" alt="Macroscope Logo" width={160} height={40} className="h-10 w-auto ml-4" />
+          </Link>
           <Link href="https://netlify.com" target="_blank">
             <Image src="/netlify-logo.png" alt="Netlify Logo" width={120} height={40} className="h-10 w-auto ml-4" />
           </Link>
