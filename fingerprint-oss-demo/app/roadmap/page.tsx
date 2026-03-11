@@ -6,7 +6,7 @@ import BackToTop from "@/components/back-to-top";
 
 export const metadata: Metadata = {
   title: "Roadmap | Fingerprint OSS",
-  description: "Fingerprint OSS roadmap, achievements, npm stats, and platform support. Backed by Cloudflare and Netlify.",
+  description: "Fingerprint OSS roadmap, achievements, npm stats, and platform support. Backed by Cloudflare, Macroscope, and Netlify.",
 };
 
 /**

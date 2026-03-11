@@ -29,6 +29,10 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
        alt="Cloudflare Logo"
        width="200"
        height="100">
+  <img src="assets/macroscope.svg"
+       alt="Macroscope Logo"
+       width="200"
+       height="100">
   <img src="assets/neon-logo.png"
        alt="Neon Logo"
        width="200"
