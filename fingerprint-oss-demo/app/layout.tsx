@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Fingerprint OSS Demo - Free Browser Fingerprinting Library",
     description:
-      "Experience fingerprint-oss in action! Free, open-source browser fingerprinting with device detection, geolocation, VPN detection, and visitor analytics. Backed by Cloudflare OSS.",
+      "Experience fingerprint-oss in action! Free, open-source browser fingerprinting with device detection, geolocation, VPN detection, and visitor analytics. Backed by Cloudflare OSS and Macroscope.",
     url: "https://fingerprint-oss.gossorg.in",
     siteName: "Fingerprint OSS Demo",
     images: [
