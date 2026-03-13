@@ -15,7 +15,6 @@ export type Environment = 'TEST' | 'DEV' | 'STAGING' | 'PROD';
  * Log levels for structured logging
  */
 export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
-export type FingerprintPreset = 'full' | 'minimal';
 
 export const DEFAULT_GEO_TIMEOUT_MS = 4500;
 const MIN_GEO_TIMEOUT_MS = 250;
@@ -41,8 +40,6 @@ export interface FingerprintConfig {
     enablePerformanceLogging: boolean;
     /** Timeout for geolocation requests (ms) */
     geoTimeout: number;
-    /** Preset for balancing fidelity vs. performance */
-    preset: FingerprintPreset;
 }
 
 /**
@@ -55,8 +52,7 @@ const DEFAULT_CONFIGS: Record<Environment, Partial<FingerprintConfig>> = {
         enableConsoleLogging: true,
         enablePerformanceLogging: true,
         transparency: true,
-        geoTimeout: DEFAULT_GEO_TIMEOUT_MS,
-        preset: 'full'
+        geoTimeout: DEFAULT_GEO_TIMEOUT_MS
     },
     DEV: {
         verbose: true,
@@ -64,8 +60,7 @@ const DEFAULT_CONFIGS: Record<Environment, Partial<FingerprintConfig>> = {
         enableConsoleLogging: true,
         enablePerformanceLogging: true,
         transparency: true,
-        geoTimeout: DEFAULT_GEO_TIMEOUT_MS,
-        preset: 'full'
+        geoTimeout: DEFAULT_GEO_TIMEOUT_MS
     },
     STAGING: {
         verbose: false,
@@ -73,8 +68,7 @@ const DEFAULT_CONFIGS: Record<Environment, Partial<FingerprintConfig>> = {
         enableConsoleLogging: true,
         enablePerformanceLogging: false,
         transparency: true,
-        geoTimeout: DEFAULT_GEO_TIMEOUT_MS,
-        preset: 'full'
+        geoTimeout: DEFAULT_GEO_TIMEOUT_MS
     },
     PROD: {
         verbose: false,
@@ -82,8 +76,7 @@ const DEFAULT_CONFIGS: Record<Environment, Partial<FingerprintConfig>> = {
         enableConsoleLogging: false,
         enablePerformanceLogging: false,
         transparency: false,
-        geoTimeout: DEFAULT_GEO_TIMEOUT_MS,
-        preset: 'full'
+        geoTimeout: DEFAULT_GEO_TIMEOUT_MS
     }
 };
 
@@ -127,13 +120,6 @@ function normalizeTimeout(value: any, fallback: number, warnings: FingerprintWar
         return value;
     }
     addConfigWarning(warnings, `geoTimeout must be a number >= ${MIN_GEO_TIMEOUT_MS}ms`, { value, fallback });
-    return fallback;
-}
-
-function normalizePreset(value: any, fallback: FingerprintPreset, warnings: FingerprintWarning[]): FingerprintPreset {
-    if (value === undefined) return fallback;
-    if (value === 'full' || value === 'minimal') return value;
-    addConfigWarning(warnings, `Invalid preset "${value}", using ${fallback}`, { value, fallback, allowed: ['full', 'minimal'] });
     return fallback;
 }
 
@@ -239,11 +225,6 @@ export function initializeConfig(customConfig?: Partial<FingerprintConfig>, warn
         geoTimeout: normalizeTimeout(
             customConfig?.geoTimeout ?? defaultConfig.geoTimeout ?? DEFAULT_GEO_TIMEOUT_MS,
             DEFAULT_GEO_TIMEOUT_MS,
-            warnings
-        ),
-        preset: normalizePreset(
-            customConfig?.preset ?? defaultConfig.preset ?? 'full',
-            'full',
             warnings
         )
     };

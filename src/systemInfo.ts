@@ -7,7 +7,7 @@
  *
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
-import { FingerprintPreset, SystemInfo} from './types.js';
+import { SystemInfo} from './types.js';
 import { detectIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
@@ -158,7 +158,7 @@ function calculateConfidenceScore(hasIncognito: boolean, botInfo: { isBot: boole
  *
  * @returns A promise that resolves to a SystemInfo object containing all collected system and browser details.
  */
-export async function getSystemInfo(options: { preset?: FingerprintPreset } = {}): Promise<SystemInfo> {
+export async function getSystemInfo(): Promise<SystemInfo> {
     // Check if we're in a browser environment
     if (typeof window === 'undefined') {
         StructuredLogger.verbose('getSystemInfo', 'Not in browser environment, returning mock data');
@@ -166,8 +166,6 @@ export async function getSystemInfo(options: { preset?: FingerprintPreset } = {}
     }
 
     return StructuredLogger.logBlock('getSystemInfo', 'System information collection', async () => {
-        const preset = options.preset === 'minimal' ? 'minimal' : 'full';
-        const isMinimal = preset === 'minimal';
         // Get bot detection results
         const botInfo = detectBot();
 
@@ -205,7 +203,7 @@ export async function getSystemInfo(options: { preset?: FingerprintPreset } = {}
         os: getOSInfo(),
             
             // Audio capabilities
-            audio: isMinimal ? null : await getAudioFingerprint(),
+            audio: await getAudioFingerprint(),
             
             // Browser features
             localStorage: isLocalStorageEnabled(),
@@ -213,11 +211,11 @@ export async function getSystemInfo(options: { preset?: FingerprintPreset } = {}
             indexedDB: isIndexedDBEnabled(),
             
             // Graphics & Canvas
-            webGL: isMinimal ? { vendor: 'skipped', renderer: 'skipped', imageHash: 'skipped' } : await getWebGLInfo(), // getWebGLInfo is now async
-            canvas: isMinimal ? { winding: false, geometry: 'skipped', text: 'skipped' } : getCanvasFingerprint(),
+            webGL: await getWebGLInfo(), // getWebGLInfo is now async
+            canvas: getCanvasFingerprint(),
             
             // Plugins & MIME
-            plugins: isMinimal ? [] : getPluginsInfo(),
+            plugins: getPluginsInfo(),
             
             // System
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -228,7 +226,7 @@ export async function getSystemInfo(options: { preset?: FingerprintPreset } = {}
             
             // Additional features
             mathConstants: getMathFingerprint(),
-            fontPreferences: isMinimal ? { detectedFonts: [] } : getFontPreferences(),
+            fontPreferences: getFontPreferences(),
             
             // Bot detection
             bot: {

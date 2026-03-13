@@ -158,8 +158,7 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
         enablePerformanceLogging: config.enablePerformanceLogging,
         transparency: config.transparency,
         message: config.message,
-        geoTimeout: config.geoTimeout,
-        preset: config.preset
+        geoTimeout: config.geoTimeout
     }, warnings);
     
     const currentConfig = getConfig();
@@ -179,14 +178,13 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'operation.type': 'fingerprint_collection',
                 'config.transparency': config.transparency || false,
                 'config.telemetry.enabled': config.telemetry?.enabled || false,
-                'config.environment': currentConfig.environment,
-                'config.preset': currentConfig.preset
+                'config.environment': currentConfig.environment
             });
 
             // Parallel data fetching
             // Note: both getSystemInfo and fetchGeolocationInfo already have internal logBlocks
             const [systemInfo, geoInfo] = await Promise.all([
-                getSystemInfo({ preset: currentConfig.preset }),
+                getSystemInfo(),
                 fetchGeolocationInfo({
                     timeoutMs: currentConfig.geoTimeout ?? DEFAULT_GEO_TIMEOUT_MS,
                     onWarning: addWarning
@@ -353,7 +351,6 @@ export type {
     UserInfoConfig, 
     Environment, 
     LogLevel,
-    FingerprintPreset,
     ResolvedUserInfoConfig
 } from './types';
 export { FingerprintError } from './errors';

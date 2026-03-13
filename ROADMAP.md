@@ -24,7 +24,6 @@ Planned releases and features for versions 0.9.5 through 0.9.7. Timeline and sco
 
 - **npm `exports` field** — Proper package exports for ESM, CJS, and types
 - **UMD global name** — Document and stabilize UMD bundle usage
-- **Minimal config preset** — `userInfo({ preset: 'minimal' })` for privacy-first, reduced data collection
 - **Integration tests** — Broader Cypress coverage for hash stability and cross-browser behavior
 
 ---
