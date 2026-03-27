@@ -19,8 +19,15 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Image src="/logo.png" alt="Logo" width={40} height={40} className="h-8 w-8" />
-            <Image src="/cloudflare.png" alt="Cloudflare Logo" width={120} height={40} className="h-8 w-auto ml-2" />
-            <Image src="/netlify-logo.png" alt="Netlify Logo" width={100} height={40} className="h-8 w-auto ml-2" />
+            <Link href="https://cloudflare.com" target="_blank" className="ml-2">
+              <Image src="/cloudflare.png" alt="Cloudflare Logo" width={120} height={40} className="h-8 w-auto" />
+            </Link>
+            <Link href="https://macroscope.com" target="_blank" className="ml-2">
+              <Image src="/macroscope.svg" alt="Macroscope Logo" width={120} height={40} className="h-8 w-auto" />
+            </Link>
+            <Link href="https://netlify.com" target="_blank" className="ml-2">
+              <Image src="/netlify-logo.png" alt="Netlify Logo" width={100} height={40} className="h-8 w-auto" />
+            </Link>
             <span className="ml-2 text-xl font-semibold text-foreground">Fingerprint OSS</span>
           </div>
           <div className="hidden md:flex space-x-6">
