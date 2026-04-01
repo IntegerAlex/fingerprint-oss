@@ -1,4 +1,4 @@
-import typescript from 'rollup-plugin-typescript2';
+import typescript from '@rollup/plugin-typescript';
 import terser from '@rollup/plugin-terser';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -24,9 +24,9 @@ export default [
       },
     ],
     plugins: [
+      typescript({ tsconfig: './tsconfig.json' }),
       nodeResolve({ browser: true }), // Resolve node modules, prioritize browser fields
       commonjs(), // Convert CommonJS modules to ES6
-      typescript({ tsconfig: './tsconfig.json', useTsconfigDeclarationDir: true }),
     ],
     external: [], // We want to bundle hash-wasm, so it shouldn't be external
   }
