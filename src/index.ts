@@ -238,12 +238,12 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
             
             // Record error in telemetry
             const executionTime = Date.now() - startTime;
-            Telemetry.recordError(error as Error, {
+            Telemetry.recordError(structuredError, {
                 'function.name': 'userInfo',
                 'execution.time': executionTime
             });
             Telemetry.recordFunctionCall('userInfo', executionTime, false);
-            Telemetry.endSpanWithError(span, error as Error);
+            Telemetry.endSpanWithError(span, structuredError);
 
             // Get fallback data - use mock directly to avoid potential infinite loop
             const mockSystem = getMockSystemInfo();
