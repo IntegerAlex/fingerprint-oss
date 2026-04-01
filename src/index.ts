@@ -259,13 +259,6 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
             );
             const finalFallback = warnings.length ? { ...fallbackResult, warnings } : fallbackResult;
 
-            // Record fallback usage
-            Telemetry.incrementCounter('function_calls', 1, {
-                'function.name': 'userInfo',
-                'function.success': true,
-                'data.source': 'fallback'
-            });
-
             return finalFallback;
         }
     });
