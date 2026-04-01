@@ -241,7 +241,7 @@ export default function Home() {
                 Backed by Cloudflare OSS, Macroscope, and Netlify Open Source
               </div>
               <span className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/10 text-primary text-sm font-medium py-1 px-3">
-                v0.9.4
+                v0.9.5
               </span>
             </div>
             <h1 className="text-5xl font-bold text-primary mb-4">
