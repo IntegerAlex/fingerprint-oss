@@ -156,6 +156,7 @@ export interface FingerprintConfig {
     logLevel: LogLevel;
     enableConsoleLogging: boolean;
     enablePerformanceLogging: boolean;
+    geoTimeout: number;
 }
 
 export interface UserInfoConfig {
@@ -169,4 +170,18 @@ export interface UserInfoConfig {
     logLevel?: LogLevel;
     enableConsoleLogging?: boolean;
     enablePerformanceLogging?: boolean;
+
+    // Runtime controls
+    geoTimeout?: number;
+}
+
+export interface ResolvedUserInfoConfig {
+    environment: Environment;
+    verbose: boolean;
+    logLevel: LogLevel;
+    enableConsoleLogging: boolean;
+    enablePerformanceLogging: boolean;
+    transparency: boolean;
+    message?: string;
+    geoTimeout: number;
 }

@@ -4,6 +4,8 @@
  * Licensed under LGPL-3.0
  */
 
+import { FingerprintWarning } from './errors.js';
+
 /**
  * Environment types supported by the configuration system
  */
@@ -13,6 +15,10 @@ export type Environment = 'TEST' | 'DEV' | 'STAGING' | 'PROD';
  * Log levels for structured logging
  */
 export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
+
+export const DEFAULT_GEO_TIMEOUT_MS = 4500;
+const MIN_GEO_TIMEOUT_MS = 250;
+const VALID_LOG_LEVELS: LogLevel[] = ['error', 'warn', 'info', 'verbose', 'debug'];
 
 /**
  * Configuration interface for environment-aware settings
@@ -32,6 +38,8 @@ export interface FingerprintConfig {
     enableConsoleLogging: boolean;
     /** Enable performance metrics logging */
     enablePerformanceLogging: boolean;
+    /** Timeout for geolocation requests (ms) */
+    geoTimeout: number;
 }
 
 /**
@@ -43,30 +51,84 @@ const DEFAULT_CONFIGS: Record<Environment, Partial<FingerprintConfig>> = {
         logLevel: 'debug',
         enableConsoleLogging: true,
         enablePerformanceLogging: true,
-        transparency: true
+        transparency: true,
+        geoTimeout: DEFAULT_GEO_TIMEOUT_MS
     },
     DEV: {
         verbose: true,
         logLevel: 'verbose',
         enableConsoleLogging: true,
         enablePerformanceLogging: true,
-        transparency: true
+        transparency: true,
+        geoTimeout: DEFAULT_GEO_TIMEOUT_MS
     },
     STAGING: {
         verbose: false,
         logLevel: 'info',
         enableConsoleLogging: true,
         enablePerformanceLogging: false,
-        transparency: true
+        transparency: true,
+        geoTimeout: DEFAULT_GEO_TIMEOUT_MS
     },
     PROD: {
         verbose: false,
         logLevel: 'error',
         enableConsoleLogging: false,
         enablePerformanceLogging: false,
-        transparency: false
+        transparency: false,
+        geoTimeout: DEFAULT_GEO_TIMEOUT_MS
     }
 };
+
+function addConfigWarning(warnings: FingerprintWarning[], message: string, details?: Record<string, unknown>) {
+    if (!warnings) return;
+    warnings.push({
+        code: 'CONFIG_INVALID',
+        message,
+        ...(details ? { details } : {})
+    });
+}
+
+function normalizeEnvironment(value: any, fallback: Environment, warnings: FingerprintWarning[]): Environment {
+    if (typeof value === 'string') {
+        const upper = value.toUpperCase();
+        if (upper === 'TEST' || upper === 'DEV' || upper === 'STAGING' || upper === 'PROD') {
+            return upper as Environment;
+        }
+        addConfigWarning(warnings, `Invalid environment "${value}", falling back to ${fallback}`, { value, fallback });
+    }
+    return fallback;
+}
+
+function normalizeBoolean(value: any, field: string, fallback: boolean, warnings: FingerprintWarning[]): boolean {
+    if (value === undefined) return fallback;
+    if (typeof value === 'boolean') return value;
+    addConfigWarning(warnings, `${field} must be a boolean`, { field, value, fallback });
+    return fallback;
+}
+
+function normalizeLogLevel(value: any, fallback: LogLevel, warnings: FingerprintWarning[]): LogLevel {
+    if (value === undefined) return fallback;
+    if (VALID_LOG_LEVELS.includes(value)) return value;
+    addConfigWarning(warnings, `Invalid logLevel "${value}", falling back to ${fallback}`, { value, fallback, allowed: VALID_LOG_LEVELS });
+    return fallback;
+}
+
+function normalizeTimeout(value: any, fallback: number, warnings: FingerprintWarning[]): number {
+    if (value === undefined) return fallback;
+    if (typeof value === 'number' && Number.isFinite(value) && value >= MIN_GEO_TIMEOUT_MS) {
+        return value;
+    }
+    addConfigWarning(warnings, `geoTimeout must be a number >= ${MIN_GEO_TIMEOUT_MS}ms`, { value, fallback });
+    return fallback;
+}
+
+function normalizeMessage(value: any, warnings: FingerprintWarning[]): string | undefined {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value === 'string') return value;
+    addConfigWarning(warnings, 'Message must be a string', { value });
+    return undefined;
+}
 
 /**
  * Global configuration instance
@@ -123,21 +185,50 @@ export function detectEnvironment(): Environment {
 /**
  * Initializes the configuration system with environment detection
  */
-export function initializeConfig(customConfig?: Partial<FingerprintConfig>): FingerprintConfig {
+export function initializeConfig(customConfig?: Partial<FingerprintConfig>, warnings: FingerprintWarning[] = []): FingerprintConfig {
     const detectedEnv = detectEnvironment();
-    const defaultConfig = DEFAULT_CONFIGS[detectedEnv];
-    
+    const environment = normalizeEnvironment(customConfig?.environment, detectedEnv, warnings);
+    const defaultConfig = DEFAULT_CONFIGS[environment];
+
     currentConfig = {
-        environment: detectedEnv,
-        verbose: false,
-        transparency: false,
-        logLevel: 'error',
-        enableConsoleLogging: false,
-        enablePerformanceLogging: false,
-        ...defaultConfig,
-        ...customConfig
+        environment,
+        verbose: normalizeBoolean(
+            customConfig?.verbose ?? defaultConfig.verbose ?? false,
+            'verbose',
+            defaultConfig.verbose ?? false,
+            warnings
+        ),
+        transparency: normalizeBoolean(
+            customConfig?.transparency ?? defaultConfig.transparency ?? false,
+            'transparency',
+            defaultConfig.transparency ?? false,
+            warnings
+        ),
+        message: normalizeMessage(customConfig?.message ?? defaultConfig.message, warnings),
+        logLevel: normalizeLogLevel(
+            customConfig?.logLevel ?? defaultConfig.logLevel ?? 'error',
+            defaultConfig.logLevel ?? 'error',
+            warnings
+        ),
+        enableConsoleLogging: normalizeBoolean(
+            customConfig?.enableConsoleLogging ?? defaultConfig.enableConsoleLogging ?? false,
+            'enableConsoleLogging',
+            defaultConfig.enableConsoleLogging ?? false,
+            warnings
+        ),
+        enablePerformanceLogging: normalizeBoolean(
+            customConfig?.enablePerformanceLogging ?? defaultConfig.enablePerformanceLogging ?? false,
+            'enablePerformanceLogging',
+            defaultConfig.enablePerformanceLogging ?? false,
+            warnings
+        ),
+        geoTimeout: normalizeTimeout(
+            customConfig?.geoTimeout ?? defaultConfig.geoTimeout ?? DEFAULT_GEO_TIMEOUT_MS,
+            DEFAULT_GEO_TIMEOUT_MS,
+            warnings
+        )
     };
-    
+
     return currentConfig;
 }
 
@@ -155,8 +246,8 @@ export function getConfig(): FingerprintConfig {
  * Updates the current configuration
  */
 export function updateConfig(updates: Partial<FingerprintConfig>): FingerprintConfig {
-    currentConfig = { ...getConfig(), ...updates };
-    return currentConfig;
+    const merged = { ...getConfig(), ...updates };
+    return initializeConfig(merged);
 }
 
 /**

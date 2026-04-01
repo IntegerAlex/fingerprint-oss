@@ -245,4 +245,3 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         return browserInfo;
     });
 }
-

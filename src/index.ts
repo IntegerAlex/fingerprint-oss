@@ -42,8 +42,10 @@ import {
     detectEnvironment, 
     isVerboseEnabled,
     StructuredLogger,
-    PerformanceTimer
+    PerformanceTimer,
+    DEFAULT_GEO_TIMEOUT_MS
 } from './config';
+import { FingerprintError, FingerprintWarning } from './errors';
 import type { UserInfoConfig } from './types';
 
 // Note: All individual functions are available as properties of the default export
@@ -98,6 +100,35 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
     return Math.max(0.1, Math.min(0.9, confidence));
 }
 
+function normalizeError(error: unknown): FingerprintError {
+    if (error instanceof FingerprintError) {
+        return error;
+    }
+
+    // Only include detailed/internal error information (like stack traces)
+    // when running in a non-production environment or when verbose logging
+    // is explicitly enabled. This prevents leaking internal implementation
+    // details via user-facing warnings in production.
+    const env = detectEnvironment();
+    const includeInternalDetails =
+        isVerboseEnabled() || env === 'DEV' || env === 'TEST';
+
+    if (error instanceof Error) {
+        const details: Record<string, unknown> = {
+            name: error.name,
+        };
+
+        if (includeInternalDetails && error.stack) {
+            details.stack = error.stack;
+        }
+
+        return new FingerprintError('UNKNOWN_ERROR', error.message, details);
+    }
+
+    const fallbackDetails = includeInternalDetails ? { error } : {};
+    return new FingerprintError('UNKNOWN_ERROR', 'Unknown error', fallbackDetails);
+}
+
 /**
  * Retrieves user system and geolocation data concurrently, computes a confidence score, and returns a JSON object summarizing these details.
  *
@@ -115,6 +146,9 @@ function calculateCombinedConfidence(systemInfo: any, geoInfo: any): number {
  * @returns A JSON object containing the fetched system and geolocation data (when available) along with the computed confidence score.
  */
 async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig } = {}) {
+    const warnings: FingerprintWarning[] = [];
+    const addWarning = (warning: FingerprintWarning) => warnings.push(warning);
+
     // Always initialize configuration with provided options (initializeConfig handles undefined gracefully)
     initializeConfig({
         environment: config.environment,
@@ -123,8 +157,9 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
         enableConsoleLogging: config.enableConsoleLogging,
         enablePerformanceLogging: config.enablePerformanceLogging,
         transparency: config.transparency,
-        message: config.message
-    });
+        message: config.message,
+        geoTimeout: config.geoTimeout
+    }, warnings);
     
     const currentConfig = getConfig();
     
@@ -146,11 +181,14 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'config.environment': currentConfig.environment
             });
 
-            // Parallel data fetching with block logging
-            // Note: fetchGeolocationInfo already has internal logBlock, so we don't wrap it again
+            // Parallel data fetching
+            // Note: both getSystemInfo and fetchGeolocationInfo already have internal logBlocks
             const [systemInfo, geoInfo] = await Promise.all([
-                StructuredLogger.logBlock('getSystemInfo', 'System information collection', () => getSystemInfo()),
-                fetchGeolocationInfo()
+                getSystemInfo(),
+                fetchGeolocationInfo({
+                    timeoutMs: currentConfig.geoTimeout ?? DEFAULT_GEO_TIMEOUT_MS,
+                    onWarning: addWarning
+                })
             ]);
 
             // Handle transparency logging with config-aware console logging
@@ -171,6 +209,7 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                     calculateCombinedConfidence(systemInfo, geoInfo)
                 )
             );
+            const successResult = warnings.length ? { ...result, warnings } : result;
 
             // Record successful execution
             const executionTime = Date.now() - startTime;
@@ -187,18 +226,24 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 'execution.time': executionTime
             });
 
-            return result;
+            return successResult;
         } catch (error) {
-            StructuredLogger.error('userInfo', 'Data collection error', error);
+            const structuredError = normalizeError(error);
+            addWarning({
+                code: structuredError.code,
+                message: structuredError.message,
+                details: structuredError.details
+            });
+            StructuredLogger.error('userInfo', 'Data collection error', structuredError);
             
             // Record error in telemetry
             const executionTime = Date.now() - startTime;
-            Telemetry.recordError(error as Error, {
+            Telemetry.recordError(structuredError, {
                 'function.name': 'userInfo',
                 'execution.time': executionTime
             });
             Telemetry.recordFunctionCall('userInfo', executionTime, false);
-            Telemetry.endSpanWithError(span, error as Error);
+            Telemetry.endSpanWithError(span, structuredError);
 
             // Get fallback data - use mock directly to avoid potential infinite loop
             const mockSystem = getMockSystemInfo();
@@ -212,15 +257,9 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                     calculateCombinedConfidence(mockSystem, fallbackGeo)
                 )
             );
+            const finalFallback = warnings.length ? { ...fallbackResult, warnings } : fallbackResult;
 
-            // Record fallback usage
-            Telemetry.incrementCounter('function_calls', 1, {
-                'function.name': 'userInfo',
-                'function.success': true,
-                'data.source': 'fallback'
-            });
-
-            return fallbackResult;
+            return finalFallback;
         }
     });
 }
@@ -304,8 +343,11 @@ export type {
     FingerprintConfig, 
     UserInfoConfig, 
     Environment, 
-    LogLevel 
+    LogLevel,
+    ResolvedUserInfoConfig
 } from './types';
+export { FingerprintError } from './errors';
+export type { FingerprintWarning } from './errors';
 
 // Re-export core functions for named imports in consumers and tests
 export {

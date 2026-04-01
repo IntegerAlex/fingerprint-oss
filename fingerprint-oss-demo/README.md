@@ -138,4 +138,4 @@ This demo is released under the **GPL-3.0 license**, maintaining consistency wit
 
 ---
 
-**Powered by [Global Open Source Softwares (GOSS)](https://globalopensourcesoftwares.in) • Backed by [Cloudflare OSS](https://cloudflare.com)**
+**Powered by [Global Open Source Softwares (GOSS)](https://globalopensourcesoftwares.in) • Backed by [Cloudflare OSS](https://cloudflare.com) • Supported by [Macroscope](https://macroscope.com)**

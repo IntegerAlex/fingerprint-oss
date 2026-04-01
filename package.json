@@ -1,6 +1,6 @@
 {
   "name": "fingerprint-oss",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "A comprehensive JavaScript library for device fingerprinting and system information collection. Provides robust, deterministic fingerprinting for web applications with privacy-conscious design.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
