@@ -20,8 +20,8 @@
     "clsx": "^2.0.0",
     "framer-motion": "^12.23.12",
     "prism-react-renderer": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
     "typewriter-effect": "^2.22.0"
   },
   "devDependencies": {
@@ -31,6 +31,8 @@
     "@docusaurus/tsconfig": "^3.9.2",
     "@docusaurus/types": "^3.9.2",
     "@types/node": "^24.2.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "typescript": "^5.8.2"
   },
   "browserslist": {
@@ -48,6 +50,10 @@
   "engines": {
     "node": "20.18.0",
     "npm": "10.9.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.5",
+    "webpack-dev-server": "^5.2.3"
   },
   "repository": {
     "type": "git",
