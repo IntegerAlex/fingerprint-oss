@@ -18,7 +18,8 @@
   },
   "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",
   "files": [
-    "dist",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
     "LICENSE",
     "NOTICE.md",
     "COPYRIGHT.md",
