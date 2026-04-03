@@ -47,10 +47,6 @@
       "last 5 safari version"
     ]
   },
-  "engines": {
-    "node": "20.18.0",
-    "npm": "10.9.0"
-  },
   "overrides": {
     "serialize-javascript": "^7.0.5",
     "webpack-dev-server": "^5.2.3"
