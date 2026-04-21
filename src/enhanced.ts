@@ -245,13 +245,10 @@ export async function getEnhancedCanvasFingerprint(): Promise<CanvasEnhanced | n
             // Only one frame — no noise reduction possible; copy directly.
             stable.set(frames[0].data);
         } else if (frames.length === 2) {
-            // Two frames: prefer data0 when equal (stable), otherwise data0 wins
-            // (tie-breaks to the first frame, consistent behaviour).
-            const data0 = frames[0].data;
-            const data1 = frames[1].data;
-            for (let i = 0; i < totalBytes; i++) {
-                stable[i] = data0[i] === data1[i] ? data0[i] : data0[i];
-            }
+            // Two frames: always prefer the first frame for stability.
+            // When both agree the value is clearly stable; when they disagree,
+            // we default to the first frame as the tie-breaking rule.
+            stable.set(frames[0].data);
         } else if (frames.length === 3) {
             // Fast path for the fixed 3-run stabilisation: select the majority
             // value without allocating per-byte counting structures.
