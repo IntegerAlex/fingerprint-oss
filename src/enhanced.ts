@@ -263,7 +263,10 @@ export async function getEnhancedCanvasFingerprint(): Promise<CanvasEnhanced | n
             }
         }
 
-        const pixelHash = await sha256(stable.join(','));
+        // Hash the stable pixel data directly as bytes for efficiency.
+        // Passing a Uint8Array to sha256 avoids the cost of converting ~67 KB of
+        // pixel data into a comma-separated string.
+        const pixelHash = await sha256(stable);
         return { pixelHash };
     } catch (e) {
         StructuredLogger.warn('getEnhancedCanvasFingerprint', 'Enhanced canvas fingerprint failed', e);
@@ -326,13 +329,13 @@ export async function getEnhancedWebGL2Info(): Promise<WebGL2Enhanced | null> {
         } catch { /* continue without debug info */ }
 
         // Implementation limits — these differ across GPU families.
-        const maxTextureSize: number = gl.getParameter(gl.MAX_TEXTURE_SIZE) ?? null;
+        const maxTextureSize: number | null = gl.getParameter(gl.MAX_TEXTURE_SIZE) ?? null;
         const rawViewport: Int32Array | null = gl.getParameter(gl.MAX_VIEWPORT_DIMS) ?? null;
         const maxViewportDims: [number, number] | null = rawViewport
             ? [rawViewport[0], rawViewport[1]]
             : null;
-        const maxRenderbufferSize: number = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) ?? null;
-        const maxCombinedTextureUnits: number =
+        const maxRenderbufferSize: number | null = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) ?? null;
+        const maxCombinedTextureUnits: number | null =
             gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS) ?? null;
 
         // Shader precision formats — expose floating-point implementation details.
