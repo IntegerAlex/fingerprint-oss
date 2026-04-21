@@ -112,9 +112,9 @@ export async function getEnhancedAudioFingerprint(): Promise<AudioEnhanced | nul
         const channelData = renderedBuffer.getChannelData(0);
 
         // Sum of absolute sample values — implementation-specific, stable.
-        let sampleHash = 0;
+        let sampleSum = 0;
         for (let i = 0; i < channelData.length; i++) {
-            sampleHash += Math.abs(channelData[i]);
+            sampleSum += Math.abs(channelData[i]);
         }
 
         // Noise-injection check: copyFromChannel should produce the same bytes
@@ -148,7 +148,7 @@ export async function getEnhancedAudioFingerprint(): Promise<AudioEnhanced | nul
         }
 
         return {
-            sampleHash,
+            sampleSum,
             maxChannels,
             channelCountMode,
             hasSpoofing: spoofingSignals.length > 0,
@@ -560,7 +560,7 @@ export function computeEntropyScores(
     const scores: Record<string, number> = {};
 
     // audio_v2: OfflineAudioContext output varies by platform + driver (~8-12 bits).
-    scores.audio_v2 = enhanced.audio_v2?.sampleHash != null ? 10 : 0;
+    scores.audio_v2 = enhanced.audio_v2?.sampleSum != null ? 10 : 0;
 
     // canvas_v2: GPU-rendered pixels, high entropy but partially homogenised
     // by privacy tools (~12-18 bits after stabilisation).

@@ -107,7 +107,7 @@ export interface SystemInfo {
  */
 export interface AudioEnhanced {
     /** Sum of absolute rendered sample values — implementation-specific. */
-    sampleHash: number;
+    sampleSum: number;
     /** Maximum output channel count reported by the audio context destination. */
     maxChannels: number;
     /** Channel count mode of the AnalyserNode (typically "max"). */
