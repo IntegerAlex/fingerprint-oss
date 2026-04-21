@@ -170,6 +170,10 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         // Get bot detection results
         const botInfo = detectBot();
 
+        // Start enhanced collection early so it runs in parallel with the
+        // baseline async signals (incognito, adBlocker, audio, webGL, cores).
+        const enhancedPromise = collectEnhancedFingerprint();
+
         // Check for incognito mode
         const incognitoMode = await detectIncognito(); 
         
@@ -240,14 +244,20 @@ export async function getSystemInfo(): Promise<SystemInfo> {
             deviceType: detectDeviceType(),
             
             // Overall confidence score for the collected data
-            confidenceScore: confidenceScore,
+            confidenceScore: confidenceScore
+        } as SystemInfo;
 
-            // Enhanced fingerprint signals (noise-stabilised, spoofing-aware).
-            // Collected in parallel with the baseline signals above.
-            // These fields are optional and placed under a separate namespace
-            // so that callers relying on the existing schema are unaffected.
-            enhanced: await collectEnhancedFingerprint()
-        };
+        // Attach enhanced signals as a non-enumerable property.
+        // Non-enumerable means it is invisible to JSON.stringify, for-in loops,
+        // and Object.keys(), so existing serialisation paths (e.g. generateId)
+        // are unaffected even though the value is still directly accessible via
+        // browserInfo.enhanced.
+        Object.defineProperty(browserInfo, 'enhanced', {
+            value: await enhancedPromise,
+            enumerable: false,
+            configurable: true,
+            writable: true,
+        });
 
         return browserInfo;
     });

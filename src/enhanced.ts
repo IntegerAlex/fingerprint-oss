@@ -107,6 +107,16 @@ export async function getEnhancedAudioFingerprint(): Promise<AudioEnhanced | nul
 
         const spoofingSignals: string[] = [];
 
+        // Frequency data should be all -Infinity (silence) before rendering
+        // starts; non-uniform data here indicates the analyser is being
+        // tampered with by a privacy shim *before* offline rendering begins.
+        const preRenderFreqData = new Float32Array(analyser.frequencyBinCount);
+        analyser.getFloatFrequencyData(preRenderFreqData);
+        const uniqueFreqs = new Set(preRenderFreqData).size;
+        if (uniqueFreqs > 1) {
+            spoofingSignals.push('audio:unexpected-frequency-data');
+        }
+
         // Render the buffer offline.
         const renderedBuffer = await context.startRendering();
         const channelData = renderedBuffer.getChannelData(0);
@@ -136,15 +146,6 @@ export async function getEnhancedAudioFingerprint(): Promise<AudioEnhanced | nul
             if (mismatch) {
                 spoofingSignals.push('audio:sample-noise-detected');
             }
-        }
-
-        // Frequency data in an offline context should be all -Infinity (silence)
-        // before rendering completes; non-uniform data indicates tampering.
-        const freqData = new Float32Array(analyser.frequencyBinCount);
-        analyser.getFloatFrequencyData(freqData);
-        const uniqueFreqs = new Set(freqData).size;
-        if (uniqueFreqs > 1) {
-            spoofingSignals.push('audio:unexpected-frequency-data');
         }
 
         return {
@@ -240,26 +241,55 @@ export async function getEnhancedCanvasFingerprint(): Promise<CanvasEnhanced | n
         const totalBytes = WIDTH * HEIGHT * 4;
         const stable = new Uint8Array(totalBytes);
 
-        for (let i = 0; i < totalBytes; i++) {
-            if (frames.length === 1) {
-                // Only one frame — no noise reduction possible.
-                stable[i] = frames[0].data[i];
-            } else {
-                // Majority vote across frames.
-                const counts = new Map<number, number>();
-                for (const frame of frames) {
-                    const v = frame.data[i];
-                    counts.set(v, (counts.get(v) ?? 0) + 1);
-                }
+        if (frames.length === 1) {
+            // Only one frame — no noise reduction possible; copy directly.
+            stable.set(frames[0].data);
+        } else if (frames.length === 2) {
+            // Two frames: prefer data0 when equal (stable), otherwise data0 wins
+            // (tie-breaks to the first frame, consistent behaviour).
+            const data0 = frames[0].data;
+            const data1 = frames[1].data;
+            for (let i = 0; i < totalBytes; i++) {
+                stable[i] = data0[i] === data1[i] ? data0[i] : data0[i];
+            }
+        } else if (frames.length === 3) {
+            // Fast path for the fixed 3-run stabilisation: select the majority
+            // value without allocating per-byte counting structures.
+            const data0 = frames[0].data;
+            const data1 = frames[1].data;
+            const data2 = frames[2].data;
+            for (let i = 0; i < totalBytes; i++) {
+                const a = data0[i];
+                const b = data1[i];
+                const c = data2[i];
+                // Return majority: if any two agree, that value wins; else a.
+                stable[i] = a === b || a === c ? a : b === c ? b : a;
+            }
+        } else {
+            // Generic fallback: reuse a single counts buffer to avoid allocating
+            // a new Map for every byte.
+            const counts = new Uint16Array(256);
+            const touched = new Uint8Array(frames.length);
+            for (let i = 0; i < totalBytes; i++) {
+                let touchedCount = 0;
                 let best = frames[0].data[i];
                 let bestCount = 0;
-                for (const [val, count] of counts) {
+                for (const frame of frames) {
+                    const v = frame.data[i];
+                    if (counts[v] === 0) {
+                        touched[touchedCount++] = v;
+                    }
+                    const count = ++counts[v];
                     if (count > bestCount) {
                         bestCount = count;
-                        best = val;
+                        best = v;
                     }
                 }
                 stable[i] = best;
+                // Reset only touched slots to avoid a full 256-zero fill.
+                for (let j = 0; j < touchedCount; j++) {
+                    counts[touched[j]] = 0;
+                }
             }
         }
 
@@ -471,9 +501,10 @@ export function detectSpoofing(): SpoofingInfo {
 
     // visualViewport matching screen exactly is rare in real browsers.
     if (
+        typeof screen !== 'undefined' &&
         'visualViewport' in window &&
-        (win.visualViewport?.width === screen.width ||
-         win.visualViewport?.height === screen.height)
+        win.visualViewport?.width === screen.width &&
+        win.visualViewport?.height === screen.height
     ) {
         signals.push('headless:viewport-matches-screen');
     }
@@ -559,12 +590,12 @@ export function computeEntropyScores(
 ): Record<string, number> {
     const scores: Record<string, number> = {};
 
-    // audio_v2: OfflineAudioContext output varies by platform + driver (~8-12 bits).
-    scores.audio_v2 = enhanced.audio_v2?.sampleSum != null ? 10 : 0;
+    // audioV2: OfflineAudioContext output varies by platform + driver (~8-12 bits).
+    scores.audioV2 = enhanced.audioV2?.sampleSum != null ? 10 : 0;
 
-    // canvas_v2: GPU-rendered pixels, high entropy but partially homogenised
+    // canvasV2: GPU-rendered pixels, high entropy but partially homogenised
     // by privacy tools (~12-18 bits after stabilisation).
-    scores.canvas_v2 = enhanced.canvas_v2?.pixelHash != null ? 15 : 0;
+    scores.canvasV2 = enhanced.canvasV2?.pixelHash != null ? 15 : 0;
 
     // webgl2: hardware limit + precision combination (~8-14 bits).
     scores.webgl2 = enhanced.webgl2?.supported
@@ -587,7 +618,7 @@ export function computeEntropyScores(
  */
 export async function collectEnhancedFingerprint(): Promise<EnhancedFingerprintInfo> {
     // Collect audio, canvas, and WebGL2 in parallel for performance.
-    const [audio_v2, canvas_v2, webgl2] = await Promise.all([
+    const [audioV2, canvasV2, webgl2] = await Promise.all([
         getEnhancedAudioFingerprint(),
         getEnhancedCanvasFingerprint(),
         getEnhancedWebGL2Info(),
@@ -597,11 +628,11 @@ export async function collectEnhancedFingerprint(): Promise<EnhancedFingerprintI
     const spoofing = detectSpoofing();
 
     const info: EnhancedFingerprintInfo = {
-        audio_v2,
-        canvas_v2,
+        audioV2,
+        canvasV2,
         webgl2,
         spoofing,
-        fp_version: FP_VERSION,
+        fpVersion: FP_VERSION,
     };
 
     return {

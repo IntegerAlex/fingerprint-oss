@@ -168,15 +168,15 @@ export interface SpoofingInfo {
  */
 export interface EnhancedFingerprintInfo {
     /** Enhanced audio fingerprint (null when OfflineAudioContext is unavailable). */
-    audio_v2: AudioEnhanced | null;
+    audioV2: AudioEnhanced | null;
     /** Noise-stabilised canvas fingerprint (null when Canvas API is unavailable). */
-    canvas_v2: CanvasEnhanced | null;
+    canvasV2: CanvasEnhanced | null;
     /** WebGL2 implementation details (null on collection error). */
     webgl2: WebGL2Enhanced | null;
     /** Consolidated spoofing/headless detection result. */
     spoofing: SpoofingInfo;
     /** Version string identifying the enhanced signal set. */
-    fp_version: string;
+    fpVersion: string;
     /** Per-signal entropy estimates (bits). */
     entropy?: Record<string, number>;
 }
