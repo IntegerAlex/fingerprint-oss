@@ -15,6 +15,7 @@ import { getBrowserInfo } from './browserDetection.js';
 import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanvasFingerprint ,getAudioFingerprint ,getFontPreferences ,getMathFingerprint ,isLocalStorageEnabled ,isSessionStorageEnabled ,isIndexedDBEnabled , getTouchSupportInfo , getOSInfo, estimateCores} from './helper.js';
 import { detectDeviceType } from './deviceType.js';
 import { StructuredLogger } from './config.js';
+import { collectEnhancedFingerprint } from './enhanced.js';
 /**
  * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
  *
@@ -239,7 +240,13 @@ export async function getSystemInfo(): Promise<SystemInfo> {
             deviceType: detectDeviceType(),
             
             // Overall confidence score for the collected data
-            confidenceScore: confidenceScore
+            confidenceScore: confidenceScore,
+
+            // Enhanced fingerprint signals (noise-stabilised, spoofing-aware).
+            // Collected in parallel with the baseline signals above.
+            // These fields are optional and placed under a separate namespace
+            // so that callers relying on the existing schema are unaffected.
+            enhanced: await collectEnhancedFingerprint()
         };
 
         return browserInfo;
