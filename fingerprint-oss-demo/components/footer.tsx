@@ -49,7 +49,7 @@ export default function Footer() {
               Akshat Kotpalliwar
             </Link>
             <span className="mx-2 text-muted-foreground">|</span>
-            <Link href="https://github.com/globalopensourcesoftwares" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="https://github.com/IntegerAlex" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               GitHub Profile
             </Link>
             <span className="mx-2 text-muted-foreground">|</span>
