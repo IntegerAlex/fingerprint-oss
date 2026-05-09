@@ -9,6 +9,7 @@
   "scripts": {
     "build": "rollup -c",
     "rollup": "rollup -c",
+    "audit": "npm audit",
     "docs": "typedoc",
     "test": "cd test && npm run test:unit",
     "test:all": "cd test && npm run test:all",
