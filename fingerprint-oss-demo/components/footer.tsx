@@ -5,7 +5,7 @@ import Image from "next/image"
  * Site footer component displaying branding, partner logos, external links, and copyright.
  *
  * Renders a responsive footer with a left-aligned cluster of logos (site, GOSS, Cloudflare, Netlify) plus a "Buy Me A Coffee" button,
- * and a right-aligned information block that shows the current year, external links (GitHub profile and Enterprise Solution),
+ * and a right-aligned information block that shows the current year, external links (Akshat Kotpalliwar, GitHub profile, and GOSSORG),
  * and an attribution line. All external links open in new tabs; images include alt text for accessibility.
  *
  * @returns JSX element representing the site footer.
@@ -45,18 +45,26 @@ export default function Footer() {
         <div className="text-center md:text-right">
           <p className="text-muted-foreground text-sm">&copy; {new Date().getFullYear()} Global Open Source Softwares. All rights reserved.</p>
           <div className="mt-2">
+            <Link href="https://akshatkotpalliwar.in/" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Akshat Kotpalliwar
+            </Link>
+            <span className="mx-2 text-muted-foreground">|</span>
             <Link href="https://github.com/globalopensourcesoftwares" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               GitHub Profile
             </Link>
             <span className="mx-2 text-muted-foreground">|</span>
-            <Link href="https://gossorg.in" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Enterprise Solution
+            <Link href="https://gossorg.in/" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              GOSSORG
             </Link>
           </div>
-          <p className="text-muted-foreground text-sm mt-2">A product of <strong>Global Open Source Softwares (GOSS)</strong></p>
+          <p className="text-muted-foreground text-sm mt-2">
+            A product of{" "}
+            <Link href="https://gossorg.in/" target="_blank" className="font-semibold hover:text-foreground transition-colors">
+              Global Open Source Softwares (GOSSORG)
+            </Link>
+          </p>
         </div>
       </div>
     </footer>
   )
 }
-
