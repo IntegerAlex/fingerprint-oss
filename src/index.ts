@@ -47,6 +47,15 @@ import {
 } from './config';
 import { FingerprintError, FingerprintWarning } from './errors';
 import type { UserInfoConfig } from './types';
+import {
+    getEnhancedAudioFingerprint,
+    getEnhancedCanvasFingerprint,
+    getEnhancedWebGL2Info,
+    detectSpoofing,
+    collectEnhancedFingerprint,
+    computeEntropyScores,
+    FP_VERSION,
+} from './enhanced';
 
 // Note: All individual functions are available as properties of the default export
 
@@ -320,7 +329,16 @@ const fingerprintOSS = Object.assign(userInfo, {
     detectEnvironment,
     isVerboseEnabled,
     StructuredLogger,
-    PerformanceTimer
+    PerformanceTimer,
+
+    // Enhanced fingerprinting functions
+    getEnhancedAudioFingerprint,
+    getEnhancedCanvasFingerprint,
+    getEnhancedWebGL2Info,
+    detectSpoofing,
+    collectEnhancedFingerprint,
+    computeEntropyScores,
+    FP_VERSION,
 });
 
 export default fingerprintOSS;
@@ -390,3 +408,21 @@ export {
 
 export { getMockSystemInfo } from './mock';
 export { Toast } from './compliance';
+
+// Enhanced fingerprinting exports
+export {
+    getEnhancedAudioFingerprint,
+    getEnhancedCanvasFingerprint,
+    getEnhancedWebGL2Info,
+    detectSpoofing,
+    collectEnhancedFingerprint,
+    computeEntropyScores,
+    FP_VERSION,
+} from './enhanced';
+export type {
+    AudioEnhanced,
+    CanvasEnhanced,
+    WebGL2Enhanced,
+    SpoofingInfo,
+    EnhancedFingerprintInfo,
+} from './types';
