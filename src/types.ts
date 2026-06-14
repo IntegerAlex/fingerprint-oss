@@ -95,6 +95,90 @@ export interface SystemInfo {
     fontPreferences: FontPreferencesInfo; // Updated name
     deviceType: DeviceTypeInfo;
     confidenceScore: number;
+    /** Enhanced fingerprint signals (optional, added in v1.0.0). */
+    enhanced?: EnhancedFingerprintInfo;
+}
+
+// ─── Enhanced fingerprint types ───────────────────────────────────────────────
+
+/**
+ * Noise-resistant audio fingerprint collected via OfflineAudioContext.
+ * Adds spoofing-detection fields unavailable in the baseline audio signal.
+ */
+export interface AudioEnhanced {
+    /** Sum of absolute rendered sample values — implementation-specific. */
+    sampleSum: number;
+    /** Maximum output channel count reported by the audio context destination. */
+    maxChannels: number;
+    /** Channel count mode of the AnalyserNode (typically "max"). */
+    channelCountMode: string;
+    /** True when a mismatch between getChannelData and copyFromChannel is detected. */
+    hasSpoofing: boolean;
+    /** List of specific spoofing indicators detected. */
+    spoofingSignals: string[];
+}
+
+/**
+ * Noise-stabilised canvas fingerprint hash.
+ * The same scene is rendered multiple times; the most common pixel value per
+ * channel is selected before hashing, neutralising per-call noise injection.
+ */
+export interface CanvasEnhanced {
+    /** SHA-256 of the stabilised pixel array. */
+    pixelHash: string;
+}
+
+/**
+ * Enhanced WebGL2 fingerprint with implementation limits and precision formats.
+ * These signals are less frequently targeted by anti-fingerprint tools than
+ * the basic vendor/renderer strings.
+ */
+export interface WebGL2Enhanced {
+    /** Whether WebGL2 is available in the current context. */
+    supported: boolean;
+    /** GL_MAX_TEXTURE_SIZE — varies by GPU generation. */
+    maxTextureSize: number | null;
+    /** GL_MAX_VIEWPORT_DIMS [width, height] — varies by GPU. */
+    maxViewportDims: [number, number] | null;
+    /** SHA-256 of combined implementation limits and shader precision values. */
+    precisionHash: string | null;
+    /** SHA-256 of the sorted supported-extensions list. */
+    extensionsHash: string | null;
+    /** Unmasked renderer string (from WEBGL_debug_renderer_info, or fallback). */
+    renderer: string;
+    /** Unmasked vendor string. */
+    vendor: string;
+}
+
+/**
+ * Consolidated headless-browser and anti-fingerprint detection result.
+ */
+export interface SpoofingInfo {
+    /** True when the combined signal score indicates a likely headless/automated browser. */
+    likelyHeadless: boolean;
+    /** Individual signals that triggered, e.g. "headless:no-chrome-object". */
+    signals: string[];
+    /** Weighted score in [0, 1]; higher means more spoofing indicators present. */
+    score: number;
+}
+
+/**
+ * Top-level container for all enhanced fingerprint signals.
+ * Added as an optional field on SystemInfo to maintain backward compatibility.
+ */
+export interface EnhancedFingerprintInfo {
+    /** Enhanced audio fingerprint (null when OfflineAudioContext is unavailable). */
+    audioV2: AudioEnhanced | null;
+    /** Noise-stabilised canvas fingerprint (null when Canvas API is unavailable). */
+    canvasV2: CanvasEnhanced | null;
+    /** WebGL2 implementation details (null on collection error). */
+    webgl2: WebGL2Enhanced | null;
+    /** Consolidated spoofing/headless detection result. */
+    spoofing: SpoofingInfo;
+    /** Version string identifying the enhanced signal set. */
+    fpVersion: string;
+    /** Per-signal entropy estimates (bits). */
+    entropy?: Record<string, number>;
 }
 
 export interface WebGLInfo {

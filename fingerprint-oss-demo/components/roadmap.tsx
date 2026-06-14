@@ -9,7 +9,7 @@ import Link from "next/link";
 /** Release history – factually accurate per CHANGELOG.md */
 const RELEASE_HISTORY = [
   {
-    version: "0.9.5",
+    version: "0.9.6",
     date: "2026-04-01",
     items: [
       "Robustness & DX Improvements",
@@ -229,7 +229,7 @@ export default function Roadmap() {
       <section>
         <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
           <Target className="h-6 w-6 text-primary" />
-          Upcoming: 0.9.5 → 0.9.7
+          Upcoming: 0.9.6 → 0.9.7
         </h2>
         <div className="space-y-4">
           {FUTURE_ROADMAP.map((release) => (

@@ -10,6 +10,7 @@ overrides:
   fast-xml-builder: ^1.1.7
   fast-xml-parser: ^5.7.0
   postcss: ^8.5.10
+  esbuild: '>=0.25.0'
 
 importers:
 
@@ -118,8 +119,8 @@ importers:
         specifier: 8.5.1
         version: 8.5.1(react@19.2.4)
       fingerprint-oss:
-        specifier: 0.9.5
-        version: 0.9.5
+        specifier: 0.9.6
+        version: 0.9.6
       input-otp:
         specifier: 1.4.1
         version: 1.4.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2636,8 +2637,8 @@ packages:
     resolution: {integrity: sha512-S8KoZgRZN+a5rNwqTxlZZePjT/4cnm0ROV70LedRHZ0p8u9fRID0hJUZQpkKLzro8LfmC8sx23bY6tVNxv8pQA==}
     engines: {node: '>= 18.0.0'}
 
-  fingerprint-oss@0.9.5:
-    resolution: {integrity: sha512-2ULYlYlIsCssvYMZN3dSH9lYL0JRKD42phXU5tC3/LXXWOWmgXdscILGlTuH0eFfMkTP9r9hYpB8/ivfBAeWiQ==}
+  fingerprint-oss@0.9.6:
+    resolution: {integrity: sha512-3E/5SczdlhtrklRcNN7DbV8ldu+d+QoPGWJxfsgKf51f2/kIT2flDNn/bJwBoTqbhmiG3byW7nVrtSFUMJ9L3g==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
 
   foreground-child@3.3.1:
@@ -6481,7 +6482,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  fingerprint-oss@0.9.5:
+  fingerprint-oss@0.9.6:
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.6.1(@opentelemetry/api@1.9.1)
