@@ -137,7 +137,7 @@ export default function Roadmap() {
           <h1 className="text-4xl font-bold text-foreground">Roadmap & Achievements</h1>
         </div>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Track our journey from the initial fork to a production-ready fingerprinting library with 100K+ monthly hits.
+          Track our journey from the initial fork to a production-ready fingerprinting library with 500K+ monthly hits.
         </p>
       </section>
 
