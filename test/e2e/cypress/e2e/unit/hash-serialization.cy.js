@@ -16,11 +16,16 @@ describe('hashing and serialization', () => {
   it('serializes output to JSON', () => {
     cy.loadFingerprintOSS().then((fp) => {
       return fp.getSystemInfo().then((info) => {
-        return fp.fetchGeolocationInfo().then((geo) => {
-          return fp.generateJSON(geo, info, 0.5).then((result) => {
-            expect(result).to.be.ok;
-            expect(result).to.have.property('hash');
-          });
+        const geoMock = {
+          ipAddress: '127.0.0.1',
+          country: { isoCode: 'US', name: 'United States' },
+          city: { name: 'New York', geonameId: 5128581 },
+          location: { accuracyRadius: 10, latitude: 40.7128, longitude: -74.0060, timeZone: 'America/New_York' },
+          traits: { isAnonymous: false, isAnonymousProxy: false, isAnonymousVpn: false, network: '127.0.0.1/32' }
+        };
+        return fp.generateJSON(geoMock, info, 0.5).then((result) => {
+          expect(result).to.be.ok;
+          expect(result).to.have.property('hash');
         });
       });
     });
