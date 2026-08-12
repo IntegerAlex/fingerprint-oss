@@ -477,6 +477,26 @@ const platformsList: PlatformDescriptor[] = [
     },
   },
 
+  /* Smart TV */
+  {
+    test: [/smart-?tv|smarttv/i],
+    describe() {
+      return {
+        type: PLATFORMS_MAP.tv,
+      };
+    },
+  },
+
+  /* NetCast (LG Smart TV) */
+  {
+    test: [/netcast/i],
+    describe() {
+      return {
+        type: PLATFORMS_MAP.tv,
+      };
+    },
+  },
+
   /* Android Tablet */
   {
     test(parser) {
@@ -498,26 +518,6 @@ const platformsList: PlatformDescriptor[] = [
     describe() {
       return {
         type: PLATFORMS_MAP.mobile,
-      };
-    },
-  },
-
-  /* Smart TV */
-  {
-    test: [/smart-?tv|smarttv/i],
-    describe() {
-      return {
-        type: PLATFORMS_MAP.tv,
-      };
-    },
-  },
-
-  /* NetCast (LG Smart TV) */
-  {
-    test: [/netcast/i],
-    describe() {
-      return {
-        type: PLATFORMS_MAP.tv,
       };
     },
   },

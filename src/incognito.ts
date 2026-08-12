@@ -38,6 +38,8 @@
  * Please keep this comment intact in order to properly abide by the MIT License.
  *
  **/
+import Bowser from './bowser/bowser.js';
+
 declare global {
   interface Window {
     detectIncognito: typeof detectIncognito;
@@ -45,7 +47,7 @@ declare global {
 }
 
 export async function detectIncognito(): Promise<{ isPrivate: boolean; browserName: string }> {
-  return await new Promise(function (resolve, reject) {
+  return await new Promise(function (resolve) {
     let browserName = 'Unknown'
 
     // Return early if not in browser environment
@@ -75,6 +77,17 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
           return 'Edge'
         } else if (ua.match(/OPR/)) {
           return 'Opera'
+        }
+        // Known upstream markers did not match — use the vendored Bowser
+        // detector so Chromium-based browsers (Samsung Internet, Vivaldi,
+        // Yandex, ...) are reported by name instead of blanket "Chrome".
+        try {
+          const name = Bowser.parse(ua).browser?.name
+          if (name && name !== 'Chrome' && name !== 'Chromium') {
+            return name
+          }
+        } catch {
+          /* ignore */
         }
         return 'Chrome'
       } else {
@@ -203,12 +216,30 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
       const MIN_ROUNDS = 7   // always run at least this many before the cap can stop us
       const CAP_MS = 1000    // soft wall-clock budget; slow devices stop early (but >= MIN_ROUNDS)
       const THRESHOLD = 1.30
+      const HARD_TIMEOUT_MS = 5000
 
       const dbName = '__di_' + Math.random().toString(36).slice(2)
       const payload = new Uint8Array(PAYLOAD)
-      const req = indexedDB.open(dbName, 1)
+      let req: IDBOpenDBRequest
+      try {
+        req = indexedDB.open(dbName, 1)
+      } catch {
+        __callback(false); return
+      }
+      // Hard deadline so a stalled IndexedDB transaction can never hang
+      // detectIncognito() (and thus getSystemInfo) forever. The callbackSettled
+      // guard makes a late real result harmless.
+      const watchdog = setTimeout(() => {
+        try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }
+        __callback(false)
+      }, HARD_TIMEOUT_MS)
+      const fire = (result: boolean): void => {
+        clearTimeout(watchdog)
+        __callback(result)
+      }
       req.onupgradeneeded = () => { req.result.createObjectStore('s') }
-      req.onerror = () => { indexedDB.deleteDatabase(dbName); __callback(false) }
+      req.onblocked = () => { try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }; fire(false) }
+      req.onerror = () => { try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }; fire(false) }
       req.onsuccess = () => {
         const db = req.result
 
@@ -220,7 +251,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
           honored = t.durability === 'strict'
           t.abort()
         } catch { /* durability option unsupported */ }
-        if (!honored) { db.close(); indexedDB.deleteDatabase(dbName); __callback(false); return }
+        if (!honored) { db.close(); try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }; fire(false); return }
 
         // Time WRITES sequential single-put commits at a given durability. Sequential
         // (await each commit) so leveldb group-commit can't amortize the strict fsync
@@ -253,9 +284,9 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
             if (ratios.length >= MIN_ROUNDS && performance.now() - start >= CAP_MS) break
           }
           ratios.sort((a, b) => a - b)
-          db.close(); indexedDB.deleteDatabase(dbName)
-          __callback(ratios[ratios.length >> 1] < THRESHOLD) // ~1.0 = incognito; disk >> 1.30
-        })().catch(() => { db.close(); indexedDB.deleteDatabase(dbName); __callback(false) })
+          fire(ratios[ratios.length >> 1] < THRESHOLD) // ~1.0 = incognito; disk >> 1.30
+          db.close(); try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }
+        })().catch(() => { fire(false); db.close(); try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ } })
       }
     }
 
@@ -277,7 +308,13 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
         }
       }
       else {
-        const request = indexedDB.open('inPrivate');
+        const dbName = 'inPrivate_' + Math.random().toString(36).slice(2)
+        let request: IDBOpenDBRequest
+        try {
+          request = indexedDB.open(dbName);
+        } catch {
+          __callback(false); return
+        }
 
         // Only a genuine private window fails with InvalidStateError. Any other open
         // failure (quota, corrupt profile, dom.indexedDB.enabled=false, enterprise
@@ -291,8 +328,11 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
           __callback(false);
         };
 
+        request.onblocked = () => { __callback(false) };
+
         request.onsuccess = () => {
-          indexedDB.deleteDatabase('inPrivate');
+          try { request.result.close() } catch { /* ignore */ }
+          try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }
           __callback(false);
         };
       }
@@ -326,7 +366,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
       }
     }
 
-    main().catch(reject)
+    main().catch(() => { __callback(false) })
   })
 }
 
