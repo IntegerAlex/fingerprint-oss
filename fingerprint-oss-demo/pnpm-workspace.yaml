@@ -4,4 +4,4 @@ allowBuilds:
   sharp: false
   workerd: false
 minimumReleaseAgeExclude:
-  - fingerprint-oss@0.10.0
+  - fingerprint-oss@0.10.0 || 0.10.1

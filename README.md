@@ -47,7 +47,7 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
 
 ## Usage Statistics
 
-Fingerprint-OSS is actively used across multiple production sites, serving **more than 100K monthly hits** across sites where Fingerprint-OSS is integrated.
+Fingerprint-OSS is actively used across multiple production sites, serving **1M+ hits a month** across sites where Fingerprint-OSS is integrated.
 
 <img src="assets/map.png" alt="Fingerprint-OSS usage map showing global distribution" width="800" height="400" />
 
@@ -97,7 +97,7 @@ const config = {
 const data = await userInfo(config);
 ```
 
-## Configuration for OpenTelemetry
+## Configuration for OpenTelemetry (deprecated)
 
 > **Deprecated.** The `telemetry` option and the `Telemetry` / `withTelemetry` exports are deprecated and are now no-ops. The OpenTelemetry dependencies have been removed. This configuration is accepted for backward compatibility but has no effect, and will be removed in a future major release.
 
@@ -122,7 +122,7 @@ const data = await userInfo(config);
 ## Documentation
 
 - [API Documentation](./API.md) - Detailed API reference and output structure
-- [Telemetry Guide](./TELEMETRY.md) - OpenTelemetry integration and usage examples
+- [Telemetry Guide](./TELEMETRY.md) - OpenTelemetry integration and usage examples _(deprecated)_
 - [Wiki](https://deepwiki.com/IntegerAlex/fingerprint-oss)
 - [Changelog](./CHANGELOG.md)
 - [Ethical Contribution Notice](./NOTICE.md)
