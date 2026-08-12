@@ -283,6 +283,23 @@ const browsersList: BrowserDescriptor[] = [
     },
   },
 
+  /* Linespider */
+  {
+    test: [/linespider/i],
+    describe(ua) {
+      const browser: BrowserResult = {
+        name: 'Linespider',
+      };
+      const version = Utils.getFirstMatch(/(?:linespider)(?:-[-\w]+)?[\s/](\d+(\.\d+)+)/i, ua) || Utils.getFirstMatch(commonVersionIdentifier, ua);
+
+      if (version) {
+        browser.version = version;
+      }
+
+      return browser;
+    },
+  },
+
   /* AmazonBot */
   {
     test: [/amazonbot/i],
@@ -375,6 +392,23 @@ const browsersList: BrowserDescriptor[] = [
       return {
         name: 'FacebookExternalHit',
       };
+    },
+  },
+
+  /* SlackBot */
+  {
+    test: [/slackbot/i, /slack-imgProxy/i],
+    describe(ua) {
+      const browser: BrowserResult = {
+        name: 'SlackBot',
+      };
+      const version = Utils.getFirstMatch(/(?:slackbot|slack-imgproxy)(?:-[-\w]+)?[\s/](\d+(\.\d+)+)/i, ua) || Utils.getFirstMatch(commonVersionIdentifier, ua);
+
+      if (version) {
+        browser.version = version;
+      }
+
+      return browser;
     },
   },
 

@@ -47,6 +47,17 @@ const platformsList: PlatformDescriptor[] = [
     },
   },
 
+  /* LineSpider */
+  {
+    test: [/linespider/i],
+    describe() {
+      return {
+        type: PLATFORMS_MAP.bot,
+        vendor: 'Line',
+      };
+    },
+  },
+
   /* GPTBot */
   {
     test: [/gptbot/i],
@@ -256,6 +267,17 @@ const platformsList: PlatformDescriptor[] = [
     },
   },
 
+  /* SlackBot */
+  {
+    test: [/slackbot/i, /slack-imgProxy/i],
+    describe() {
+      return {
+        type: PLATFORMS_MAP.bot,
+        vendor: 'Slack',
+      };
+    },
+  },
+
   /* Yandex */
   {
     test: [/yandexbot/i, /yandexmobilebot/i],
@@ -451,6 +473,26 @@ const platformsList: PlatformDescriptor[] = [
       return {
         type: PLATFORMS_MAP.mobile,
         vendor: 'Microsoft',
+      };
+    },
+  },
+
+  /* Smart TV */
+  {
+    test: [/smart-?tv|smarttv/i],
+    describe() {
+      return {
+        type: PLATFORMS_MAP.tv,
+      };
+    },
+  },
+
+  /* NetCast (LG Smart TV) */
+  {
+    test: [/netcast/i],
+    describe() {
+      return {
+        type: PLATFORMS_MAP.tv,
       };
     },
   },
