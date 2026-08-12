@@ -226,10 +226,15 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
       } catch {
         __callback(false); return
       }
+      let db: IDBDatabase | null = null
       // Hard deadline so a stalled IndexedDB transaction can never hang
       // detectIncognito() (and thus getSystemInfo) forever. The callbackSettled
       // guard makes a late real result harmless.
       const watchdog = setTimeout(() => {
+        // Close any live connection first — deleteDatabase is blocked while
+        // the database remains open, and pending transactions would otherwise
+        // keep the handle and storage busy indefinitely.
+        try { if (db) { db.close() } } catch { /* ignore */ }
         try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }
         __callback(false)
       }, HARD_TIMEOUT_MS)
@@ -238,20 +243,21 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
         __callback(result)
       }
       req.onupgradeneeded = () => { req.result.createObjectStore('s') }
-      req.onblocked = () => { try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }; fire(false) }
+      req.onblocked = () => { try { if (db) { db.close() } } catch { /* ignore */ }; try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }; fire(false) }
       req.onerror = () => { try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }; fire(false) }
       req.onsuccess = () => {
-        const db = req.result
+        const conn = req.result
+        db = conn
 
         // Bail out if the durability hint is not honored (older engines) — the strict vs
         // relaxed split would be a no-op and the test meaningless. Abstain => not private.
         let honored = false
         try {
-          const t = db.transaction('s', 'readwrite', { durability: 'strict' })
+          const t = conn.transaction('s', 'readwrite', { durability: 'strict' })
           honored = t.durability === 'strict'
           t.abort()
         } catch { /* durability option unsupported */ }
-        if (!honored) { db.close(); try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }; fire(false); return }
+        if (!honored) { conn.close(); try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }; fire(false); return }
 
         // Time WRITES sequential single-put commits at a given durability. Sequential
         // (await each commit) so leveldb group-commit can't amortize the strict fsync
@@ -262,7 +268,7 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
             let i = 0
             const step = (): void => {
               if (i === WRITES) { resolve(performance.now() - t0); return }
-              const tx = db.transaction('s', 'readwrite', { durability })
+              const tx = conn.transaction('s', 'readwrite', { durability })
               tx.objectStore('s').put(payload, i)
               i++
               tx.oncomplete = step
@@ -285,8 +291,8 @@ export async function detectIncognito(): Promise<{ isPrivate: boolean; browserNa
           }
           ratios.sort((a, b) => a - b)
           fire(ratios[ratios.length >> 1] < THRESHOLD) // ~1.0 = incognito; disk >> 1.30
-          db.close(); try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }
-        })().catch(() => { fire(false); db.close(); try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ } })
+          conn.close(); db = null; try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ }
+        })().catch(() => { fire(false); conn.close(); db = null; try { indexedDB.deleteDatabase(dbName) } catch { /* ignore */ } })
       }
     }
 
