@@ -1,0 +1,7 @@
+allowBuilds:
+  esbuild: false
+  protobufjs: false
+  sharp: false
+  workerd: false
+minimumReleaseAgeExclude:
+  - fingerprint-oss@0.10.0

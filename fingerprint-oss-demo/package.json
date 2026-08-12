@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.9.1",
+    "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
     "@radix-ui/react-aspect-ratio": "1.1.1",
@@ -39,38 +39,39 @@
     "@radix-ui/react-toggle": "1.1.1",
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.5.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
-    "fingerprint-oss": "0.9.6",
+    "fingerprint-oss": "0.10.0",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
-    "next": "^15.5.18",
-    "next-themes": "^0.4.4",
-    "react": "^19",
+    "next": "^16.3.0",
+    "next-themes": "^0.4.6",
+    "react": "^19.2.8",
     "react-day-picker": "8.10.1",
-    "react-dom": "^19",
-    "react-hook-form": "^7.54.1",
-    "react-resizable-panels": "^2.1.7",
+    "react-dom": "^19.2.8",
+    "react-hook-form": "^7.85.0",
+    "react-resizable-panels": "^2.1.9",
     "recharts": "2.15.0",
-    "sonner": "^1.7.1",
-    "tailwind-merge": "^2.5.5",
+    "sonner": "^1.7.4",
+    "tailwind-merge": "^2.6.1",
     "tailwindcss-animate": "^1.0.7",
-    "vaul": "^0.9.6",
-    "zod": "^3.24.1"
+    "vaul": "^0.9.9",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.17.1",
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "postcss": "^8.5.10",
-    "prettier": "^3.6.2",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "@opennextjs/cloudflare": "^1.20.2",
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "postcss": "^8.5.26",
+    "prettier": "^3.9.6",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.120.1"
   },
   "overrides": {
     "postcss": "^8.5.10",
@@ -84,6 +85,12 @@
       "fast-xml-parser": "^5.7.0",
       "postcss": "^8.5.10",
       "esbuild": ">=0.25.0"
-    }
+    },
+    "ignoredBuiltDependencies": [
+      "esbuild",
+      "protobufjs",
+      "sharp",
+      "workerd"
+    ]
   }
 }

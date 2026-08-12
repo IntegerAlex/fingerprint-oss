@@ -8,9 +8,6 @@ const nextConfig = {
   poweredByHeader: false,
   
   // Build configuration
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -70,20 +67,7 @@ const nextConfig = {
     },
   ],
 
-  // Simplified webpack configuration for Cloudflare Workers compatibility
-  webpack: (config, { isServer }) => {
-    // Don't include server-only packages in client bundle
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-        crypto: false,
-      };
-    }
-
-    return config;
-  },
+  turbopack: {},
 
   // Trailing slash configuration
   trailingSlash: false,

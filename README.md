@@ -67,7 +67,7 @@ Fingerprint-OSS is actively used across multiple production sites, serving **mor
 - AdBlocker detection
 - Bot detection
 - GDPR compliance support
-- **OpenTelemetry integration for observability and error tracking**
+- **OpenTelemetry integration for observability and error tracking** _(deprecated — now a no-op; will be removed in a future major release)_
 
 ## Installation
 
@@ -98,6 +98,8 @@ const data = await userInfo(config);
 ```
 
 ## Configuration for OpenTelemetry
+
+> **Deprecated.** The `telemetry` option and the `Telemetry` / `withTelemetry` exports are deprecated and are now no-ops. The OpenTelemetry dependencies have been removed. This configuration is accepted for backward compatibility but has no effect, and will be removed in a future major release.
 
 ```javascript
 const config = {
