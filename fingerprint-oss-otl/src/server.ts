@@ -5,6 +5,9 @@ import { loadConfig } from './shared/config';
 
 const app = createApp();
 
+// eslint-disable-next-line no-console
+console.warn('[DEPRECATED] telemetry-server is deprecated and no longer maintained. See README.md.');
+
 const { port } = loadConfig();
 initDatabase()
   .then(() => {
