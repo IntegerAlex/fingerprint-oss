@@ -1,5 +1,5 @@
 /*!
- * Bowser - a browser detector (v2.13.1)
+ * Bowser - a browser detector (v2.14.1)
  * https://github.com/bowser-js/bowser
  * MIT License | (c) Dustin Diaz 2012-2015
  * MIT License | (c) Denis Demchenko 2015-2019
