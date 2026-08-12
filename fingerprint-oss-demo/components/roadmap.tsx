@@ -9,12 +9,29 @@ import Link from "next/link";
 /** Release history – factually accurate per CHANGELOG.md */
 const RELEASE_HISTORY = [
   {
-    version: "0.9.6",
-    date: "2026-04-01",
+    version: "0.10.1",
+    date: "2026-08-12",
     items: [
-      "Robustness & DX Improvements",
-      "Fixed Build configuration",
-      "Improved error messages and configuration validation",
+      "Migrated from npm to pnpm (removed package-lock.json, added pnpm-lock.yaml)",
+      "Deprecated OpenTelemetry integration (telemetry option and Telemetry/withTelemetry exports are now no-ops)",
+      "Resolved dependency vulnerabilities via pnpm overrides (qs, esbuild) and dev dependency bumps",
+    ],
+  },
+  {
+    version: "0.10.0",
+    date: "2026-08-12",
+    items: [
+      "Upgraded vendored Bowser to v2.14.1 (new browser/platform detection)",
+      "Upgraded detectIncognito to v1.9.0 with detection fixes",
+    ],
+  },
+  {
+    version: "0.9.6",
+    date: "2026-06-14",
+    items: [
+      "Enhanced fingerprinting: Audio v2, Canvas v2, WebGL2, Spoofing Detection",
+      "Resolved security vulnerabilities across all packages",
+      "Dependency updates (protobufjs, axios, Next.js, vite) and lockfile regeneration",
     ],
   },
   {
@@ -119,8 +136,8 @@ const RELEASE_HISTORY = [
 ];
 
 const FUTURE_ROADMAP = [
-  { version: "0.9.6", theme: "Config & Extensibility", focus: ["Custom geo endpoint", "Feature flags", "Plugin hooks", "Lazy loading"] },
   { version: "0.9.7", theme: "Advanced & Hardening", focus: ["Connection type", "CSP-friendly", "SRI hashes", "Pre-1.0 audit"] },
+  { version: "1.0.0", theme: "Stable Public API", focus: ["Finalize breaking changes", "API stability guarantees", "Compliance docs", "Benchmarks"] },
 ];
 
 /**
@@ -137,7 +154,7 @@ export default function Roadmap() {
           <h1 className="text-4xl font-bold text-foreground">Roadmap & Achievements</h1>
         </div>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Track our journey from the initial fork to a production-ready fingerprinting library with 500K+ monthly hits.
+          Track our journey from the initial fork to a production-ready fingerprinting library with 1M+ hits a month.
         </p>
       </section>
 
@@ -229,7 +246,7 @@ export default function Roadmap() {
       <section>
         <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
           <Target className="h-6 w-6 text-primary" />
-          Upcoming: 0.9.6 → 0.9.7
+          Upcoming: 0.10.1 → 1.0.0
         </h2>
         <div className="space-y-4">
           {FUTURE_ROADMAP.map((release) => (
@@ -269,7 +286,7 @@ export default function Roadmap() {
           <CardContent className="p-6 text-center">
             <Shield className="h-10 w-10 text-primary mx-auto mb-2" />
             <p className="text-lg font-medium text-foreground">
-              Fingerprint OSS serves 100K+ monthly hits across production sites
+              Fingerprint OSS serves 1M+ hits a month across production sites
             </p>
             <p className="text-sm text-muted-foreground mt-1">
               Backed by Cloudflare OSS, Macroscope, Netlify, and Neon. Free & open source under LGPL-3.0.

@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2026-08-12
+
+### Changed
+- **Migrated to pnpm**: Removed `package-lock.json` and adopted `pnpm-lock.yaml` across root, demo, and e2e packages
+- **Telemetry deprecated**: The `telemetry` option and the `Telemetry` / `withTelemetry` exports are now no-ops; OpenTelemetry dependencies removed. Will be removed in a future major release
+
+### Fixed
+- **Dependency vulnerabilities**: Resolved via minimal pnpm overrides (`qs`, `esbuild`) and dev dependency bumps (`typedoc`, `vite`)
+
+## [0.10.0] - 2026-08-12
+
+### Changed
+- **Vendored Bowser upgraded to v2.14.1** — updated browser and platform parsing
+- **detectIncognito upgraded to v1.9.0** — includes all upstream detection fixes
+
+## [0.9.6] - 2026-06-14
+
+### Added
+- **Enhanced fingerprinting module**: Audio v2, Canvas v2, WebGL2, and Spoofing Detection
+
+### Fixed
+- **Security vulnerabilities** resolved across root, demo, and docs packages
+- **Canvas stabilisation** logic improved
+
+### Changed
+- **Dependency updates**: protobufjs, axios, Next.js, vite, and others to latest stable
+- **Demo**: Updated footer links and branding
+
+### Infrastructure
+- Regenerated all lockfiles for `npm ci` compatibility
+
 ## 0.9.5 - 2026-04-03
 
 ### Added

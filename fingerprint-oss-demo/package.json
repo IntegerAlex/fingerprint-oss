@@ -74,7 +74,6 @@
     "wrangler": "^4.120.1"
   },
   "overrides": {
-    "postcss": "^8.5.10",
     "esbuild": ">=0.25.0"
   },
   "pnpm": {

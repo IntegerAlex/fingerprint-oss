@@ -1,6 +1,8 @@
 # Fingerprint OSS Roadmap
 
-Planned releases and features for versions 0.9.5 through 0.9.7. Timeline and scope are subject to change based on community feedback and capacity.
+Planned releases and features for versions 0.9.5 through 1.0. Timeline and scope are subject to change based on community feedback and capacity.
+
+**Current status:** v0.9.6, v0.10.0, and v0.10.1 have shipped. v0.9.6 (Configuration & Extensibility) is complete; v0.10.0/v0.10.1 were maintenance releases (Bowser/detectIncognito upgrades, pnpm migration, telemetry deprecation, and security fixes). The next feature release is v0.9.7 (Advanced Features & Hardening), ahead of 1.0.
 
 ---
 
@@ -86,11 +88,14 @@ Planned releases and features for versions 0.9.5 through 0.9.7. Timeline and sco
 
 ## Release Cadence
 
-| Version | Target Focus           | Est. Timeline |
+| Version | Target Focus           | Status        |
 |--------|------------------------|---------------|
-| 0.9.5  | Robustness & DX        | ~4–6 weeks    |
-| 0.9.6  | Config & Extensibility | ~4–6 weeks    |
-| 0.9.7  | Advanced & Hardening   | ~6–8 weeks    |
+| 0.9.5  | Robustness & DX        | Shipped       |
+| 0.9.6  | Config & Extensibility | Shipped       |
+| 0.10.0 | Bowser / detectIncognito upgrades | Shipped (maintenance) |
+| 0.10.1 | pnpm migration, telemetry deprecation, security fixes | Shipped (maintenance) |
+| 0.9.7  | Advanced & Hardening   | Upcoming      |
+| 1.0.0  | Stable public API      | Planned       |
 
 ---
 
