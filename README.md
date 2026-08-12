@@ -164,3 +164,5 @@ Contributions are welcome! Please feel free to submit a Pull Request or open iss
 ## Acknowledgements
 
 This project is a fork of user-info-logger, with enhancements and improvements for better performance and features.
+
+Developed by [Akshat Kotpalliwar](https://www.akshatkotpalliwar.in/).
