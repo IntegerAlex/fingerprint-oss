@@ -8,6 +8,7 @@
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
 import { SystemInfo} from './types.js';
+import Bowser from './bowser/bowser.js';
 import { detectIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
@@ -97,6 +98,30 @@ export function detectBot(): { isBot: boolean; signals: string[]; confidence: nu
 
     if (navigator.hardwareConcurrency < 2 || navigator.hardwareConcurrency > 32) {
         signals.push('weak:unusual-concurrency');
+    }
+
+    // CSS pointer/hover and screen resolution checks for desktop OS
+    let isDesktop = false;
+    try {
+        const parsed = Bowser.parse(navigator.userAgent);
+        isDesktop = parsed.platform?.type === 'desktop';
+    } catch {
+        isDesktop = /Linux|Windows|Macintosh|X11/.test(navigator.userAgent) && !/Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+    }
+
+    if (isDesktop) {
+        if (window.matchMedia) {
+            const hoverNone = window.matchMedia('(hover: none)').matches;
+            const pointerNone = !window.matchMedia('(pointer: fine)').matches && !window.matchMedia('(pointer: coarse)').matches;
+            if (hoverNone || pointerNone) {
+                signals.push('strong:desktop-no-pointer-hover-mismatch');
+            }
+        }
+        if (window.screen) {
+            if (window.screen.width === 800 && window.screen.height === 600) {
+                signals.push('medium:desktop-default-headless-resolution');
+            }
+        }
     }
 
     // Calculate confidence score
