@@ -8,6 +8,7 @@
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
 import type { DeviceTypeInfo } from './deviceType.js';
+import type { FingerprintWarning } from './errors.js';
 
 // Add WebKit FileSystem types
 declare global {
@@ -95,6 +96,11 @@ export interface SystemInfo {
     fontPreferences: FontPreferencesInfo; // Updated name
     deviceType: DeviceTypeInfo;
     confidenceScore: number;
+    /**
+     * Present only when a collector failed and its fallback was used, e.g. a
+     * blocked WebGL context. Absent on a fully successful collection.
+     */
+    warnings?: FingerprintWarning[];
     /** Enhanced fingerprint signals (optional, added in v1.0.0). */
     enhanced?: EnhancedFingerprintInfo;
 }

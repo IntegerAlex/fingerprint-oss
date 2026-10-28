@@ -7,7 +7,8 @@
  *
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
-import { SystemInfo} from './types.js';
+import { SystemInfo, WebGLInfo } from './types.js';
+import type { FingerprintWarning } from './errors.js';
 import { detectIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
 import { detectAdBlockers } from './adblocker.js';
@@ -95,7 +96,15 @@ export function detectBot(): { isBot: boolean; signals: string[]; confidence: nu
         signals.push('weak:small-screen');
     }
 
-    if (navigator.hardwareConcurrency < 2 || navigator.hardwareConcurrency > 32) {
+    // Privacy extensions can freeze this getter and throw; a blocked read must
+    // not take the whole collection down with it.
+    let cores: number | undefined;
+    try {
+        cores = navigator.hardwareConcurrency;
+    } catch {
+        cores = undefined;
+    }
+    if (cores !== undefined && (cores < 2 || cores > 32)) {
         signals.push('weak:unusual-concurrency');
     }
 
@@ -167,16 +176,23 @@ export async function getSystemInfo(): Promise<SystemInfo> {
     }
 
     return StructuredLogger.logBlock('getSystemInfo', 'System information collection', async () => {
+        const warnings: FingerprintWarning[] = [];
+
         // Get bot detection results
         const botInfo = detectBot();
 
-        // Start enhanced collection early so it runs in parallel with the
-        // baseline async signals (incognito, adBlocker, audio, webGL, cores).
+        // Start every independent async collector before awaiting any of them:
+        // they used to run one after another inside the object literal below,
+        // so getSystemInfo() cost the sum of their durations.
         const enhancedPromise = collectEnhancedFingerprint();
+        const [incognitoMode, adBlocker, hardwareConcurrency, audio, webGL] = await Promise.all([
+            collect('incognito', detectIncognito(), { isPrivate: false, browserName: 'Unknown' }, warnings),
+            collect('adBlocker', detectAdBlockers(), { isBrave: false, adBlocker: false }, warnings),
+            collect('hardwareConcurrency', estimateCores(), 0, warnings),
+            collect('audio', getAudioFingerprint(), null, warnings),
+            collect('webGL', getWebGLInfo(), { vendor: 'unknown', renderer: 'unknown', imageHash: null } as WebGLInfo, warnings),
+        ]);
 
-        // Check for incognito mode
-        const incognitoMode = await detectIncognito(); 
-        
         // Calculate confidence score - now including bot info
         const confidenceScore = calculateConfidenceScore(incognitoMode.isPrivate, botInfo);
 
@@ -184,7 +200,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
 	    
             // Privacy modes
             incognito: incognitoMode,
-        adBlocker: await detectAdBlockers(),
+        adBlocker,
      
             // Browser detection
             browser: getBrowserInfo(),
@@ -203,12 +219,12 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         touchSupport: getTouchSupportInfo(),
             
             // Hardware
-            hardwareConcurrency: await estimateCores(),
+            hardwareConcurrency,
             deviceMemory: (navigator as any).deviceMemory,
         os: getOSInfo(),
             
             // Audio capabilities
-            audio: await getAudioFingerprint(),
+            audio,
             
             // Browser features
             localStorage: isLocalStorageEnabled(),
@@ -216,7 +232,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
             indexedDB: isIndexedDBEnabled(),
             
             // Graphics & Canvas
-            webGL: await getWebGLInfo(), // getWebGLInfo is now async
+            webGL, // getWebGLInfo is now async
             canvas: getCanvasFingerprint(),
             
             // Plugins & MIME
@@ -247,6 +263,12 @@ export async function getSystemInfo(): Promise<SystemInfo> {
             confidenceScore: confidenceScore
         } as SystemInfo;
 
+        // Signals that failed to collect are reported instead of rejecting the
+        // whole fingerprint: one blocked API must not cost the caller everything.
+        if (warnings.length > 0) {
+            browserInfo.warnings = warnings;
+        }
+
         // Attach enhanced signals as a non-enumerable property.
         // Non-enumerable means it is invisible to JSON.stringify, for-in loops,
         // and Object.keys(), so existing serialisation paths (e.g. generateId)
@@ -261,4 +283,28 @@ export async function getSystemInfo(): Promise<SystemInfo> {
 
         return browserInfo;
     });
+}
+
+/**
+ * Awaits a collector, substituting `fallback` and recording a warning when it
+ * fails. Used so one unavailable browser API degrades a single field instead of
+ * rejecting `getSystemInfo()`.
+ */
+async function collect<T>(
+    name: string,
+    promise: Promise<T>,
+    fallback: T,
+    warnings: FingerprintWarning[],
+): Promise<T> {
+    try {
+        return await promise;
+    } catch (error) {
+        StructuredLogger.warn('getSystemInfo', `Collector "${name}" failed, using fallback`, error);
+        warnings.push({
+            code: 'COLLECTOR_FAILED',
+            message: `Collector "${name}" failed, using fallback`,
+            details: { collector: name, error: error instanceof Error ? error.message : String(error) },
+        });
+        return fallback;
+    }
 }
