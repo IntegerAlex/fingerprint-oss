@@ -377,6 +377,10 @@ export {
     detectBot
 } from './systemInfo';
 
+export { getBrowserInfo, getBrowserName } from './browserDetection';
+export { probeBrowser, BROWSER_FAMILY_NAMES } from './browserProbe';
+export type { BrowserProbe, BrowserFamily, EngineFamily } from './browserProbe';
+
 export { fetchGeolocationInfo } from './geo-ip';
 export { generateJSON } from './json';
 export { generateId, generateIdWithDebug, compareInputs } from './hash';
