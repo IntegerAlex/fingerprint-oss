@@ -185,6 +185,54 @@ export interface EnhancedFingerprintInfo {
     fpVersion: string;
     /** Per-signal entropy estimates (bits). */
     entropy?: Record<string, number>;
+    /**
+     * Low-cost signals added in 0.12.0. Deliberately kept out of the hash:
+     * they are context, not identity. Any field can be null when the browser
+     * refuses the underlying API.
+     */
+    optional?: OptionalSignalsInfo;
+}
+
+/**
+ * CSS media-query preferences. Stable per device and OS theme, and a frequent
+ * target for anti-fingerprinting extensions, which makes disagreement between
+ * these values and the rest of the fingerprint informative.
+ */
+export interface DisplayPreferences {
+    /** `active` | `none` */
+    forcedColors: string | null;
+    /** `more` | `less` | `custom` | `no-preference` */
+    prefersContrast: string | null;
+    /** `inverted` | `none` */
+    invertedColors: string | null;
+    /** `hw-monochrome` value, typically `0` or the grayscale bit depth */
+    monochrome: string | null;
+    /** `reduce` | `no-preference` */
+    reducedMotion: string | null;
+    /** `reduce` | `no-preference` */
+    reducedTransparency: string | null;
+    /** `high` | `standard` (video-dynamic-range) */
+    hdr: string | null;
+}
+
+/** Everything below is optional context; null means "the browser refused". */
+export interface OptionalSignalsInfo {
+    display: DisplayPreferences;
+    /** Window position offset: differs across multi-monitor setups. */
+    screenFrame: { availLeft: number; availTop: number } | null;
+    /** AudioContext.baseLatency in seconds — implementation-specific. */
+    audioBaseLatency: number | null;
+    /** ICU data varies by OS build; the formatted sample exposes it. */
+    dateTimeLocale: {
+        locale: string;
+        calendar: string;
+        numberingSystem: string;
+        formatted: string;
+    } | null;
+    /** Installed speech voices, hashed (names only, never the raw list). */
+    speechVoices: { count: number; voicesHash: string } | null;
+    /** Permissions API statuses; inconsistent answers indicate tampering. */
+    permissions: Record<string, string> | null;
 }
 
 export interface WebGLInfo {

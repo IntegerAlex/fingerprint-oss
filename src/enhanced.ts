@@ -36,6 +36,8 @@ import type {
     WebGL2Enhanced,
     SpoofingInfo,
     EnhancedFingerprintInfo,
+    DisplayPreferences,
+    OptionalSignalsInfo,
 } from './types';
 
 // ─── fp_version ─────────────────────────────────────────────────────────────
@@ -605,6 +607,200 @@ export function computeEntropyScores(
     return scores;
 }
 
+// ─── Optional low-cost signals ───────────────────────────────────────────────
+
+/**
+ * Wraps `matchMedia` so a browser that blocks it (or an SSR build) yields
+ * `null` rather than throwing.
+ */
+function mediaMatches(query: string): boolean | null {
+    try {
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+            return null;
+        }
+        return window.matchMedia(query).matches;
+    } catch {
+        return null;
+    }
+}
+
+function mediaPick(query: string, whenTrue: string, whenFalse: string): string | null {
+    const matches = mediaMatches(query);
+    if (matches === null) return null;
+    return matches ? whenTrue : whenFalse;
+}
+
+function collectDisplayPreferences(): DisplayPreferences {
+    const contrast = ['more', 'less', 'custom'].find(
+        value => mediaMatches(`(prefers-contrast: ${value})`) === true,
+    );
+
+    return {
+        forcedColors: mediaPick('(forced-colors: active)', 'active', 'none'),
+        prefersContrast: contrast
+            ?? (mediaMatches('(prefers-contrast: no-preference)') === null ? null : 'no-preference'),
+        invertedColors: mediaPick('(inverted-colors: inverted)', 'inverted', 'none'),
+        monochrome: mediaPick('(min-monochrome: 1)', '1+', '0'),
+        reducedMotion: mediaPick('(prefers-reduced-motion: reduce)', 'reduce', 'no-preference'),
+        reducedTransparency: mediaPick('(prefers-reduced-transparency: reduce)', 'reduce', 'no-preference'),
+        hdr: mediaPick('(video-dynamic-range: high)', 'high', 'standard'),
+    };
+}
+
+function collectScreenFrame(): { availLeft: number; availTop: number } | null {
+    try {
+        if (typeof window === 'undefined' || !window.screen) return null;
+        // availLeft/availTop exist in browsers but not in the ES2020 DOM lib.
+        const screen = window.screen as Screen & { availLeft?: number; availTop?: number };
+        return { availLeft: screen.availLeft ?? 0, availTop: screen.availTop ?? 0 };
+    } catch {
+        return null;
+    }
+}
+
+async function collectAudioBaseLatency(): Promise<number | null> {
+    try {
+        const Ctor = (window as any)?.AudioContext ?? (window as any)?.webkitAudioContext;
+        if (!Ctor) return null;
+        const context = new Ctor();
+        const latency = typeof context.baseLatency === 'number' ? context.baseLatency : null;
+        void context.close?.();
+        return latency;
+    } catch {
+        return null;
+    }
+}
+
+function collectDateTimeLocale(): OptionalSignalsInfo['dateTimeLocale'] {
+    try {
+        const resolved = new Intl.DateTimeFormat().resolvedOptions();
+        return {
+            locale: resolved.locale,
+            calendar: resolved.calendar ?? '',
+            numberingSystem: resolved.numberingSystem ?? '',
+            formatted: new Intl.DateTimeFormat(undefined, {
+                dateStyle: 'full',
+                timeStyle: 'long',
+                timeZone: 'UTC',
+            }).format(new Date(0)),
+        };
+    } catch {
+        return null;
+    }
+}
+
+/** FNV-1a, 32-bit. Non-cryptographic: this is a lookup key, not a secret. */
+function fnv1a(input: string): string {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < input.length; i++) {
+        hash ^= input.charCodeAt(i);
+        hash = Math.imul(hash, 0x01000193);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/** Chrome populates voices asynchronously after a `voiceschanged` event. */
+const VOICE_LOAD_TIMEOUT_MS = 800;
+
+async function collectSpeechVoices(): Promise<OptionalSignalsInfo['speechVoices']> {
+    try {
+        const synth = (window as any)?.speechSynthesis;
+        if (!synth || typeof synth.getVoices !== 'function') return null;
+
+        const read = (): SpeechSynthesisVoice[] => {
+            try {
+                return synth.getVoices() ?? [];
+            } catch {
+                return [];
+            }
+        };
+
+        let voices = read();
+        if (voices.length === 0) {
+            voices = await new Promise<SpeechSynthesisVoice[]>(resolve => {
+                const done = (value: SpeechSynthesisVoice[]) => {
+                    clearTimeout(timer);
+                    try { synth.removeEventListener('voiceschanged', onChange); } catch { /* older browsers */ }
+                    resolve(value);
+                };
+                const onChange = () => done(read());
+                const timer = setTimeout(() => done(read()), VOICE_LOAD_TIMEOUT_MS);
+                try {
+                    synth.addEventListener('voiceschanged', onChange);
+                } catch {
+                    done(read());
+                }
+            });
+        }
+
+        if (voices.length === 0) return null;
+
+        // Only the names, languages and locality — never the raw list.
+        const signature = voices
+            .map(voice => `${voice.name}|${voice.lang}|${voice.localService ? 1 : 0}`)
+            .sort()
+            .join(';');
+
+        return { count: voices.length, voicesHash: fnv1a(signature) };
+    } catch {
+        return null;
+    }
+}
+
+const PERMISSION_NAMES = [
+    'geolocation',
+    'notifications',
+    'camera',
+    'microphone',
+    'clipboard-read',
+    'persistent-storage',
+] as const;
+
+async function collectPermissionStates(): Promise<OptionalSignalsInfo['permissions']> {
+    try {
+        if (typeof navigator === 'undefined' || !navigator.permissions?.query) return null;
+
+        const entries = await Promise.all(PERMISSION_NAMES.map(async name => {
+            try {
+                const status = await navigator.permissions.query({ name: name as PermissionName });
+                return [name, status.state] as const;
+            } catch {
+                return null; // unsupported name in this browser
+            }
+        }));
+
+        const states: Record<string, string> = {};
+        for (const entry of entries) {
+            if (entry) states[entry[0]] = entry[1];
+        }
+        return Object.keys(states).length > 0 ? states : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Collects the low-cost signals that neither FingerprintJS nor ThumbmarkJS
+ * ships in the baseline. Everything is defensive: a refused API becomes
+ * `null`, never an exception, and the aggregate never rejects.
+ */
+export async function collectOptionalSignals(): Promise<OptionalSignalsInfo> {
+    const [audioBaseLatency, speechVoices, permissions] = await Promise.all([
+        collectAudioBaseLatency(),
+        collectSpeechVoices(),
+        collectPermissionStates(),
+    ]);
+
+    return {
+        display: collectDisplayPreferences(),
+        screenFrame: collectScreenFrame(),
+        audioBaseLatency,
+        dateTimeLocale: collectDateTimeLocale(),
+        speechVoices,
+        permissions,
+    };
+}
+
 // ─── Aggregate collector ─────────────────────────────────────────────────────
 
 /**
@@ -614,11 +810,12 @@ export function computeEntropyScores(
  * This is the primary entry point called from `getSystemInfo`.
  */
 export async function collectEnhancedFingerprint(): Promise<EnhancedFingerprintInfo> {
-    // Collect audio, canvas, and WebGL2 in parallel for performance.
-    const [audioV2, canvasV2, webgl2] = await Promise.all([
+    // Collect audio, canvas, WebGL2 and the optional bundle in parallel.
+    const [audioV2, canvasV2, webgl2, optional] = await Promise.all([
         getEnhancedAudioFingerprint(),
         getEnhancedCanvasFingerprint(),
         getEnhancedWebGL2Info(),
+        collectOptionalSignals(),
     ]);
 
     // Spoofing detection is synchronous — no async API calls needed.
@@ -629,6 +826,7 @@ export async function collectEnhancedFingerprint(): Promise<EnhancedFingerprintI
         canvasV2,
         webgl2,
         spoofing,
+        optional,
         fpVersion: FP_VERSION,
     };
 
