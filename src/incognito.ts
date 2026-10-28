@@ -38,7 +38,7 @@
  * Please keep this comment intact in order to properly abide by the MIT License.
  *
  **/
-import Bowser from './bowser/bowser.js';
+import Bowser from 'bowser';
 
 declare global {
   interface Window {
