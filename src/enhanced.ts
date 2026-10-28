@@ -543,6 +543,91 @@ export function detectSpoofing(): SpoofingInfo {
         signals.push('antifp:no-mimetypes-in-chrome');
     }
 
+    // ── Prototype and API tampering ───────────────────────────────────────────
+    //
+    // Anti-fingerprinting extensions and automation frameworks rewrite the
+    // browser APIs we read. A rewritten function stops reporting "[native code]"
+    // and a patched accessor usually turns into an own property of the instance.
+    // These are tamper signals, not headless signals.
+
+    const nativePattern = /\{\s*\[native code\]\s*\}/;
+    const isNative = (value: unknown): boolean => {
+        if (typeof value !== 'function') return false;
+        try {
+            return nativePattern.test(Function.prototype.toString.call(value));
+        } catch {
+            return false;
+        }
+    };
+
+    const API_CHECKS: Array<[string, () => unknown]> = [
+        ['canvas.getContext', () => (globalThis as any).HTMLCanvasElement?.prototype?.getContext],
+        ['canvas.toDataURL', () => (globalThis as any).HTMLCanvasElement?.prototype?.toDataURL],
+        ['webgl.getParameter', () => (globalThis as any).WebGLRenderingContext?.prototype?.getParameter],
+        ['audio.getChannelData', () => (globalThis as any).AudioBuffer?.prototype?.getChannelData],
+        ['permissions.query', () => (navigator as any).permissions?.query],
+    ];
+
+    for (const [name, read] of API_CHECKS) {
+        try {
+            const fn = read();
+            if (typeof fn === 'function' && !isNative(fn)) {
+                signals.push(`tamper:non-native:${name}`);
+            }
+        } catch { /* property itself blocked */ }
+    }
+
+    const GETTER_CHECKS: Array<['Navigator' | 'Screen', string]> = [
+        ['Navigator', 'userAgent'],
+        ['Navigator', 'platform'],
+        ['Navigator', 'hardwareConcurrency'],
+        ['Screen', 'width'],
+        ['Screen', 'colorDepth'],
+    ];
+
+    for (const [owner, prop] of GETTER_CHECKS) {
+        try {
+            const target = owner === 'Navigator' ? navigator : (typeof screen !== 'undefined' ? screen : null);
+            if (!target) continue;
+
+            // In a clean browser these live on the prototype, never on the instance.
+            if (Object.prototype.hasOwnProperty.call(target, prop)) {
+                signals.push(`tamper:own-property:${prop}`);
+            }
+
+            const proto = (globalThis as any)[owner]?.prototype;
+            const descriptor = proto ? Object.getOwnPropertyDescriptor(proto, prop) : undefined;
+            if (descriptor?.get && !isNative(descriptor.get)) {
+                signals.push(`tamper:patched-getter:${prop}`);
+            }
+        } catch { /* descriptor access blocked */ }
+    }
+
+    // Client Hints must agree with the UA about the OS family; disagreement
+    // means one of the two was rewritten.
+    try {
+        const chPlatform = (navigator as any).userAgentData?.platform as string | undefined;
+        if (chPlatform) {
+            const uaFamilies: Array<[RegExp, string]> = [
+                [/windows nt/i, 'Windows'],
+                [/cros /i, 'Chrome OS'],
+                [/android/i, 'Android'],
+                [/iphone|ipad|ipod/i, 'iOS'],
+                [/mac os x|macintosh/i, 'macOS'],
+                [/linux/i, 'Linux'],
+            ];
+            const uaFamily = uaFamilies.find(([pattern]) => pattern.test(ua))?.[1];
+            const known = uaFamily !== undefined && chPlatform !== 'Unknown';
+            const agrees = uaFamily === chPlatform
+                // Chrome OS reports "Chrome OS" in CH and "CrOS" in the UA; iOS is
+                // folded into "iOS" upstream but Chrome on iOS reports iOS too.
+                || (uaFamily === 'Chrome OS' && /cros/i.test(ua));
+            if (known && !agrees) {
+                signals.push('tamper:os-mismatch');
+            }
+        }
+    } catch { /* Client Hints blocked */ }
+
     // ── Score computation ─────────────────────────────────────────────────────
 
     const WEIGHTS: Record<string, number> = {
@@ -557,6 +642,22 @@ export function detectSpoofing(): SpoofingInfo {
         'antifp:missing-languages': 0.15,
         'antifp:no-plugins-in-chrome': 0.20,
         'antifp:no-mimetypes-in-chrome': 0.20,
+        'tamper:non-native:canvas.getContext': 0.25,
+        'tamper:non-native:canvas.toDataURL': 0.25,
+        'tamper:non-native:webgl.getParameter': 0.25,
+        'tamper:non-native:audio.getChannelData': 0.25,
+        'tamper:non-native:permissions.query': 0.15,
+        'tamper:own-property:userAgent': 0.20,
+        'tamper:own-property:platform': 0.15,
+        'tamper:own-property:hardwareConcurrency': 0.15,
+        'tamper:own-property:width': 0.15,
+        'tamper:own-property:colorDepth': 0.15,
+        'tamper:patched-getter:userAgent': 0.20,
+        'tamper:patched-getter:platform': 0.15,
+        'tamper:patched-getter:hardwareConcurrency': 0.15,
+        'tamper:patched-getter:width': 0.15,
+        'tamper:patched-getter:colorDepth': 0.15,
+        'tamper:os-mismatch': 0.25,
     };
 
     let score = 0;
@@ -566,7 +667,9 @@ export function detectSpoofing(): SpoofingInfo {
     score = Math.min(1.0, score);
 
     return {
-        likelyHeadless: score >= 0.3,
+        // Tampering is suspicious but is not evidence of a headless browser, so
+        // require at least one headless signal before claiming that.
+        likelyHeadless: score >= 0.3 && signals.some(signal => signal.startsWith('headless:')),
         signals,
         score,
     };
