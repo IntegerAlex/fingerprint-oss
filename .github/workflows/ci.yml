@@ -36,6 +36,18 @@ jobs:
       - name: Build package
         run: pnpm run build
 
+      - name: Type check
+        run: pnpm run typecheck
+
+      - name: Validate package exports and types
+        run: pnpm run check:package
+
+      - name: Enforce bundle size budget
+        run: pnpm run check:size
+
+      - name: Audit runtime dependencies
+        run: pnpm audit --prod --audit-level high
+
       - name: Install test deps
         run: cd test && npm run install:all
 
