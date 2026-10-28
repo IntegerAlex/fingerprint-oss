@@ -29,19 +29,20 @@ yarn add fingerprint-oss
 ### Using a CDN
 
 ```html
-<script src="https://unpkg.com/fingerprint-oss/dist/fingerprint-oss.umd.min.js"></script>
+<script src="https://unpkg.com/fingerprint-oss"></script>
 <script>
-  // Available as window.FingerprintOSS
-  const fingerprint = FingerprintOSS.userInfo();
+  // Available as window.fingerprintOss
+  const fingerprint = fingerprintOss.userInfo();
 </script>
 ```
 
 ### Package Structure
 The installed package provides multiple build formats for different environments. 
 
-- CommonJS: `dist/index.cjs.js` for Node.js and older bundlers.
-- ES module: `dist/index.esm.js` for modern bundlers and browsers.
-- TypeScript types: `dist/index.d.ts` for type definitions.
+- CommonJS: `dist/index.cjs` for Node.js and older bundlers.
+- ES module: `dist/index.mjs` for modern bundlers and browsers.
+- UMD (CDN): `dist/index.min.js`.
+- TypeScript types: `dist/index.d.ts` (`dist/index.d.cts` for CommonJS).
 
 ## Basic Usage
 
@@ -183,7 +184,7 @@ export default App;
 ## Server-Side Usage (Node.js)
 
 ```javascript
-const { userInfo } = require('fingerprint-oss/node');
+const { userInfo } = require('fingerprint-oss');
 
 // Note: Some features like WebGL and Canvas won't be available in Node.js
 async function getServerFingerprint(req) {

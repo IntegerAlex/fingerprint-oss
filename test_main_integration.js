@@ -1,5 +1,5 @@
 // Simple integration test for the main API
-import fingerprintOSS from './dist/index.esm.js';
+import fingerprintOSS from './dist/index.mjs';
 
 async function testMainIntegration() {
     console.log('🔍 Testing Main API Integration...\n');

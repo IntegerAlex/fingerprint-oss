@@ -347,6 +347,10 @@ export default fingerprintOSS;
 export { Telemetry, withTelemetry };
 export type { TelemetryConfig };
 
+// `userInfo` is the default export; expose it by name too so
+// `const { userInfo } = require('fingerprint-oss')` works as documented.
+export { userInfo };
+
 // Export configuration functions and types
 export { 
     getConfig, 
