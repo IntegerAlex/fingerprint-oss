@@ -9,12 +9,15 @@ describe('spoofing detection', () => {
     });
   });
 
+  // Patch inside the application window, not the spec window: Cypress runs the
+  // spec in a separate iframe, and the library reads the app's prototypes. The
+  // patch happens after cy.visit, which would otherwise wipe it.
   it('reports tampering when an API is replaced', () => {
     cy.loadFingerprintOSS().then((fp) => {
-      const original = HTMLCanvasElement.prototype.toDataURL;
-      HTMLCanvasElement.prototype.toDataURL = function patched() { return 'data:,'; };
-      return fp.getSystemInfo().then((info) => {
-        HTMLCanvasElement.prototype.toDataURL = original;
+      cy.window().then((win) => {
+        win.HTMLCanvasElement.prototype.toDataURL = function patched() { return 'data:,'; };
+        return fp.getSystemInfo();
+      }).then((info) => {
         expect(info.enhanced.spoofing.signals).to.include('tamper:non-native:canvas.toDataURL');
       });
     });

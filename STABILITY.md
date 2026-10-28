@@ -38,6 +38,22 @@ CI runs both the self-check and the report on every push, and posts the table to
 the job summary. The self-check (`node scripts/entropy.mjs --self-check`) pins
 the maths itself, so a broken formula fails even without a browser.
 
+## Current measurement
+
+Last run: **2026-10-28**, headless Chromium (Cypress 13.17), Linux x86_64,
+five consecutive samples plus one page reload.
+
+| Result | Value |
+|---|---|
+| Hashed id identical across 5 collections | yes |
+| Hashed id identical after reload | yes |
+| Tracked components at 100% stability | 29 of 29 |
+| Hashed components (user agent, platform, screen, colour depth/gamut, OS, WebGL image hash, fonts, canvas geometry, audio, math, plugins) | all stable |
+
+Every component sat at entropy 0.00 bits because a single machine yields a
+single value per component. That is the expected result and the reason this
+table cannot substitute for a population sample.
+
 ## Interpreting a result
 
 - **Entropy 0 / stability 100%** — a constant in this environment. Useful only

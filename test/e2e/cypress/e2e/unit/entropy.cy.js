@@ -53,24 +53,23 @@ const toSample = (info) =>
 
 const SAMPLES = 5;
 
-const collectSamples = (fp, remaining, samples = []) => {
-  if (remaining === 0) return cy.wrap(samples);
-  return fp.getSystemInfo()
-    .then(info => fp.generateId(info).then(hash => {
-      samples.push({ hash, ...toSample(info) });
-      return collectSamples(fp, remaining - 1, samples);
-    }));
+const collectSamples = async (fp) => {
+  const samples = [];
+  for (let i = 0; i < SAMPLES; i++) {
+    const info = await fp.getSystemInfo();
+    samples.push({ hash: await fp.generateId(info), ...toSample(info) });
+  }
+  return samples;
 };
 
 describe('fingerprint stability and entropy', () => {
   it(`records ${SAMPLES} samples for the entropy report`, () => {
-    cy.loadFingerprintOSS().then(fp =>
-      collectSamples(fp, SAMPLES).then(samples => {
-        cy.writeFile('test-results/fingerprint-samples.json', samples);
-        const hashes = new Set(samples.map(sample => sample.hash));
-        expect(hashes.size, 'every collection must yield the same id').to.equal(1);
-      }),
-    );
+    cy.loadFingerprintOSS().then(async (fp) => {
+      const samples = await collectSamples(fp);
+      const hashes = new Set(samples.map(sample => sample.hash));
+      expect(hashes.size, 'every collection must yield the same id').to.equal(1);
+      cy.writeFile('test-results/fingerprint-samples.json', samples);
+    });
   });
 
   it('produces the same id after a reload', () => {
