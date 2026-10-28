@@ -5,15 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.10.2] - 2026-10-28
-
-### Changed
-- **Vendored Bowser upgraded to v2.15.0** — Ladybird (with its `LibWeb` engine), HeyTap Browser and Vivo Browser are now reported under their own names instead of `Chrome`, Motorola Edge devices are no longer misidentified as Microsoft Edge, and Vivaldi version resolution prefers User-Agent Client Hints before falling back to the UA string
-- **`satisfies()` accepts version arrays** — `parser.satisfies({ chrome: ['>100', '>120'] })` matches if any entry matches
+## [0.11.0] - 2026-10-28
 
 ### Fixed
-- **ReDoS in browser detection** — ported the v2.15.0 fix for a polynomial denial-of-service in the Firefox-on-iPad rule ([GHSA-f9xq-72p3-q9fv](https://github.com/bowser-js/bowser/security/advisories/GHSA-f9xq-72p3-q9fv)), plus the Linespider, SlackBot and generic fallback patterns. A crafted User-Agent could block the event loop for seconds per parse
-- **`getBrandVersion()`** uses the internal search helper instead of `Array.prototype.find`, which threw on browsers without ES6 polyfills
+- **`require()` and `import()` now both work** — the CJS bundle was published as `dist/index.cjs.js` inside a `"type": "module"` package with no `exports` map, so Node parsed it as ESM: `require('fingerprint-oss')` returned an empty namespace and `import('fingerprint-oss')` threw `exports is not defined in ES module scope`. Only bundlers worked. Builds are now `dist/index.mjs` / `dist/index.cjs` / `dist/index.min.js` (UMD), with an `exports` map and per-condition types (`.d.ts` / `.d.cts`)
+- **ReDoS in browser detection** — moved to Bowser v2.15.0, which fixes a polynomial denial-of-service in the Firefox-on-iPad rule ([GHSA-f9xq-72p3-q9fv](https://github.com/bowser-js/bowser/security/advisories/GHSA-f9xq-72p3-q9fv)) plus the Linespider, SlackBot and generic fallback patterns. A crafted User-Agent could block the event loop for seconds per parse
+- **One blocked API no longer kills the fingerprint** — collector failures now fall back per field and append a warning, instead of rejecting `getSystemInfo()`
+- **`detectBot()` no longer throws** when a privacy extension freezes `navigator.hardwareConcurrency`
+
+### Changed
+- **Bowser is a dependency again, not a fork** — the vendored copy (3,365 lines, 39% of `src/`) existed to get Client Hints support that upstream now ships. `src/bowser/` is gone; the one remaining behaviour difference (Android TVs reported as tablets) is corrected where it is consumed
+- **`getSystemInfo()` collects in parallel** — the async collectors used to be awaited one after another; they now start together, so a collection costs the slowest signal rather than the sum
+- **Browser naming prefers features over the User-Agent** — Brave is detected via `navigator.brave`, Firefox via Gecko-only globals, Edge/Opera/Samsung via Client Hints brands, with Bowser's UA parsing as the fallback and the version source. `getBrowserInfo()` reports `detectedBy`
+- **New browser names** — Ladybird (with the `LibWeb` engine), HeyTap Browser and Vivo Browser are reported under their own names instead of `Chrome`; Motorola Edge is no longer reported as Microsoft Edge; Vivaldi resolves its version from Client Hints first
+
+### Added
+- **`enhanced.optional`** — CSS preferences (forced colors, contrast, inverted colors, monochrome, reduced motion/transparency, HDR), screen frame, `AudioContext.baseLatency`, Intl date/time formatting, hashed speech-voice list and Permissions API states. Non-enumerable and outside the hash, so stability is unaffected
+- **Tamper detection** — non-native API replacements, own properties and patched getters on `navigator`/`screen`, and Client Hints/UA OS disagreement, each with an explicit weight
+- **`SystemInfo.warnings`** — present only when a collector failed, with a `COLLECTOR_FAILED` code
+- **Named `userInfo` export**, which the docs already documented for CommonJS users
+- **`STABILITY.md`** and a stability/entropy harness (`scripts/entropy.mjs`, Cypress sampling spec) reporting per-component entropy and repeatability; CI posts the table to the job summary
+- **`unpkg` / `jsdelivr` fields** pointing at the UMD bundle
+
+### Infrastructure
+- CI now runs `tsc --noEmit`, `publint` + `attw` (package resolution and types), a gzip size budget, `pnpm audit --prod`, and CodeQL with `security-extended`
+- Dependabot covers npm and GitHub Actions
+- Third-party MIT notices added for Bowser and hash-wasm, both bundled into `dist/`
 
 ## [0.10.1] - 2026-08-12
 
