@@ -53,3 +53,13 @@ jobs:
 
       - name: Run unit tests
         run: pnpm run test
+
+      - name: Entropy report
+        if: always()
+        run: |
+          node scripts/entropy.mjs --self-check
+          if [ -f test/e2e/test-results/fingerprint-samples.json ]; then
+            node scripts/entropy.mjs test/e2e/test-results/fingerprint-samples.json | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No fingerprint samples produced; skipping the per-component table." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
