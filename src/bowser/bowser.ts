@@ -1,8 +1,8 @@
 /*!
- * Bowser - a browser detector (v2.14.1)
+ * Bowser - a browser detector (v2.15.0)
  * https://github.com/bowser-js/bowser
  * MIT License | (c) Dustin Diaz 2012-2015
- * MIT License | (c) Denis Demchenko 2015-2019
+ * MIT License | (c) Denis Demchenko 2015-2026
  */
 import Parser, { ParsedResult, ClientHints } from './parser.js';
 import {
@@ -81,4 +81,12 @@ class Bowser {
 }
 
 export default Bowser;
+export const { parse, getParser } = Bowser;
+// Named too, so `import * as Bowser` has every member the UMD build has.
+export {
+  BROWSER_MAP,
+  ENGINE_MAP,
+  OS_MAP,
+  PLATFORMS_MAP,
+};
 

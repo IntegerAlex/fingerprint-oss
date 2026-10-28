@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2] - 2026-10-28
+
+### Changed
+- **Vendored Bowser upgraded to v2.15.0** — Ladybird (with its `LibWeb` engine), HeyTap Browser and Vivo Browser are now reported under their own names instead of `Chrome`, Motorola Edge devices are no longer misidentified as Microsoft Edge, and Vivaldi version resolution prefers User-Agent Client Hints before falling back to the UA string
+- **`satisfies()` accepts version arrays** — `parser.satisfies({ chrome: ['>100', '>120'] })` matches if any entry matches
+
+### Fixed
+- **ReDoS in browser detection** — ported the v2.15.0 fix for a polynomial denial-of-service in the Firefox-on-iPad rule ([GHSA-f9xq-72p3-q9fv](https://github.com/bowser-js/bowser/security/advisories/GHSA-f9xq-72p3-q9fv)), plus the Linespider, SlackBot and generic fallback patterns. A crafted User-Agent could block the event loop for seconds per parse
+- **`getBrandVersion()`** uses the internal search helper instead of `Array.prototype.find`, which threw on browsers without ES6 polyfills
+
 ## [0.10.1] - 2026-08-12
 
 ### Changed

@@ -290,7 +290,8 @@ const browsersList: BrowserDescriptor[] = [
       const browser: BrowserResult = {
         name: 'Linespider',
       };
-      const version = Utils.getFirstMatch(/(?:linespider)(?:-[-\w]+)?[\s/](\d+(\.\d+)+)/i, ua) || Utils.getFirstMatch(commonVersionIdentifier, ua);
+      // `{1,64}` bounds the backtracking: unbounded, a repeated-token UA is quadratic.
+      const version = Utils.getFirstMatch(/(?:linespider)(?:-[-\w]{1,64})?[\s/](\d+(\.\d+)+)/i, ua) || Utils.getFirstMatch(commonVersionIdentifier, ua);
 
       if (version) {
         browser.version = version;
@@ -402,7 +403,8 @@ const browsersList: BrowserDescriptor[] = [
       const browser: BrowserResult = {
         name: 'SlackBot',
       };
-      const version = Utils.getFirstMatch(/(?:slackbot|slack-imgproxy)(?:-[-\w]+)?[\s/](\d+(\.\d+)+)/i, ua) || Utils.getFirstMatch(commonVersionIdentifier, ua);
+      // `{1,64}` bounds the backtracking: unbounded, a repeated-token UA is quadratic.
+      const version = Utils.getFirstMatch(/(?:slackbot|slack-imgproxy)(?:-[-\w]{1,64})?[\s/](\d+(\.\d+)+)/i, ua) || Utils.getFirstMatch(commonVersionIdentifier, ua);
 
       if (version) {
         browser.version = version;
@@ -512,6 +514,36 @@ const browsersList: BrowserDescriptor[] = [
         name: 'Pale Moon',
       };
       const version = Utils.getFirstMatch(commonVersionIdentifier, ua) || Utils.getFirstMatch(/(?:PaleMoon)[\s/](\d+(?:\.\d+)+)/i, ua);
+
+      if (version) {
+        browser.version = version;
+      }
+
+      return browser;
+    },
+  },
+  {
+    test: [/HeyTapBrowser/i],
+    describe(ua) {
+      const browser: BrowserResult = {
+        name: 'HeyTap Browser',
+      };
+      const version = Utils.getFirstMatch(/(?:HeyTapBrowser)[\s/](\d+(?:\.\d+)*)/i, ua) || Utils.getFirstMatch(commonVersionIdentifier, ua);
+
+      if (version) {
+        browser.version = version;
+      }
+
+      return browser;
+    },
+  },
+  {
+    test: [/VivoBrowser/i],
+    describe(ua) {
+      const browser: BrowserResult = {
+        name: 'Vivo Browser',
+      };
+      const version = Utils.getFirstMatch(/(?:VivoBrowser)[\s/](\d+(?:\.\d+)*)/i, ua) || Utils.getFirstMatch(commonVersionIdentifier, ua);
 
       if (version) {
         browser.version = version;
@@ -762,7 +794,7 @@ const browsersList: BrowserDescriptor[] = [
     },
   },
   {
-    test: [/edg([ea]|ios)/i],
+    test: [/edg([ea]|ios)\//i],
     describe(ua) {
       const browser: BrowserResult = {
         name: 'Microsoft Edge',
@@ -778,11 +810,29 @@ const browsersList: BrowserDescriptor[] = [
     },
   },
   {
-    test: [/vivaldi/i],
-    describe(ua) {
+    test(parser) {
+      // Check Client Hints brands for Vivaldi
+      if (parser.hasBrand('Vivaldi')) {
+        return true;
+      }
+      // Fall back to UA string detection
+      return parser.test(/vivaldi/i);
+    },
+    describe(ua, parser) {
       const browser: BrowserResult = {
         name: 'Vivaldi',
       };
+
+      // Try Client Hints brand version first
+      if (parser) {
+        const hintsVersion = parser.getBrandVersion('Vivaldi');
+        if (hintsVersion) {
+          browser.version = hintsVersion;
+          return browser;
+        }
+      }
+
+      // Fall back to UA string version
       const version = Utils.getFirstMatch(/vivaldi\/(\d+(\.?_?\d+)+)/i, ua);
 
       if (version) {
@@ -1091,6 +1141,22 @@ const browsersList: BrowserDescriptor[] = [
       return browser;
     },
   },
+  /* Ladybird */
+  {
+    test: [/ladybird/i],
+    describe(ua) {
+      const browser: BrowserResult = {
+        name: 'Ladybird',
+      };
+      const version = Utils.getFirstMatch(/ladybird\/(\d+(\.?_?\d+)+)/i, ua);
+
+      if (version) {
+        browser.version = version;
+      }
+
+      return browser;
+    },
+  },
   {
     test: [/chrome|crios|crmo/i],
     describe(ua) {
@@ -1185,8 +1251,8 @@ const browsersList: BrowserDescriptor[] = [
        * in order to decide what regexp exactly we want to apply
        * (as there is a specific decision based on that conclusion)
        */
-      const regexpWithoutDeviceSpec = /^(.*)\/(.*) /;
-      const regexpWithDeviceSpec = /^(.*)\/(.*)[ \t]\((.*)/;
+      const regexpWithoutDeviceSpec = /^(.*)\/([^/]*) /;
+      const regexpWithDeviceSpec = /^(.*)\/([^/]*)[ \t]\((.*)/;
       const hasDeviceSpec = ua.search('\\(') !== -1;
       const regexp = hasDeviceSpec ? regexpWithDeviceSpec : regexpWithoutDeviceSpec;
       return {

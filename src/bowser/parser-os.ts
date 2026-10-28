@@ -61,7 +61,9 @@ const osList: OSDescriptor[] = [
 
   /* Firefox on iPad */
   {
-    test: [/Macintosh(.*?) FxiOS(.*?)\//],
+    test(parser) {
+      return Utils.isFirefoxOnIpad(parser.getUA());
+    },
     describe(ua) {
       const result: OSResult = {
         name: OS_MAP.iOS,

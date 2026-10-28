@@ -140,8 +140,12 @@ class Parser {
       return undefined;
     }
     const brandLower = brandName.toLowerCase();
-    const brand = this._hints.brands.find(
-      b => b.brand && b.brand.toLowerCase() === brandLower,
+    // `Utils.find`, not `Array.prototype.find`: the latter is ES6, and `es5.js`
+    // ships no polyfills, so it throws outright on the browsers that bundle
+    // targets. Every other lookup in this file already goes through the helper.
+    const brand = Utils.find(
+      this._hints.brands,
+      b => Boolean(b.brand) && b.brand.toLowerCase() === brandLower,
     );
     return brand ? brand.version : undefined;
   }
@@ -454,7 +458,7 @@ class Parser {
 
     allDefinitions.forEach((key) => {
       const currentDefinition = checkTree[key];
-      if (typeof currentDefinition === 'string') {
+      if (typeof currentDefinition === 'string' || Array.isArray(currentDefinition)) {
         browsers[key] = currentDefinition;
         browsersCounter += 1;
       } else if (typeof currentDefinition === 'object') {
@@ -493,7 +497,7 @@ class Parser {
       const matchingDefinition = Utils.find(browserNames, name => (this.isBrowser(name, true)));
 
       if (matchingDefinition !== void 0) {
-        return this.compareVersion(browsers[matchingDefinition]);
+        return this.compareVersions(browsers[matchingDefinition]);
       }
     }
 
@@ -515,6 +519,19 @@ class Parser {
       browserNameLower = alias.toLowerCase();
     }
     return browserNameLower === defaultBrowserName;
+  }
+
+  /**
+   * Check if browser version equals the version or equals one of versions
+   * @param {(string|string[])} versionsOrVersion versions strings array or version string
+   * @returns {boolean}
+   */
+  compareVersions(versionsOrVersion: string | string[]): boolean | undefined {
+    if (typeof versionsOrVersion === 'string') {
+      return this.compareVersion(versionsOrVersion);
+    }
+
+    return versionsOrVersion.some(version => this.compareVersion(version));
   }
 
   compareVersion(version: string): boolean | undefined {

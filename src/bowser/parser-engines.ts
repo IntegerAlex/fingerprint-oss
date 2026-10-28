@@ -47,6 +47,18 @@ const enginesList: EngineDescriptor[] = [
     },
   },
 
+  /* LibWeb */
+  {
+    test(parser: Parser) {
+      return parser.getBrowserName(true) === 'ladybird';
+    },
+    describe() {
+      return {
+        name: ENGINE_MAP.LibWeb,
+      };
+    },
+  },
+
   /* Trident */
   {
     test: [/trident/i],
