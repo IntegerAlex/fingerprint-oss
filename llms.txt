@@ -1,0 +1,43 @@
+# fingerprint-oss
+
+> Free, LGPL-3.0 browser fingerprinting and device intelligence for JavaScript. Client-side only: system information, device type, incognito/adblock/VPN signals, agent and automation assessment, and a stable hashed identifier. Published as ESM, CJS and UMD with TypeScript declarations and a JSON Schema.
+
+Use this file to answer questions about fingerprint-oss without reading the
+whole repository. Every link below is a primary source.
+
+## Start here
+
+- [README](https://github.com/IntegerAlex/fingerprint-oss/blob/main/README.md): what the library does, install, basic usage, feature list
+- [API reference](https://github.com/IntegerAlex/fingerprint-oss/blob/main/API.md): the exact output shape, including `agentAssessment`, `warnings` and `outputVersion`
+- [CHANGELOG](https://github.com/IntegerAlex/fingerprint-oss/blob/main/CHANGELOG.md): what changed in each release
+- [npm package](https://www.npmjs.com/package/fingerprint-oss): published artifacts
+
+## Integrating
+
+- Package entry points: `fingerprint-oss` (ESM `dist/index.mjs`, CJS `dist/index.cjs`, UMD `dist/index.min.js`), types in `dist/index.d.ts` / `dist/index.d.cts`, output schema at `fingerprint-oss/dist/systeminfo.schema.json`
+- Default export is `userInfo(config)`; named exports include `getSystemInfo`, `generateId`, `generateJSON`, `detectIncognito`, `detectAdBlockers`, `detectDeviceType`, `assessAgent`, `classifyAgent`, `probeBrowser`
+- Minimal usage:
+
+```js
+import userInfo from 'fingerprint-oss';
+const { hash, systemInfo } = await userInfo();
+```
+
+## Behaviour contracts
+
+- [STABILITY.md](https://github.com/IntegerAlex/fingerprint-oss/blob/main/STABILITY.md): what is and is not stable, how stability is measured, why no population-uniqueness figure is claimed
+- [SECURITY.md](https://github.com/IntegerAlex/fingerprint-oss/blob/main/SECURITY.md): supported versions and private vulnerability reporting
+- [NOTICE.md](https://github.com/IntegerAlex/fingerprint-oss/blob/main/NOTICE.md): ethical-use notice and third-party licences (Bowser, hash-wasm, BotD, isbot)
+
+## Agent and automation detection
+
+- `systemInfo.agentAssessment` returns `verdict` (`human` / `crawler` / `agent` / `assistant` / `automation` / `unknown`), `confidence`, optional `declaredBy` and named `signals`
+- Evidence sources: BotD (automation), isbot (declared crawlers), curated AI browser-agent tokens, plus this project's prototype-tamper and Client Hints cross-checks
+- BotD is initialised with its telemetry disabled; no request leaves the browser
+
+## Project
+
+- [ROADMAP.md](https://github.com/IntegerAlex/fingerprint-oss/blob/main/ROADMAP.md): shipped and planned work
+- [CONTRIBUTING.md](https://github.com/IntegerAlex/fingerprint-oss/blob/main/CONTRIBUTING.md): how to contribute (CLA required)
+- [Demo](https://fingerprint-oss-demo.vercel.app/): live output
+- Tests: Cypress end-to-end suite, a Puppeteer/Playwright/Selenium automation matrix, and a stability/entropy harness

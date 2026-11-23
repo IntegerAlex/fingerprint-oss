@@ -1,11 +1,12 @@
 # Fingerprint OSS
 
-[![License: LGPL-2.1](https://img.shields.io/badge/License-LGPL--2.1-blue.svg)](https://opensource.org/licenses/LGPL-2.1)
+[![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0.html)
 [![npm version](https://img.shields.io/npm/v/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
 [![GitHub stars](https://img.shields.io/github/stars/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/stargazers)
 [![npm downloads](https://img.shields.io/npm/dy/fingerprint-oss.svg)](https://www.npmjs.com/package/fingerprint-oss)
 [![GitHub issues](https://img.shields.io/github/issues/IntegerAlex/fingerprint-oss.svg)](https://github.com/IntegerAlex/fingerprint-oss/issues)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/IntegerAlex/fingerprint-oss/pulls)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/IntegerAlex/fingerprint-oss/badge)](https://securityscorecards.dev/viewer/?uri=github.com/IntegerAlex/fingerprint-oss)
 
 <img src="/logo.png" alt="logo" width="200" height="200" />
 
@@ -47,7 +48,7 @@ Fingerprint OSS is a fork of user-info-logger, a simple client-side fingerprinti
 
 ## Usage Statistics
 
-Fingerprint-OSS is actively used across multiple production sites, serving **1M+ hits a month** across sites where Fingerprint-OSS is integrated.
+Fingerprint-OSS is integrated into production sites and is distributed both from npm and as a standalone bundle, so registry download counts understate real usage. We do not publish a traffic figure we cannot verify.
 
 <img src="assets/map.png" alt="Fingerprint-OSS usage map showing global distribution" width="800" height="400" />
 

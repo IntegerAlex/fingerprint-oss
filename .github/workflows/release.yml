@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  # Required for npm provenance (OIDC) and the GitHub release.
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Type check
+        run: pnpm run typecheck
+
+      - name: Validate package exports and types
+        run: pnpm run check:package
+
+      - name: Enforce bundle size budget
+        run: pnpm run check:size
+
+      - name: Install e2e deps
+        run: cd test && npm run install:all
+
+      - name: End-to-end tests
+        run: pnpm run test
+
+      - name: Generate SBOM (runtime dependencies)
+        run: pnpm sbom --sbom-format cyclonedx --prod > "$RUNNER_TEMP/sbom.cdx.json"
+
+      # Provenance needs id-token: write and a public repository. NPM_TOKEN is a
+      # repository secret (automation token or granular token with publish
+      # rights); 2FA must not be required for the CI token.
+      - name: Publish with provenance
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES="RELEASE_NOTES_${GITHUB_REF_NAME}.md"
+          if [ ! -f "$NOTES" ]; then
+            echo "::warning::$NOTES not found; falling back to generated notes"
+            gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/sbom.cdx.json" --generate-notes
+          else
+            gh release create "$GITHUB_REF_NAME" --notes-file "$NOTES" "$RUNNER_TEMP/sbom.cdx.json"
+          fi

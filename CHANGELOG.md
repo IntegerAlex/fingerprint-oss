@@ -19,11 +19,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - [isbot](https://github.com/omrilotan/isbot) (Unlicense) supplies declared crawler/bot classification from the User-Agent, including AI crawler-style agents such as Claude Code
   - A short curated token list covers AI *browser* agents and assistants (ChatGPT, Gemini, Copilot, Perplexity, Operator, Comet) that isbot cannot see because they present as ordinary browsers
 - **Verdicts are evidence, not truth** — `automation` at 0.8 confidence, or 0.9 with `automation:spoofed-declaration` when a crawler UA appears inside an automated browser (crawlers do not execute JavaScript). Headless/agent-declared UAs stay at 0.8. Declared `crawler`/`agent`/`assistant` verdicts stay at 0.5–0.6 and are marked `declaredBy: 'user-agent'`. A clean visitor is `human` at 0.5: absence of evidence, not proof
-- **Automation matrix** — `test/automation` runs `getSystemInfo()` inside Puppeteer, Playwright and Selenium against the same Chromium and asserts the automation verdict, the BotD evidence signal, id stability across two collections, and the legacy `bot` field. One CI job per driver
-- Exported `assessAgent()`, `classifyAgent()` (pure fusion, testable without a browser) and `declaredAiKind()`
+- **Automation matrix** — `test/automation` runs `getSystemInfo()` inside Puppeteer, Playwright, Selenium **and a stealth-evasion driver** (`puppeteer-extra-plugin-stealth`) against the same Chromium, asserting the verdict, the evidence signal, id stability and the legacy `bot` field. One CI job per driver
+- **Evasion handling** — `fuseAutomationEvidence()` covers what BotD cannot see once a stealth plugin hides `navigator.webdriver` and rewrites the UA. Two traces survive: headless signals from `enhanced.spoofing` and a core-count contradiction (stealth reports `hardwareConcurrency: 4` while the benchmark measures 8). Both, or two headless signals, escalate to `automation` at 0.7 confidence. Single weak signals (a fullscreen kiosk, a phone with throttled cores) are recorded without flipping the verdict
+- **`enhanced.optional.clientHints`** — Client Hints `platform`, `architecture`, `bitness`, `mobile`, plus `uaArchitectureMismatch` (macOS exempt, because Apple Silicon legitimately reports an Intel UA). `architectureMismatch()` is exported for testing
+- **`geoEndpoint`** — custom https geolocation endpoint on `UserInfoConfig`/`FingerprintConfig`; plain-http or malformed values are rejected with a `CONFIG_INVALID` warning and the default endpoint is used
+- **`outputVersion` + `dist/systeminfo.schema.json`** — generated from the TypeScript types at build time and importable as `fingerprint-oss/dist/systeminfo.schema.json`
+- **Exported** `assessAgent()`, `classifyAgent()`, `fuseAutomationEvidence()`, `declaredAiKind()`, `collectOptionalSignals()`, `architectureMismatch()`
+
+### Added (project trust surfaces)
+- `SECURITY.md` with supported versions, private reporting and response targets, plus `.well-known/security.txt`
+- `llms.txt` — a primary-source index for agents and LLM tooling
+- OpenSSF Scorecard workflow (weekly) and README badge
+- Release workflow: build → typecheck → package validation → size budget → e2e → CycloneDX SBOM (`pnpm sbom`) → `npm publish --provenance` → GitHub release with the SBOM attached
 
 ### Changed
-- Bundle grows 37.8 KB → 43.5 KB gzip; the CI size budget is raised to 52 KB to leave headroom
+- Bundle grows 37.8 KB → 44.3 KB gzip; the CI size budget is raised to 52 KB to leave headroom
+- README licence badge corrected to LGPL-3.0 (it said LGPL-2.1); the unverifiable "1M+ hits a month" claim replaced with an honest statement about distribution
+- `API.md` documents `warnings`, `outputVersion`, `agentAssessment` and the schema; `ROADMAP.md` marks the items shipped in 0.11.0/0.12.0; a dead 0-byte `test_hash_stability.js` was removed
 
 ### Compatibility
 - **Additive only.** `bot` keeps its exact shape, `generateId()` is untouched, and `agentAssessment` is optional and excluded from the hash, so the stability contract measured in [STABILITY.md](./STABILITY.md) holds. BotD failures degrade to the declared layer and never reject `getSystemInfo()`

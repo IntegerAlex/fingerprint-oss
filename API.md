@@ -163,8 +163,17 @@ systemInfo: {
                           //      'automation:spoofed-declaration'
   },
   confidenceScore: number; // Overall system confidence score
+
+  // Added in 0.12.0
+  outputVersion?: string; // Schema version; see dist/systeminfo.schema.json
+  warnings?: FingerprintWarning[]; // Present only when a collector failed
 }
 ```
+
+The generated JSON Schema for this object ships with the package as
+`dist/systeminfo.schema.json` (importable via `fingerprint-oss/dist/systeminfo.schema.json`).
+`hash`, `geolocation`, and `confidenceAssessments` are composed around
+`systemInfo` by `generateJSON()` and are not part of that schema.
 
 ### Agent assessment
 
@@ -193,12 +202,34 @@ How to read the verdict:
 BotD is initialised with `monitoring: false`, so the library remains 100%
 client-side. The field is optional, is not part of the hash, and never throws.
 
+### Evasion evidence
+
+BotD cannot see a client that hides `navigator.webdriver` and rewrites its UA.
+`getSystemInfo()` therefore fuses two further traces into the verdict via
+`fuseAutomationEvidence()`:
+
+- headless signals from `enhanced.spoofing` (for example a taskbar-less 800×600
+  "desktop")
+- a core-count contradiction: `navigator.hardwareConcurrency` disagreeing with
+  the measured throughput by 2× or more
+
+Either alone is weak, so automation is reported only when both are present or
+two headless signals fire. The evidence is always listed in `signals`, even when
+the verdict stays `human`.
+
 ```javascript
 const { agentAssessment } = await getSystemInfo();
 if (agentAssessment?.verdict === 'automation' && agentAssessment.confidence >= 0.8) {
   // require a challenge before accepting the request
 }
 ```
+
+### Configuration
+
+| Option | Type | Default | Notes |
+|---|---|---|---|
+| `geoEndpoint` | `string` | built-in proxy | Must be `https`; invalid values emit a `CONFIG_INVALID` warning and fall back |
+| `geoTimeout` | `number` | 4500 | Milliseconds, minimum 250 |
 
 
 ### Hash

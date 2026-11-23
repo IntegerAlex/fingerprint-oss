@@ -94,6 +94,29 @@ hash and from `JSON.stringify` output of the identity, matching the existing
 
 ---
 
+### Evasion handling
+
+A stealth plugin (`puppeteer-extra-plugin-stealth`) hides `navigator.webdriver`,
+fakes plugins and the `chrome` object, and rewrites UA and Client Hints to a
+Windows desktop. BotD reports nothing. Two traces survive and are fused into the
+verdict:
+
+1. headless signals from the spoofing layer (e.g. a taskbar-less 800×600 desktop)
+2. a core-count contradiction — stealth reports `hardwareConcurrency: 4` while
+   the benchmark measures 8
+
+Either alone is weak (fullscreen kiosks; phones with throttled cores), so the
+verdict escalates only when both agree or two headless signals fire. The
+evidence is always listed in `agentAssessment.signals`.
+
+### Trust surfaces
+
+- `SECURITY.md` + `/.well-known/security.txt` with private reporting and response targets
+- `llms.txt` so agents and LLM tooling can find primary sources
+- OpenSSF Scorecard workflow + README badge
+- Release workflow: build → package validation → e2e → CycloneDX SBOM →
+  `npm publish --provenance` → GitHub release with the SBOM attached
+
 ### Performance
 
 - **Collection no longer pins every CPU core.** `estimateCores()` used to spawn
@@ -122,8 +145,12 @@ npm install fingerprint-oss@0.12.0
 - `tsc --noEmit`, `publint`, `are-the-types-wrong` — clean
 - Cypress: **36/36 passing**, including five agent-assessment specs, the core-benchmark
   caching assertion, and the stability/reload invariants
-- Automation matrix: Puppeteer, Playwright and Selenium each report
-  `automation` with `automation:botd:*` evidence and a stable id
+- Automation matrix (**4 drivers**): Puppeteer, Playwright and Selenium report
+  `automation` with `automation:botd:*` evidence; the stealth driver reports
+  `automation` 0.7 through the evasion fusion. Every driver's id is stable
+- False-positive gate: all 266 User-Agents in Bowser's acceptance corpus are free
+  of spurious `agent`/`assistant` classifications (the 3 AI-assistant fixtures
+  are correct detections)
 - Demo (Next 16, linked build): hash renders, all 30 legacy `SystemInfo` fields
   present, 13 named exports resolve, `tsc --noEmit` clean, no console errors
 - Node checks: declared crawler, declared agent, assistant, automation-only,
