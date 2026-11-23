@@ -97,7 +97,7 @@
   },
   "dependencies": {
     "@fingerprintjs/botd": "^2.0.0",
-    "bowser": "^2.15.0",
+    "bowser": "^2.15.1",
     "hash-wasm": "^4.12.0",
     "isbot": "^5.2.3"
   },
