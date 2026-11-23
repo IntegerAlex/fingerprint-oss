@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-11-23
+
+### Added
+- **`agentAssessment`** — a fused agent/automation verdict on `SystemInfo`, backed by maintained open-source projects instead of a hand-rolled taxonomy:
+  - [BotD](https://github.com/fingerprintjs/BotD) (MIT) supplies browser-automation evidence: headless Chromium/Firefox, Selenium, Playwright, PhantomJS, Nightmare, Electron, WebDriver. It is initialised with `monitoring: false`, so its installation-statistics request stays disabled and the library remains 100% client-side
+  - [isbot](https://github.com/omrilotan/isbot) (Unlicense) supplies declared crawler/bot classification from the User-Agent, including AI crawler-style agents such as Claude Code
+  - A short curated token list covers AI *browser* agents and assistants (ChatGPT, Gemini, Copilot, Perplexity, Operator, Comet) that isbot cannot see because they present as ordinary browsers
+- **Verdicts are evidence, not truth** — `automation` at 0.8 confidence, or 0.9 with `automation:spoofed-declaration` when a declared identity contradicts the engine. Declared `crawler`/`agent`/`assistant` verdicts stay at 0.5–0.6 and are marked `declaredBy: 'user-agent'`. A clean visitor is `human` at 0.5: absence of evidence, not proof
+- Exported `assessAgent()`, `classifyAgent()` (pure fusion, testable without a browser) and `declaredAiKind()`
+
+### Changed
+- Bundle grows 37.8 KB → 43.3 KB gzip; the CI size budget is raised to 52 KB to leave headroom
+
+### Compatibility
+- **Additive only.** `bot` keeps its exact shape, `generateId()` is untouched, and `agentAssessment` is optional and excluded from the hash, so the stability contract measured in [STABILITY.md](./STABILITY.md) holds. BotD failures degrade to the declared layer and never reject `getSystemInfo()`
+
 ## [0.11.0] - 2026-10-28
 
 ### Fixed

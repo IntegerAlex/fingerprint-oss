@@ -5,9 +5,13 @@ This project depends on a server maintained solely by the author. Contributions 
 
 ## Third-Party Notices
 
-The published bundles include the following MIT-licensed libraries:
+The published bundles include the following permissively licensed libraries:
 
-- **Bowser** — browser detection, © Dustin Diaz and Denis Demchenko, https://github.com/bowser-js/bowser
-- **hash-wasm** — WebAssembly hashing, © Dani Biró, https://github.com/Daninet/hash-wasm
+- **Bowser** — browser detection, © Dustin Diaz and Denis Demchenko, MIT, https://github.com/bowser-js/bowser
+- **hash-wasm** — WebAssembly hashing, © Dani Biró, MIT, https://github.com/Daninet/hash-wasm
+- **BotD** — client-side automation detection, © FingerprintJS, Inc, MIT, https://github.com/fingerprintjs/BotD
+- **isbot** — declared crawler/bot classification from the User-Agent, Unlicense (public domain), https://github.com/omrilotan/isbot
 
-Both licenses are reproduced in the respective package directories under `node_modules/` and require no action beyond retaining their copyright notices, which the bundles do.
+BotD is initialised with `monitoring: false`: its default installation-statistics request to `openfpcdn.io` is disabled so the library stays 100% client-side.
+
+All licenses require no action beyond retaining their copyright notices, which the bundles do.

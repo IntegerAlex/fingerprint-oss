@@ -339,6 +339,11 @@ const fingerprintOSS = Object.assign(userInfo, {
     collectEnhancedFingerprint,
     computeEntropyScores,
     FP_VERSION,
+
+    // Agent / automation assessment
+    assessAgent,
+    classifyAgent,
+    declaredAiKind,
 });
 
 export default fingerprintOSS;
@@ -378,6 +383,9 @@ export {
 } from './systemInfo';
 
 export { getBrowserInfo, getBrowserName } from './browserDetection';
+export { assessAgent, classifyAgent, declaredAiKind } from './agentAssessment';
+export type { ClassifyAgentInput } from './agentAssessment';
+export type { AgentAssessment, AgentVerdict } from './types';
 export { probeBrowser, BROWSER_FAMILY_NAMES } from './browserProbe';
 export type { BrowserProbe, BrowserFamily, EngineFamily } from './browserProbe';
 
@@ -427,6 +435,7 @@ export {
     computeEntropyScores,
     FP_VERSION,
 } from './enhanced';
+import { assessAgent, classifyAgent, declaredAiKind } from './agentAssessment';
 export type {
     AudioEnhanced,
     CanvasEnhanced,

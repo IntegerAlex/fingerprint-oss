@@ -65,6 +65,11 @@ export interface SystemInfo {
         signals: string[];
         confidence: number;
     };
+    /**
+     * Fused agent/automation verdict (added in 0.12.0). `bot` is kept as-is for
+     * backward compatibility; new code should read this instead.
+     */
+    agentAssessment?: AgentAssessment;
     browser: { name?: string; version?: string };
     userAgent: string;
     platform: string;
@@ -166,6 +171,22 @@ export interface SpoofingInfo {
     signals: string[];
     /** Weighted score in [0, 1]; higher means more spoofing indicators present. */
     score: number;
+}
+
+/**
+ * Verdicts produced by `assessAgent()`. `human` means "no automation evidence",
+ * not proof; `declaredBy` is only set when the User-Agent claimed the identity.
+ */
+export type AgentVerdict = 'human' | 'crawler' | 'agent' | 'assistant' | 'automation' | 'unknown';
+
+export interface AgentAssessment {
+    verdict: AgentVerdict;
+    /** 0..1. Declared-only verdicts stay below 0.7; automation evidence scores higher. */
+    confidence: number;
+    /** Present when the User-Agent declared the identity (unverified). */
+    declaredBy?: 'user-agent';
+    /** Named evidence, e.g. `automation:botd:headless_chrome`, `declared:user-agent:...`. */
+    signals: string[];
 }
 
 /**

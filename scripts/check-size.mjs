@@ -9,9 +9,9 @@ import { readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 
 const BUDGETS = {
-  'dist/index.mjs': 44 * 1024,
-  'dist/index.cjs': 44 * 1024,
-  'dist/index.min.js': 44 * 1024,
+  'dist/index.mjs': 52 * 1024,
+  'dist/index.cjs': 52 * 1024,
+  'dist/index.min.js': 52 * 1024,
 };
 
 let failed = false;

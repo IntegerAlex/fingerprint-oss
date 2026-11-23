@@ -66,6 +66,7 @@ Fingerprint-OSS is actively used across multiple production sites, serving **1M+
 - Incognito mode detection
 - AdBlocker detection
 - Bot detection
+- **Agent and automation detection** — fused verdict from BotD + isbot, backward compatible with `bot`
 - GDPR compliance support
 - **Measured fingerprint stability** (see [STABILITY.md](./STABILITY.md))
 - **OpenTelemetry integration for observability and error tracking** _(deprecated — now a no-op; will be removed in a future major release)_

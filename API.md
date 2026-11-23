@@ -153,9 +153,52 @@ systemInfo: {
     signals: string[];    // Bot detection signals
     confidence: number;   // Bot detection confidence
   },
+  // Added in 0.12.0. `bot` above is unchanged; prefer this for new code.
+  agentAssessment?: {
+    verdict: 'human' | 'crawler' | 'agent' | 'assistant' | 'automation' | 'unknown';
+    confidence: number;   // 0-1; 0.5 means "no evidence", not certainty
+    declaredBy?: 'user-agent'; // Set when the UA claimed the identity (unverified)
+    signals: string[];    // e.g. 'automation:botd:headless_chrome',
+                          //      'declared:user-agent:ai-assistant',
+                          //      'automation:spoofed-declaration'
+  },
   confidenceScore: number; // Overall system confidence score
 }
 ```
+
+### Agent assessment
+
+`agentAssessment` fuses two maintained open-source sources with a short
+curated token list:
+
+| Source | What it contributes | License |
+|---|---|---|
+| [BotD](https://github.com/fingerprintjs/BotD) | Browser-automation evidence (headless, Selenium, Playwright, Electron, WebDriver) | MIT |
+| [isbot](https://github.com/omrilotan/isbot) | Declared crawler/bot identity from the User-Agent | Unlicense |
+| Curated AI tokens | Browser agents/assistants that isbot cannot see (ChatGPT, Gemini, Copilot, Perplexity, Operator, Comet…) | — |
+
+How to read the verdict:
+
+- `automation` — the browser is automated; `confidence` 0.8, or **0.9 when the
+  UA also declared an identity** (`automation:spoofed-declaration`), which is
+  what a spoofed agent looks like.
+- `agent` / `assistant` / `crawler` — **self-declared** by the UA, unverified.
+  Judge accordingly; a crawler is not necessarily hostile.
+- `human` — no automation evidence and no declaration. This is *absence of
+  evidence*, reported at 0.5. A user-driven browser agent with a clean UA is
+  indistinguishable client-side.
+- `unknown` — no User-Agent available (e.g. non-browser runtime).
+
+BotD is initialised with `monitoring: false`, so the library remains 100%
+client-side. The field is optional, is not part of the hash, and never throws.
+
+```javascript
+const { agentAssessment } = await getSystemInfo();
+if (agentAssessment?.verdict === 'automation' && agentAssessment.confidence >= 0.8) {
+  // require a challenge before accepting the request
+}
+```
+
 
 ### Hash
 

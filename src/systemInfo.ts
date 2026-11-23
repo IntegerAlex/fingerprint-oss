@@ -17,6 +17,7 @@ import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanv
 import { detectDeviceType } from './deviceType.js';
 import { StructuredLogger } from './config.js';
 import { collectEnhancedFingerprint } from './enhanced.js';
+import { assessAgent } from './agentAssessment.js';
 /**
  * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
  *
@@ -185,12 +186,13 @@ export async function getSystemInfo(): Promise<SystemInfo> {
         // they used to run one after another inside the object literal below,
         // so getSystemInfo() cost the sum of their durations.
         const enhancedPromise = collectEnhancedFingerprint();
-        const [incognitoMode, adBlocker, hardwareConcurrency, audio, webGL] = await Promise.all([
+        const [incognitoMode, adBlocker, hardwareConcurrency, audio, webGL, agentAssessment] = await Promise.all([
             collect('incognito', detectIncognito(), { isPrivate: false, browserName: 'Unknown' }, warnings),
             collect('adBlocker', detectAdBlockers(), { isBrave: false, adBlocker: false }, warnings),
             collect('hardwareConcurrency', estimateCores(), 0, warnings),
             collect('audio', getAudioFingerprint(), null, warnings),
             collect('webGL', getWebGLInfo(), { vendor: 'unknown', renderer: 'unknown', imageHash: null } as WebGLInfo, warnings),
+            collect('agentAssessment', assessAgent(), { verdict: 'unknown', confidence: 0, signals: [] }, warnings),
         ]);
 
         // Calculate confidence score - now including bot info
@@ -255,6 +257,10 @@ export async function getSystemInfo(): Promise<SystemInfo> {
                 signals: botInfo.signals,
                 confidence: botInfo.confidence
             },
+
+            // Fused agent/automation verdict (BotD + isbot). Optional field;
+            // `bot` above is untouched for backward compatibility.
+            agentAssessment,
 
             // Device type detection (multi-signal fusion)
             deviceType: detectDeviceType(),
