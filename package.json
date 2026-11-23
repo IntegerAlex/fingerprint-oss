@@ -96,7 +96,7 @@
     "vite": "^8.2.1"
   },
   "dependencies": {
-    "bowser": "^2.15.0",
+    "bowser": "^2.15.1",
     "hash-wasm": "^4.12.0"
   },
   "overrides": {
