@@ -179,9 +179,10 @@ curated token list:
 
 How to read the verdict:
 
-- `automation` — the browser is automated; `confidence` 0.8, or **0.9 when the
-  UA also declared an identity** (`automation:spoofed-declaration`), which is
-  what a spoofed agent looks like.
+- `automation` — the browser is automated. Confidence 0.8; **0.9 when the UA
+  declared a crawler identity** (`automation:spoofed-declaration`), because a
+  crawler does not execute JavaScript in an automated browser. A UA that already
+  admits automation (headless, webdriver) or declares an AI agent stays at 0.8.
 - `agent` / `assistant` / `crawler` — **self-declared** by the UA, unverified.
   Judge accordingly; a crawler is not necessarily hostile.
 - `human` — no automation evidence and no declaration. This is *absence of

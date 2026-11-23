@@ -24,8 +24,11 @@
  *    these because they present as ordinary browsers.
  *
  * The sources answer different questions. isbot tells you what the UA claims;
- * BotD tells you whether the browser is actually automated. When both fire, the
- * declaration is being spoofed — the signal that matters most.
+ * BotD tells you whether the browser is actually automated. When a crawler UA
+ * appears inside an automated browser the declaration is spoofed — crawlers do
+ * not execute JavaScript — and that is reported separately at higher
+ * confidence. A UA that admits automation (headless, webdriver) or declares an
+ * AI agent is consistent with automation and is not treated as spoofed.
  *
  * Known ceiling: a user-driven browser agent with a clean UA and no automation
  * artifacts is indistinguishable from a human client-side. Such a visitor is
@@ -79,6 +82,9 @@ const AI_AGENT_TOKENS = /operator|computer[-\s]?use|browser[-\s]?use|claude-code
 /** User-driven AI assistants embedded in a browser. */
 const AI_ASSISTANT_TOKENS = /chatgpt|gemini|copilot|perplexity|claude-in-chrome|claude\/|poe\b/i;
 
+/** A UA that already admits it is automated is not a spoofed declaration. */
+const DECLARED_AUTOMATION_TOKENS = /headless|webdriver|automation|phantomjs|slimerjs/i;
+
 export type DeclaredAiKind = 'agent' | 'assistant' | null;
 
 /** Classifies the UA against the curated AI token lists. */
@@ -125,11 +131,17 @@ export function classifyAgent(input: ClassifyAgentInput): AgentAssessment {
         signals.push(`declared:user-agent:ai-${aiKind}`);
     }
 
-    // A declaration that disagrees with the engine is what a spoofed UA looks
-    // like: something is claiming an identity it does not have.
+    // A crawler does not execute JavaScript in an automated browser, and a
+    // headless/agent UA already admits it is automated. Both are consistent;
+    // only a declaration that contradicts the engine is a spoof.
     if (automation?.bot && (declared || aiKind)) {
-        signals.push('automation:spoofed-declaration');
-        return { verdict: 'automation', confidence: 0.9, declaredBy: 'user-agent', signals };
+        const consistent = aiKind !== null || DECLARED_AUTOMATION_TOKENS.test(userAgent);
+        return {
+            verdict: 'automation',
+            confidence: consistent ? 0.8 : 0.9,
+            declaredBy: 'user-agent',
+            signals: consistent ? signals : [...signals, 'automation:spoofed-declaration'],
+        };
     }
 
     if (automation?.bot) {

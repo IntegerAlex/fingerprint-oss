@@ -33,6 +33,7 @@
     "test:all": "cd test && npm run test:all",
     "test:unit": "cd test && npm run test:unit",
     "test:e2e": "cd test && npm run test:e2e",
+    "test:automation": "cd test/automation && node run.mjs",
     "prepublishOnly": "npm run build"
   },
   "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",

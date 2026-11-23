@@ -63,3 +63,48 @@ jobs:
           else
             echo "No fingerprint samples produced; skipping the per-component table." | tee -a "$GITHUB_STEP_SUMMARY"
           fi
+
+  # Proves agentAssessment fires inside the frameworks real agents use, and that
+  # detection does not disturb the fingerprint id. One job per driver so a
+  # single framework regression is isolated.
+  automation-matrix:
+    name: Automation detection (${{ matrix.driver }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        driver: [puppeteer, playwright, selenium]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+
+      - name: Install root deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm run build
+
+      - name: Install a matched Chrome and chromedriver
+        run: |
+          npx --yes @puppeteer/browsers install chrome@stable --path "$RUNNER_TEMP/browsers"
+          npx --yes @puppeteer/browsers install chromedriver@stable --path "$RUNNER_TEMP/browsers"
+          echo "CHROME_PATH=$(find "$RUNNER_TEMP/browsers" -name chrome -type f | head -1)" >> "$GITHUB_ENV"
+          echo "CHROMEDRIVER_PATH=$(find "$RUNNER_TEMP/browsers" -name chromedriver -type f | head -1)" >> "$GITHUB_ENV"
+
+      - name: Install matrix deps
+        run: npm ci --prefix test/automation
+
+      - name: Run ${{ matrix.driver }}
+        run: node run.mjs ${{ matrix.driver }}
+        working-directory: test/automation

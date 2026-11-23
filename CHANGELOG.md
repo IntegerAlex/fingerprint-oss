@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - [BotD](https://github.com/fingerprintjs/BotD) (MIT) supplies browser-automation evidence: headless Chromium/Firefox, Selenium, Playwright, PhantomJS, Nightmare, Electron, WebDriver. It is initialised with `monitoring: false`, so its installation-statistics request stays disabled and the library remains 100% client-side
   - [isbot](https://github.com/omrilotan/isbot) (Unlicense) supplies declared crawler/bot classification from the User-Agent, including AI crawler-style agents such as Claude Code
   - A short curated token list covers AI *browser* agents and assistants (ChatGPT, Gemini, Copilot, Perplexity, Operator, Comet) that isbot cannot see because they present as ordinary browsers
-- **Verdicts are evidence, not truth** — `automation` at 0.8 confidence, or 0.9 with `automation:spoofed-declaration` when a declared identity contradicts the engine. Declared `crawler`/`agent`/`assistant` verdicts stay at 0.5–0.6 and are marked `declaredBy: 'user-agent'`. A clean visitor is `human` at 0.5: absence of evidence, not proof
+- **Verdicts are evidence, not truth** — `automation` at 0.8 confidence, or 0.9 with `automation:spoofed-declaration` when a crawler UA appears inside an automated browser (crawlers do not execute JavaScript). Headless/agent-declared UAs stay at 0.8. Declared `crawler`/`agent`/`assistant` verdicts stay at 0.5–0.6 and are marked `declaredBy: 'user-agent'`. A clean visitor is `human` at 0.5: absence of evidence, not proof
+- **Automation matrix** — `test/automation` runs `getSystemInfo()` inside Puppeteer, Playwright and Selenium against the same Chromium and asserts the automation verdict, the BotD evidence signal, id stability across two collections, and the legacy `bot` field. One CI job per driver
 - Exported `assessAgent()`, `classifyAgent()` (pure fusion, testable without a browser) and `declaredAiKind()`
 
 ### Changed

@@ -43,13 +43,27 @@ const info = await getSystemInfo();
 ### Reading the verdict
 
 - **`automation`** (0.8) — automated browser, regardless of what the UA says.
-- **`automation` (0.9) + `automation:spoofed-declaration`** — the UA claimed an
-  identity the engine contradicts. This is what a spoofed agent looks like.
+- **`automation` (0.9) + `automation:spoofed-declaration`** — a *crawler* UA
+  inside an automated browser. Crawlers do not execute JavaScript, so the
+  declaration is spoofed. A UA that admits automation (headless, webdriver) or
+  declares an AI agent is consistent and stays at 0.8.
 - **`crawler` / `agent` / `assistant`** (0.5–0.6) — *self-declared*, unverified,
   `declaredBy: 'user-agent'`. A crawler is not automatically hostile.
 - **`human`** (0.5) — no automation evidence and no declaration. Absence of
   evidence, not proof: a user-driven browser agent with a clean UA is
   indistinguishable client-side, and we say so rather than guessing.
+
+### Verified against real automation
+
+`test/automation` runs the assessment inside Puppeteer, Playwright and Selenium
+against the same local Chromium and asserts the verdict, the BotD evidence
+signal, id stability and the legacy `bot` field:
+
+| Driver | Verdict | Evidence |
+|---|---|---|
+| puppeteer | automation 0.8 | `automation:botd:headless_chrome` |
+| playwright | automation 0.8 | `automation:botd:headless_chrome` |
+| selenium | automation 0.8 | `automation:botd:selenium` |
 
 ---
 
