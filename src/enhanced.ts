@@ -442,6 +442,28 @@ export async function getEnhancedWebGL2Info(): Promise<WebGL2Enhanced | null> {
  * is computed; signals most diagnostic of headless environments are weighted
  * higher than weak indicators.
  */
+/**
+ * A GPU that does not match the OS the UA claims.
+ *
+ * The classic case is a stealth plugin: it rewrites the UA to Windows while its
+ * WebGL evasion still reports the macOS strings (`Intel Inc.` /
+ * `Intel Iris OpenGL Engine`). Legitimate browsers agree with themselves, so a
+ * contradiction is tamper evidence rather than a fingerprinting quirk.
+ */
+export function rendererOsMismatch(ua: string, vendor: string, renderer: string): boolean {
+    if (!renderer) return false;
+
+    const uaSaysMac = /mac\s?os|macintosh/i.test(ua);
+    // macOS-only WebGL strings: the ANGLE/Direct3D layer does not exist there.
+    const looksMac = /OpenGL Engine|Apple (M|GPU)/i.test(renderer) || /^Apple/i.test(vendor);
+    // Windows/Linux ANGLE or Direct3D strings.
+    const looksWindowsOrLinux = /ANGLE \(|Direct3D|D3D11|Mesa|llvmpipe|SwiftShader/i.test(renderer);
+
+    if (!uaSaysMac && looksMac) return true;
+    if (uaSaysMac && looksWindowsOrLinux) return true;
+    return false;
+}
+
 export function detectSpoofing(): SpoofingInfo {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
         return { likelyHeadless: false, signals: [], score: 0 };
@@ -478,8 +500,12 @@ export function detectSpoofing(): SpoofingInfo {
                 const dbg = (gl as WebGLRenderingContext).getExtension('WEBGL_debug_renderer_info');
                 if (dbg) {
                     const renderer: string = (gl as WebGLRenderingContext).getParameter(dbg.UNMASKED_RENDERER_WEBGL) ?? '';
+                    const vendor: string = (gl as WebGLRenderingContext).getParameter(dbg.UNMASKED_VENDOR_WEBGL) ?? '';
                     if (/SwiftShader|llvmpipe|softpipe/i.test(renderer)) {
                         signals.push('headless:software-renderer');
+                    }
+                    if (rendererOsMismatch(ua, vendor, renderer)) {
+                        signals.push('tamper:renderer-os-mismatch');
                     }
                 }
             }
@@ -658,6 +684,7 @@ export function detectSpoofing(): SpoofingInfo {
         'tamper:patched-getter:width': 0.15,
         'tamper:patched-getter:colorDepth': 0.15,
         'tamper:os-mismatch': 0.25,
+        'tamper:renderer-os-mismatch': 0.25,
     };
 
     let score = 0;

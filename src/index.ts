@@ -57,6 +57,7 @@ import {
     computeEntropyScores,
     collectOptionalSignals,
     architectureMismatch,
+    rendererOsMismatch,
     FP_VERSION,
 } from './enhanced';
 
@@ -345,6 +346,7 @@ const fingerprintOSS = Object.assign(userInfo, {
     computeEntropyScores,
     collectOptionalSignals,
     architectureMismatch,
+    rendererOsMismatch,
     FP_VERSION,
 
     // Agent / automation assessment
@@ -444,6 +446,7 @@ export {
     computeEntropyScores,
     collectOptionalSignals,
     architectureMismatch,
+    rendererOsMismatch,
     FP_VERSION,
 } from './enhanced';
 import { assessAgent, classifyAgent, declaredAiKind, fuseAutomationEvidence } from './agentAssessment';

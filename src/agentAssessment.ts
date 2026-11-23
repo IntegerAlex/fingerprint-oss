@@ -201,10 +201,14 @@ export function fuseAutomationEvidence(
     const reported = evidence.reportedCores ?? 0;
     const measured = evidence.measuredCores ?? 0;
     const coresConflict = reported > 0 && measured >= Math.max(reported * 2, reported + 3);
+    const rendererMismatch = (evidence.spoofingSignals ?? []).includes('tamper:renderer-os-mismatch');
 
     const extra = [...headlessSignals];
     if (coresConflict) {
         extra.push(`automation:core-count-mismatch:${reported}reported/${measured}measured`);
+    }
+    if (rendererMismatch) {
+        extra.push('automation:renderer-os-mismatch');
     }
 
     // Already flagged: only attach the extra evidence.
@@ -212,7 +216,11 @@ export function fuseAutomationEvidence(
         return { ...assessment, signals: [...assessment.signals, ...extra] };
     }
 
-    const enoughEvidence = (headlessSignals.length >= 1 && coresConflict) || headlessSignals.length >= 2;
+    // A headless signal plus either contradiction is enough. On a machine whose
+    // core count matches what stealth reports, the renderer/UA contradiction is
+    // the trace that still fires.
+    const enoughEvidence = headlessSignals.length >= 1 && (coresConflict || rendererMismatch)
+        || headlessSignals.length >= 2;
     if (!enoughEvidence) {
         return { ...assessment, signals: [...assessment.signals, ...extra] };
     }

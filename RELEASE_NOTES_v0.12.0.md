@@ -104,6 +104,12 @@ verdict:
 1. headless signals from the spoofing layer (e.g. a taskbar-less 800×600 desktop)
 2. a core-count contradiction — stealth reports `hardwareConcurrency: 4` while
    the benchmark measures 8
+3. a renderer/OS contradiction — stealth rewrites the UA to Windows but its WebGL
+   evasion still reports `Intel Inc.` / `Intel Iris OpenGL Engine`, which only
+   exist on macOS
+
+Trace 3 matters on CI: on a 4-vCPU runner the spoofed core count can match the
+measured one, so the renderer contradiction is what catches the evasion.
 
 Either alone is weak (fullscreen kiosks; phones with throttled cores), so the
 verdict escalates only when both agree or two headless signals fire. The

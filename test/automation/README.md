@@ -21,9 +21,15 @@ by `fuseAutomationEvidence()`:
    `availWidth === width`)
 2. a core-count contradiction — stealth reports `hardwareConcurrency: 4` while
    the benchmark measures 8, because it can spoof a property but not throughput
+3. a renderer/OS contradiction — the UA is rewritten to Windows, but the WebGL
+   evasion still reports macOS-only strings (`Intel Inc.` / `Intel Iris OpenGL
+   Engine`)
 
-Either alone is too weak (fullscreen kiosks; phones with throttled cores), so the
-fusion requires both, or two independent headless signals.
+Either contradiction alone is too weak (fullscreen kiosks; phones with throttled
+cores; a privacy browser randomising its renderer), so the fusion requires a
+headless signal plus one contradiction, or two independent headless signals. The
+renderer trace is what keeps the stealth driver passing on a 4-vCPU CI runner,
+where the spoofed and measured core counts can agree.
 
 All three drive the **same local Chromium**, so a difference in results means a
 difference in the framework, not the browser build.

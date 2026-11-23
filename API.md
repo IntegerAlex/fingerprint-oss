@@ -212,6 +212,8 @@ BotD cannot see a client that hides `navigator.webdriver` and rewrites its UA.
   "desktop")
 - a core-count contradiction: `navigator.hardwareConcurrency` disagreeing with
   the measured throughput by 2× or more
+- a renderer/OS contradiction: `webGL.renderer` reporting macOS-only strings
+  (`Intel Inc.`, `Intel Iris OpenGL Engine`) while the UA claims Windows/Linux
 
 Either alone is weak, so automation is reported only when both are present or
 two headless signals fire. The evidence is always listed in `signals`, even when
