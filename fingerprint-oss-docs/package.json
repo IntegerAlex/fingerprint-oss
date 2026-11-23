@@ -18,22 +18,23 @@
   "dependencies": {
     "@mdx-js/react": "^3.1.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.43.0",
+    "framer-motion": "^14.14.0",
     "prism-react-renderer": "^2.4.1",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "typewriter-effect": "^2.22.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typewriter-effect": "^3.3.0"
   },
   "devDependencies": {
     "@docusaurus/core": "^3.10.2",
+    "@docusaurus/faster": "^3.10.2",
     "@docusaurus/module-type-aliases": "^3.10.2",
     "@docusaurus/preset-classic": "^3.10.2",
     "@docusaurus/tsconfig": "^3.10.2",
     "@docusaurus/types": "^3.10.2",
-    "@types/node": "^24.13.3",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "typescript": "^5.9.3"
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2"
   },
   "browserslist": {
     "production": [

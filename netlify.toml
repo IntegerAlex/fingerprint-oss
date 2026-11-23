@@ -1,11 +1,10 @@
 [build]
   base = "fingerprint-oss-docs"
   publish = "build"
-  command = "npm install && npm run build"
+  command = "npm i -g pnpm@11 && pnpm install --frozen-lockfile && pnpm run build"
 
 [build.environment]
-  NODE_VERSION = "18.19.0"
-  NPM_VERSION = "9.8.1"
+  NODE_VERSION = "22"
   NODE_OPTIONS = "--max-old-space-size=4096"
   
 # Handle redirects for SPA routing
