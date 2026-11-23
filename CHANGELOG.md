@@ -5,15 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.12.1] - 2026-11-23
+## [0.12.0] - 2026-11-23
 
 ### Fixed
 - **Collection pinned every CPU core for ~1.2s** — `estimateCores()` spawned `min(cores × 2, 16)` Web Workers (16 on a 16-thread machine) each running 30M trig iterations, on every `getSystemInfo()` call, and the result was then clamped by a faulty condition (`performance.timing.navigationStart` is truthy in Chromium, so every browser was capped at 8). It now measures effective parallelism with two short batches — one worker, then eight — computes `cores ≈ workers × single / parallel`, and caches the promise for the life of the page. `navigator.hardwareConcurrency` is still not trusted, because Brave and privacy browsers misreport it; it is only the fallback when workers are unavailable
-  - Measured on a 16-thread machine: **16 workers / 1.2s → 9 workers / ~150ms**, repeat collections **0 workers**, and the demo's dev load dropped from **32 workers / 2389ms to 9 workers / 1089ms** (React StrictMode now shares the cached promise instead of running the benchmark twice)
+  - Measured on a 16-thread machine: **16 workers / 1.2s → 9 workers / ~150ms**, repeat collections **0 workers**, and the demo's dev load dropped from **32 workers / 2389ms to 9 workers / 1096ms** (React StrictMode now shares the cached promise instead of running the benchmark twice)
 - **Result unchanged for existing consumers**: the estimate is still capped at 8 for Firefox, 12 for everything else, and stays out of the hash
 - **Speech-voice probe timeout 800ms → 400ms** — only affects profiles with no voices installed (headless/CI), where it was pure dead time on the collection path; the signal is optional and never hashed
-
-## [0.12.0] - 2026-11-23
 
 ### Added
 - **`agentAssessment`** — a fused agent/automation verdict on `SystemInfo`, backed by maintained open-source projects instead of a hand-rolled taxonomy:
@@ -25,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exported `assessAgent()`, `classifyAgent()` (pure fusion, testable without a browser) and `declaredAiKind()`
 
 ### Changed
-- Bundle grows 37.8 KB → 43.3 KB gzip; the CI size budget is raised to 52 KB to leave headroom
+- Bundle grows 37.8 KB → 43.5 KB gzip; the CI size budget is raised to 52 KB to leave headroom
 
 ### Compatibility
 - **Additive only.** `bot` keeps its exact shape, `generateId()` is untouched, and `agentAssessment` is optional and excluded from the hash, so the stability contract measured in [STABILITY.md](./STABILITY.md) holds. BotD failures degrade to the declared layer and never reject `getSystemInfo()`

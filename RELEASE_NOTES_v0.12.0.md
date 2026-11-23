@@ -14,6 +14,8 @@ hand-rolled bot list — without changing a single existing field.
 - Powered by **BotD** (MIT) for automation evidence and **isbot** (Unlicense)
   for declared crawler/agent identity
 - Spoofed declarations are called out explicitly
+- Collection no longer saturates every CPU core: the core benchmark is **~8×
+  cheaper** and cached, and the speech-voice probe waits 400 ms instead of 800
 - `bot` is untouched; the fingerprint hash is untouched
 
 ---
@@ -92,6 +94,19 @@ hash and from `JSON.stringify` output of the identity, matching the existing
 
 ---
 
+### Performance
+
+- **Collection no longer pins every CPU core.** `estimateCores()` used to spawn
+  16 workers for up to 1.2 s on every collection; it now measures effective
+  parallelism with two short batches (1 then 8 workers, ~150 ms total) and caches
+  the result for the page lifetime. Measured on a 16-thread machine: 16 workers /
+  1209 ms → 9 workers / ~150 ms; repeat collections spawn **0** workers; the demo's
+  dev load went from 32 workers / 2389 ms to 9 workers / 1096 ms.
+  `navigator.hardwareConcurrency` is still not trusted — Brave and privacy
+  browsers misreport it — but it is only the fallback now.
+- **Speech-voice probe timeout 800 ms → 400 ms**, which only affects profiles with
+  no voices installed (headless/CI). The signal is optional and never hashed.
+
 ## Installation
 
 ```bash
@@ -105,8 +120,12 @@ npm install fingerprint-oss@0.12.0
 ## Verification
 
 - `tsc --noEmit`, `publint`, `are-the-types-wrong` — clean
-- Cypress: **35/35 passing**, including five new agent-assessment specs and the
-  pre-existing stability/reload invariants
+- Cypress: **36/36 passing**, including five agent-assessment specs, the core-benchmark
+  caching assertion, and the stability/reload invariants
+- Automation matrix: Puppeteer, Playwright and Selenium each report
+  `automation` with `automation:botd:*` evidence and a stable id
+- Demo (Next 16, linked build): hash renders, all 30 legacy `SystemInfo` fields
+  present, 13 named exports resolve, `tsc --noEmit` clean, no console errors
 - Node checks: declared crawler, declared agent, assistant, automation-only,
   spoofed declaration, clean browser, missing UA, and declared-layer-only
   operation without a DOM
