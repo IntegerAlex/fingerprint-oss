@@ -76,8 +76,11 @@ function detectAutomation(): Promise<AutomationEvidence | null> {
     return automationPromise;
 }
 
-/** User-driven browser agents. Order matters only for readability. */
-const AI_AGENT_TOKENS = /operator|computer[-\s]?use|browser[-\s]?use|claude-code|manus|comet|atlas/i;
+/**
+ * User-driven browser agents. Only specific product tokens: a bare word like
+ * "atlas" or "comet" also matches unrelated UAs (device names, libraries).
+ */
+const AI_AGENT_TOKENS = /operator|computer[-\s]?use|browser[-\s]?use|claude-code|manus|chatgpt-atlas|perplexity-comet|comet-browser/i;
 
 /** User-driven AI assistants embedded in a browser. */
 const AI_ASSISTANT_TOKENS = /chatgpt|gemini|copilot|perplexity|claude-in-chrome|claude\/|poe\b/i;
@@ -161,6 +164,65 @@ export function classifyAgent(input: ClassifyAgentInput): AgentAssessment {
     // No automation evidence and no declaration. Absence of evidence, not
     // proof: 0.5 keeps callers from treating the verdict as certainty.
     return { verdict: 'human', confidence: 0.5, signals };
+}
+
+export interface AutomationEvidenceInput {
+    /** Signals from `enhanced.spoofing`, e.g. `headless:no-taskbar`. */
+    spoofingSignals?: string[];
+    /** What the browser claims (`navigator.hardwareConcurrency`). */
+    reportedCores?: number | null;
+    /** What the benchmark measured (`estimateCores`). */
+    measuredCores?: number | null;
+}
+
+/**
+ * Fuses evidence that BotD cannot see after an evasion plugin has hidden
+ * webdriver and spoofed the UA.
+ *
+ * The two usable traces are:
+ *  - headless signals from `enhanced.spoofing` (a taskbar-less "desktop")
+ *  - a core-count contradiction: stealth reports `hardwareConcurrency: 4`
+ *    while the benchmark measures 8, because it spoofs the property but cannot
+ *    spoof throughput
+ *
+ * Either alone is too weak (fullscreen kiosks have no taskbar; phones report
+ * core counts that differ from throughput), so automation needs both, or two
+ * independent headless signals. Evidence is always recorded, even when the
+ * verdict does not change.
+ */
+export function fuseAutomationEvidence(
+    assessment: AgentAssessment,
+    evidence: AutomationEvidenceInput = {},
+): AgentAssessment {
+    const headlessSignals = (evidence.spoofingSignals ?? [])
+        .filter(signal => signal.startsWith('headless:'))
+        .map(signal => `automation:${signal}`);
+
+    const reported = evidence.reportedCores ?? 0;
+    const measured = evidence.measuredCores ?? 0;
+    const coresConflict = reported > 0 && measured >= Math.max(reported * 2, reported + 3);
+
+    const extra = [...headlessSignals];
+    if (coresConflict) {
+        extra.push(`automation:core-count-mismatch:${reported}reported/${measured}measured`);
+    }
+
+    // Already flagged: only attach the extra evidence.
+    if (assessment.verdict === 'automation') {
+        return { ...assessment, signals: [...assessment.signals, ...extra] };
+    }
+
+    const enoughEvidence = (headlessSignals.length >= 1 && coresConflict) || headlessSignals.length >= 2;
+    if (!enoughEvidence) {
+        return { ...assessment, signals: [...assessment.signals, ...extra] };
+    }
+
+    return {
+        verdict: 'automation',
+        confidence: 0.7,
+        declaredBy: assessment.declaredBy,
+        signals: [...assessment.signals, ...extra, 'automation:evasion-evidence'],
+    };
 }
 
 /**

@@ -13,5 +13,6 @@ export const PROBE = `(async () => {
     bot: info.bot,
     userAgent: info.userAgent,
     hashStable: first === second,
+    spoofingSignals: info.enhanced?.spoofing?.signals ?? [],
   };
 })()`;

@@ -683,7 +683,16 @@ export async function estimateCores(): Promise<number> {
       const singleThreadMs = await runCoreWorkers(1);
       const parallelMs = await runCoreWorkers(CORE_TEST_WORKERS);
 
-      return Math.min(estimateParallelism(singleThreadMs, parallelMs), cap);
+      let estimate = Math.min(estimateParallelism(singleThreadMs, parallelMs), cap);
+
+      // A contended first sample can come back as a single core on a machine
+      // that clearly has more. Re-measure once before caching a bad answer.
+      if (estimate < 2 && reportedCores >= 4) {
+        const retryMs = await runCoreWorkers(CORE_TEST_WORKERS);
+        estimate = Math.max(estimate, Math.min(estimateParallelism(singleThreadMs, retryMs), cap));
+      }
+
+      return estimate;
     } catch (error) {
       StructuredLogger.warn('estimateCores', 'Core estimation failed, using the reported value', error);
       return Math.min(reportedCores, cap);

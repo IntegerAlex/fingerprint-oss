@@ -20,16 +20,20 @@ if (unknown.length > 0) {
 
 function check(name, result) {
     const failures = [];
-    const { assessment, bot, userAgent, hashStable } = result ?? {};
+    const { assessment, bot, userAgent, hashStable, spoofingSignals = [] } = result ?? {};
+    const tamperSignals = spoofingSignals.filter(signal => signal.startsWith('tamper:'));
+
+    // Evidence can come from BotD directly or from the evasion fusion
+    // (headless signals + a core-count contradiction). Both are `automation:*`.
+    const automationSignals = (assessment?.signals ?? []).filter(signal => signal.startsWith('automation:'));
 
     if (!assessment) {
         failures.push('no agentAssessment returned');
+    } else if (assessment.verdict !== 'automation') {
+        failures.push(`verdict is "${assessment.verdict}", expected "automation" (UA: ${userAgent})`);
     } else {
-        if (assessment.verdict !== 'automation') {
-            failures.push(`verdict is "${assessment.verdict}", expected "automation" (UA: ${userAgent})`);
-        }
-        if (!assessment.signals?.some(signal => signal.startsWith('automation:botd:'))) {
-            failures.push(`no BotD evidence in signals: ${JSON.stringify(assessment.signals)}`);
+        if (automationSignals.length === 0) {
+            failures.push(`no automation evidence in signals: ${JSON.stringify(assessment.signals)}`);
         }
         if (typeof assessment.confidence !== 'number' || assessment.confidence < 0.6) {
             failures.push(`confidence ${assessment.confidence} is not automation-grade`);
@@ -39,7 +43,7 @@ function check(name, result) {
     if (hashStable !== true) failures.push('generateId() is not stable across two collections');
     if (bot == null || typeof bot.isBot !== 'boolean') failures.push('legacy bot field missing');
 
-    return failures;
+    return { failures, tamperSignals };
 }
 
 const server = await startServer();
@@ -55,7 +59,7 @@ try {
         process.stdout.write(`▶ ${name} … `);
         try {
             const result = await DRIVERS[name](server.url);
-            const failures = check(name, result);
+            const { failures, tamperSignals } = check(name, result);
 
             if (failures.length > 0) {
                 failed += 1;
@@ -69,7 +73,8 @@ try {
                 driver: name,
                 verdict: result?.assessment?.verdict ?? '-',
                 confidence: result?.assessment?.confidence ?? '-',
-                evidence: (result?.assessment?.signals ?? []).find(s => s.startsWith('automation:botd:')) ?? '-',
+                evidence: (result?.assessment?.signals ?? []).find(s => s.startsWith('automation:'))
+                    ?? (tamperSignals[0] ?? '-'),
                 stable: result?.hashStable === true ? 'yes' : 'no',
                 failures: failures.length,
             });

@@ -7,7 +7,7 @@
  *
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
-import { SystemInfo, WebGLInfo } from './types.js';
+import { SystemInfo, WebGLInfo, OUTPUT_VERSION } from './types.js';
 import type { FingerprintWarning } from './errors.js';
 import { detectIncognito } from './incognito.js';
 import { getMockSystemInfo } from './mock.js';
@@ -17,7 +17,7 @@ import {getWebGLInfo , getColorGamut ,getPluginsInfo , getVendorFlavors ,getCanv
 import { detectDeviceType } from './deviceType.js';
 import { StructuredLogger } from './config.js';
 import { collectEnhancedFingerprint } from './enhanced.js';
-import { assessAgent } from './agentAssessment.js';
+import { assessAgent, fuseAutomationEvidence } from './agentAssessment.js';
 /**
  * Determines if the current user is likely operating as a bot by evaluating multiple environmental signals.
  *
@@ -266,7 +266,10 @@ export async function getSystemInfo(): Promise<SystemInfo> {
             deviceType: detectDeviceType(),
             
             // Overall confidence score for the collected data
-            confidenceScore: confidenceScore
+            confidenceScore: confidenceScore,
+
+            // Schema version for consumers that persist the output
+            outputVersion: OUTPUT_VERSION
         } as SystemInfo;
 
         // Signals that failed to collect are reported instead of rejecting the
@@ -275,16 +278,27 @@ export async function getSystemInfo(): Promise<SystemInfo> {
             browserInfo.warnings = warnings;
         }
 
+        const enhanced = await enhancedPromise;
+
         // Attach enhanced signals as a non-enumerable property.
         // Non-enumerable means it is invisible to JSON.stringify, for-in loops,
         // and Object.keys(), so existing serialisation paths (e.g. generateId)
         // are unaffected even though the value is still directly accessible via
         // browserInfo.enhanced.
         Object.defineProperty(browserInfo, 'enhanced', {
-            value: await enhancedPromise,
+            value: enhanced,
             enumerable: false,
             configurable: true,
             writable: true,
+        });
+
+        // BotD cannot see past an evasion plugin that hides webdriver and
+        // spoofs the UA. Headless signals and a core-count contradiction are
+        // the traces that remain; fold them into the verdict.
+        browserInfo.agentAssessment = fuseAutomationEvidence(agentAssessment, {
+            spoofingSignals: enhanced.spoofing?.signals,
+            reportedCores: typeof navigator !== 'undefined' ? navigator.hardwareConcurrency : null,
+            measuredCores: hardwareConcurrency,
         });
 
         return browserInfo;

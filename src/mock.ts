@@ -60,6 +60,7 @@ export function getMockSystemInfo() {
             method: 'mock'
         },
         confidenceScore: 0.85,
+        outputVersion: '1',
         // Hash will be generated dynamically by generateId function
         hash: '5d41402abc4b2a76b9719d911017c592'
     };

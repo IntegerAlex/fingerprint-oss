@@ -78,8 +78,34 @@ export async function runSelenium(url) {
     }
 }
 
+/**
+ * Same Chromium, but with puppeteer-extra-plugin-stealth applied: webdriver
+ * hidden, plugins faked, permission queries and hardwareConcurrency patched.
+ * This is the evasion case our verdict has to survive.
+ */
+export async function runStealth(url) {
+    const puppeteerExtra = (await import('puppeteer-extra')).default;
+    const StealthPlugin = (await import('puppeteer-extra-plugin-stealth')).default;
+
+    puppeteerExtra.use(StealthPlugin());
+    const browser = await puppeteerExtra.launch({
+        executablePath: CHROME,
+        headless: true,
+        args: LAUNCH_ARGS,
+    });
+    try {
+        const page = await browser.newPage();
+        await page.goto(url, { waitUntil: 'load', timeout: 30_000 });
+        await page.waitForFunction('window.fpReady === true', { timeout: 15_000 });
+        return await page.evaluate(PROBE);
+    } finally {
+        await browser.close();
+    }
+}
+
 export const DRIVERS = {
     puppeteer: runPuppeteer,
     playwright: runPlaywright,
     selenium: runSelenium,
+    stealth: runStealth,
 };

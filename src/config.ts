@@ -40,6 +40,8 @@ export interface FingerprintConfig {
     enablePerformanceLogging: boolean;
     /** Timeout for geolocation requests (ms) */
     geoTimeout: number;
+    /** Custom https endpoint for geolocation lookups; default when unset */
+    geoEndpoint?: string;
 }
 
 /**
@@ -121,6 +123,25 @@ function normalizeTimeout(value: any, fallback: number, warnings: FingerprintWar
     }
     addConfigWarning(warnings, `geoTimeout must be a number >= ${MIN_GEO_TIMEOUT_MS}ms`, { value, fallback });
     return fallback;
+}
+
+function normalizeEndpoint(value: any, warnings: FingerprintWarning[]): string | undefined {
+    if (value === undefined || value === null || value === '') return undefined;
+    if (typeof value !== 'string') {
+        addConfigWarning(warnings, 'geoEndpoint must be a string', { value });
+        return undefined;
+    }
+    try {
+        const parsed = new URL(value);
+        if (parsed.protocol !== 'https:') {
+            addConfigWarning(warnings, 'geoEndpoint must use https', { value });
+            return undefined;
+        }
+        return parsed.toString();
+    } catch {
+        addConfigWarning(warnings, 'geoEndpoint is not a valid URL', { value });
+        return undefined;
+    }
 }
 
 function normalizeMessage(value: any, warnings: FingerprintWarning[]): string | undefined {
@@ -226,7 +247,8 @@ export function initializeConfig(customConfig?: Partial<FingerprintConfig>, warn
             customConfig?.geoTimeout ?? defaultConfig.geoTimeout ?? DEFAULT_GEO_TIMEOUT_MS,
             DEFAULT_GEO_TIMEOUT_MS,
             warnings
-        )
+        ),
+        geoEndpoint: normalizeEndpoint(customConfig?.geoEndpoint, warnings)
     };
 
     return currentConfig;

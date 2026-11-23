@@ -58,6 +58,9 @@ export interface BraveInfo {
     brands: string[];
 }
 
+/** Version of the SystemInfo shape. Bumped when a field changes shape. */
+export const OUTPUT_VERSION = '1';
+
 export interface SystemInfo {	
     incognito: { isPrivate: boolean; browserName: string }; 
     bot: {
@@ -101,6 +104,12 @@ export interface SystemInfo {
     fontPreferences: FontPreferencesInfo; // Updated name
     deviceType: DeviceTypeInfo;
     confidenceScore: number;
+    /**
+     * Schema version of this object; see dist/systeminfo.schema.json.
+     * Optional in the type so hand-built SystemInfo objects keep compiling,
+     * but always populated by getSystemInfo().
+     */
+    outputVersion?: string;
     /**
      * Present only when a collector failed and its fallback was used, e.g. a
      * blocked WebGL context. Absent on a fully successful collection.
@@ -254,6 +263,18 @@ export interface OptionalSignalsInfo {
     speechVoices: { count: number; voicesHash: string } | null;
     /** Permissions API statuses; inconsistent answers indicate tampering. */
     permissions: Record<string, string> | null;
+    /**
+     * User-Agent Client Hints high-entropy values (Chromium only). The
+     * architecture/bitness pair is hard to spoof consistently with the UA, so
+     * `uaArchitectureMismatch` doubles as a tamper signal.
+     */
+    clientHints: {
+        platform: string | null;
+        architecture: string | null;
+        bitness: string | null;
+        mobile: boolean | null;
+        uaArchitectureMismatch: boolean | null;
+    } | null;
 }
 
 export interface WebGLInfo {
@@ -332,6 +353,8 @@ export interface UserInfoConfig {
 
     // Runtime controls
     geoTimeout?: number;
+    /** Custom https endpoint for geolocation lookups */
+    geoEndpoint?: string;
 }
 
 export interface ResolvedUserInfoConfig {
@@ -343,4 +366,5 @@ export interface ResolvedUserInfoConfig {
     transparency: boolean;
     message?: string;
     geoTimeout: number;
+    geoEndpoint?: string;
 }

@@ -9,7 +9,10 @@
   },
   "devDependencies": {
     "playwright-core": "^1.65.1",
+    "puppeteer": "^25.18.1",
     "puppeteer-core": "^25.18.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "selenium-webdriver": "^4.53.0"
   }
 }

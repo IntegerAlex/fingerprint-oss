@@ -161,6 +161,11 @@ export interface GeolocationInfo {
 export interface GeolocationFetchOptions {
     timeoutMs?: number;
     onWarning?: (warning: FingerprintWarning) => void;
+    /**
+     * Override the geolocation endpoint (must be https). Invalid values fall
+     * back to the default with a warning — never silently to another host.
+     */
+    endpoint?: string;
 }
 
 /**
@@ -215,6 +220,31 @@ export async function fetchGeolocationInfo(options: GeolocationFetchOptions = {}
         if (timeoutMs !== rawTimeout) {
             StructuredLogger.warn('fetchGeolocationInfo', `Invalid timeoutMs value (${rawTimeout}), using default ${DEFAULT_GEO_TIMEOUT_MS}ms`);
         }
+
+        // A custom endpoint must be https: silently downgrading to plain HTTP
+        // would leak the visitor's IP to anyone on the path.
+        let endpoint = GEOIP_URL;
+        if (options.endpoint !== undefined) {
+            try {
+                const parsed = new URL(options.endpoint);
+                if (parsed.protocol === 'https:') {
+                    endpoint = parsed.toString();
+                } else {
+                    options.onWarning?.({
+                        code: 'CONFIG_INVALID',
+                        message: 'geoEndpoint must use https; falling back to the default endpoint',
+                        details: { endpoint: options.endpoint },
+                    });
+                }
+            } catch {
+                options.onWarning?.({
+                    code: 'CONFIG_INVALID',
+                    message: 'geoEndpoint is not a valid URL; falling back to the default endpoint',
+                    details: { endpoint: options.endpoint },
+                });
+            }
+        }
+
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
 
         // Always enforce timeout via Promise.race; also abort the controller (if available)
@@ -236,7 +266,7 @@ export async function fetchGeolocationInfo(options: GeolocationFetchOptions = {}
             // DEPRECATED: API key authentication has been removed
             // The x-api-key header is no longer sent or required
             // @deprecated x-api-key header - No longer used
-            const response = await fetchWithTimeout(fetch(GEOIP_URL, {
+            const response = await fetchWithTimeout(fetch(endpoint, {
                 method: 'GET',
                 ...(controller ? { signal: controller.signal } : {})
                 // Removed: headers with x-api-key (deprecated)

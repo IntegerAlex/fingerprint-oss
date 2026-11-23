@@ -3,13 +3,27 @@
 Proves that `agentAssessment` fires inside the automation frameworks real agents
 use — not just in a hand-written fixture.
 
-Three drivers, one browser build each run:
+Four drivers, one browser build each run:
 
 | Driver | Stack | Detected as |
 |---|---|---|
 | `puppeteer` | `puppeteer-core` over CDP | `automation:botd:headless_chrome` |
 | `playwright` | `playwright-core` | `automation:botd:headless_chrome` |
 | `selenium` | `selenium-webdriver` + chromedriver (W3C WebDriver) | `automation:botd:selenium` |
+| `stealth` | `puppeteer-extra` + `puppeteer-extra-plugin-stealth` | `automation:headless:no-taskbar` + `automation:core-count-mismatch` |
+
+The stealth driver is the interesting one: it hides `navigator.webdriver`, fakes
+plugins and the `chrome` object, and rewrites the UA/Client Hints to a Windows
+desktop. BotD reports nothing. Two traces survive and are fused into the verdict
+by `fuseAutomationEvidence()`:
+
+1. `headless:no-taskbar` from the spoofing layer (800×600 "desktop" with
+   `availWidth === width`)
+2. a core-count contradiction — stealth reports `hardwareConcurrency: 4` while
+   the benchmark measures 8, because it can spoof a property but not throughput
+
+Either alone is too weak (fullscreen kiosks; phones with throttled cores), so the
+fusion requires both, or two independent headless signals.
 
 All three drive the **same local Chromium**, so a difference in results means a
 difference in the framework, not the browser build.

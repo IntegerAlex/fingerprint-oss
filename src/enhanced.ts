@@ -888,15 +888,64 @@ async function collectPermissionStates(): Promise<OptionalSignalsInfo['permissio
 }
 
 /**
+ * Client Hints architecture/bitness, plus a consistency verdict against the UA.
+ *
+ * macOS is deliberately exempt: Apple Silicon browsers report `Intel Mac OS X`
+ * in the UA while Client Hints say `arm`, which is normal. Windows and Linux
+ * have no such excuse.
+ */
+export function architectureMismatch(
+    ua: string,
+    architecture: string | null,
+    platform: string | null,
+): boolean | null {
+    if (!architecture) return null;
+    const isMac = /mac\s?os|macintosh/i.test(ua) || platform === 'macOS';
+    if (isMac) return null;
+
+    const uaSaysX86 = /x86_64|win64|x64|amd64/i.test(ua);
+    const uaSaysArm = /\barm(?:v\d+)?\b|aarch64/i.test(ua);
+
+    if (architecture === 'arm' && uaSaysX86) return true;
+    if (architecture === 'x86' && uaSaysArm) return true;
+    return false;
+}
+
+async function collectClientHints(): Promise<OptionalSignalsInfo['clientHints']> {
+    try {
+        const uaData = (navigator as any)?.userAgentData;
+        if (!uaData) return null;
+
+        const high = typeof uaData.getHighEntropyValues === 'function'
+            ? await uaData.getHighEntropyValues(['architecture', 'bitness', 'platform', 'model'])
+            : {};
+
+        const architecture = high.architecture ?? null;
+        const platform = high.platform ?? uaData.platform ?? null;
+
+        return {
+            platform,
+            architecture,
+            bitness: high.bitness ?? null,
+            mobile: typeof uaData.mobile === 'boolean' ? uaData.mobile : null,
+            uaArchitectureMismatch: architectureMismatch(navigator.userAgent, architecture, platform),
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Collects the low-cost signals that neither FingerprintJS nor ThumbmarkJS
  * ships in the baseline. Everything is defensive: a refused API becomes
  * `null`, never an exception, and the aggregate never rejects.
  */
 export async function collectOptionalSignals(): Promise<OptionalSignalsInfo> {
-    const [audioBaseLatency, speechVoices, permissions] = await Promise.all([
+    const [audioBaseLatency, speechVoices, permissions, clientHints] = await Promise.all([
         collectAudioBaseLatency(),
         collectSpeechVoices(),
         collectPermissionStates(),
+        collectClientHints(),
     ]);
 
     return {
@@ -906,6 +955,7 @@ export async function collectOptionalSignals(): Promise<OptionalSignalsInfo> {
         dateTimeLocale: collectDateTimeLocale(),
         speechVoices,
         permissions,
+        clientHints,
     };
 }
 
