@@ -591,94 +591,104 @@ export function getOSInfo() {
 /**
  * Estimates the number of logical CPU cores available to the browser.
  *
- * Spawns multiple Web Workers to perform compute-intensive tasks and measures their execution times to infer the likely number of cores. Falls back to the browser-reported value or a capped estimate if workers are unavailable or if the test times out. The result is further limited for certain browsers to account for known reporting inconsistencies.
+ * `navigator.hardwareConcurrency` is not trustworthy: Brave and several privacy
+ * browsers report 2, and some automation profiles report values that do not
+ * match the machine. Instead of believing it, measure real parallelism:
  *
- * @returns A promise that resolves to the estimated number of logical CPU cores, between 1 and 12 (or 8 for Firefox and some environments).
+ *  1. time one worker on a fixed workload (single-thread baseline)
+ *  2. time N workers on the same workload concurrently
+ *  3. parallelism ≈ N × baseline / parallel — perfect scaling means N cores,
+ *     no scaling means one, and the answer does not depend on what the UA
+ *     claims. N is the ceiling, so this is a floor estimate, not a census.
+ *
+ * The measurement is deliberately small (a few hundred ms of total CPU, versus
+ * seconds before) and cached for the lifetime of the page, so repeated
+ * `getSystemInfo()` calls do not repeat the benchmark.
+ *
+ * @returns A promise that resolves to the estimated number of logical CPU cores,
+ * between 1 and 12 (8 for Firefox).
  */
-export async function estimateCores(): Promise<number> {
-  const MAX_TEST_TIME = 1200; 
-  const TARGET_ITERATIONS = 30e6; 
-  const browserReportedCores = navigator.hardwareConcurrency || 4;
 
-  if (typeof Worker === 'undefined') {
-    return Math.min(browserReportedCores, 12);
+/** Workload per worker. Tuned so eight workers finish in well under 300 ms. */
+const CORE_TEST_ITERATIONS = 2_000_000;
+/** Workers used for the parallel sample. Beyond ~8 there is no useful signal. */
+const CORE_TEST_WORKERS = 8;
+
+let coresPromise: Promise<number> | null = null;
+
+/**
+ * Turns the two timings into a core count. Exported so the arithmetic can be
+ * tested without spawning workers.
+ *
+ * @param singleThreadMs duration of the one-worker run
+ * @param parallelMs median duration of the N-worker run
+ * @param workers number of workers used for the parallel run
+ */
+export function estimateParallelism(
+  singleThreadMs: number,
+  parallelMs: number,
+  workers: number = CORE_TEST_WORKERS,
+): number {
+  if (!Number.isFinite(singleThreadMs) || !Number.isFinite(parallelMs) || parallelMs <= 0) {
+    return 1;
   }
+  // N workers on N cores finish in the time of one; slower means fewer cores.
+  const estimate = Math.round((workers * singleThreadMs) / parallelMs);
+  return Math.min(Math.max(estimate, 1), workers);
+}
 
+function runCoreWorkers(count: number): Promise<number> {
   const workerScript = `
-    self.onmessage = (e) => {
-      const start = performance.now();
+    self.onmessage = () => {
       let result = 0;
-      for (let i = 0; i < ${TARGET_ITERATIONS}; i++) {
+      for (let i = 0; i < ${CORE_TEST_ITERATIONS}; i++) {
         result += Math.sin(i) * Math.log(i + 1) / (i % 23 + 1);
-        if (i % 1e5 === 0) self.postMessage({ progress: i });
       }
-      const duration = performance.now() - start;
-      self.postMessage({
-        duration: duration,
-        noise: performance.timeOrigin % 1 + Math.random()
-      });
+      // Send the sink so the loop cannot be optimised away.
+      self.postMessage(result);
     };
   `;
 
-  const blob = new Blob([workerScript], { type: 'application/javascript' });
-  const workerUrl = URL.createObjectURL(blob);
+  const workerUrl = URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
   const workers: Worker[] = [];
+  const started = performance.now();
 
-  try {
-    const corePromise = (async () => {
-      const testConcurrency = Math.min(browserReportedCores * 2, 16);
-      const promises = Array.from({ length: testConcurrency }, async () => {
-        const worker = new Worker(workerUrl);
-        workers.push(worker);
-        return new Promise<number>(resolve => {
-          worker.onmessage = (e) => {
-            if (e.data?.duration) {
-              resolve(e.data.duration);
-            }
-          };
-          worker.postMessage('start');
-        });
-      });
-      const allDurations = await Promise.all(promises);
-      allDurations.sort((a, b) => a - b);
-      const medianDuration = allDurations[Math.floor(allDurations.length / 2)];
-      
-      const singleThreadTime = medianDuration * testConcurrency;
-      const theoreticalTime = medianDuration * (testConcurrency / browserReportedCores);
-      const efficiency = (singleThreadTime / theoreticalTime) * 100;
-      
-      let coreEstimate = Math.round(
-        (testConcurrency * 100) / Math.max(efficiency, 10) 
-      );
-      
-      coreEstimate = Math.min(
-        Math.max(coreEstimate, browserReportedCores - 2),
-        browserReportedCores + 2
-      );
-      
-      return Math.min(Math.max(coreEstimate, 1), 12);
-    })().catch((err: any) => {
-      StructuredLogger.warn('estimateCores', 'Core estimation failed', err);
-      return browserReportedCores;
-    });
+  const one = () => new Promise<void>((resolve, reject) => {
+    const worker = new Worker(workerUrl);
+    workers.push(worker);
+    worker.onmessage = () => resolve();
+    worker.onerror = event => reject(new Error(event.message || 'core benchmark worker failed'));
+    worker.postMessage('start');
+  });
 
-    const results = await Promise.race([
-      corePromise,
-      new Promise<number>(resolve =>
-        setTimeout(() => resolve(browserReportedCores), MAX_TEST_TIME)
-      )
-    ]);
+  const all = Promise.all(Array.from({ length: count }, one))
+    .then(() => performance.now() - started);
 
-    if (navigator.userAgent.includes('Firefox') || performance.timing?.navigationStart) {
-      return Math.min(results, 8);
-    }
-    return Math.min(results, 12);
-    
-  } catch (e) {
-    StructuredLogger.warn('estimateCores', 'Overall error in estimateCores', e);
-    return browserReportedCores;
-  } finally {
-    workers.forEach(w => w.terminate());
+  return all.finally(() => {
+    workers.forEach(worker => worker.terminate());
     URL.revokeObjectURL(workerUrl);
+  });
+}
+
+export async function estimateCores(): Promise<number> {
+  const reportedCores = navigator.hardwareConcurrency || 4;
+  const cap = navigator.userAgent.includes('Firefox') ? 8 : 12;
+
+  if (typeof Worker === 'undefined') {
+    return Math.min(reportedCores, cap);
   }
+
+  coresPromise ??= (async () => {
+    try {
+      const singleThreadMs = await runCoreWorkers(1);
+      const parallelMs = await runCoreWorkers(CORE_TEST_WORKERS);
+
+      return Math.min(estimateParallelism(singleThreadMs, parallelMs), cap);
+    } catch (error) {
+      StructuredLogger.warn('estimateCores', 'Core estimation failed, using the reported value', error);
+      return Math.min(reportedCores, cap);
+    }
+  })();
+
+  return coresPromise;
 }

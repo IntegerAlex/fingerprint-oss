@@ -33,7 +33,8 @@ import {
     getAudioFingerprint,
     getWebGLInfo,
     getFontPreferences,
-    estimateCores
+    estimateCores,
+    estimateParallelism
 } from './helper';
 import { 
     initializeConfig, 
@@ -412,7 +413,8 @@ export {
     getAudioFingerprint,
     getWebGLInfo,
     getFontPreferences,
-    estimateCores
+    estimateCores,
+    estimateParallelism
 } from './helper';
 
 export {

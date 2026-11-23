@@ -802,8 +802,13 @@ function fnv1a(input: string): string {
     return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
-/** Chrome populates voices asynchronously after a `voiceschanged` event. */
-const VOICE_LOAD_TIMEOUT_MS = 800;
+/**
+ * Chrome populates voices asynchronously after a `voiceschanged` event. In a
+ * browser with voices installed this resolves immediately; the timeout only
+ * matters for headless/CI profiles, where it is otherwise dead time on the
+ * collection path (the signal is optional and never hashed).
+ */
+const VOICE_LOAD_TIMEOUT_MS = 400;
 
 async function collectSpeechVoices(): Promise<OptionalSignalsInfo['speechVoices']> {
     try {
