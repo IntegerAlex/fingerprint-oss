@@ -151,9 +151,58 @@ systemInfo: {
     signals: string[];    // Bot detection signals
     confidence: number;   // Bot detection confidence
   },
+  // Added in 0.11.0. `bot` above is unchanged; prefer this for new code.
+  agentAssessment?: {
+    verdict: 'human' | 'crawler' | 'agent' | 'assistant' | 'automation' | 'unknown';
+    confidence: number;   // 0-1; 0.5 means "no evidence", not certainty
+    declaredBy?: 'user-agent'; // Set when the UA claimed the identity (unverified)
+    signals: string[];    // e.g. 'automation:botd:headless_chrome',
+                          //      'declared:user-agent:ai-assistant',
+                          //      'automation:renderer-os-mismatch'
+  },
+  warnings?: FingerprintWarning[]; // Present only when a collector failed
+  outputVersion?: string; // Schema version; see dist/systeminfo.schema.json
   confidenceScore: number; // Overall system confidence score
 }
 ```
+
+### Agent Assessment
+
+`agentAssessment` fuses maintained open-source detectors with this library's
+consistency checks:
+
+| Layer | Source | License |
+|---|---|---|
+| Automation | [BotD](https://github.com/fingerprintjs/BotD) (telemetry disabled) | MIT |
+| Declared identity | [isbot](https://github.com/omrilotan/isbot) | Unlicense |
+| AI browser agents | Curated token list (ChatGPT, Gemini, Copilot, Perplexity, Operator, Comet) | — |
+| Consistency | Prototype tamper, Client Hints/UA, renderer/OS contradictions | — |
+
+How to read the verdict:
+
+- `automation` (0.8) — automated browser. 0.9 with
+  `automation:spoofed-declaration` when a crawler UA appears inside an
+  automated browser; crawlers do not execute JavaScript.
+- `crawler` / `agent` / `assistant` (0.5–0.6) — **self-declared** by the UA,
+  unverified. A crawler is not automatically hostile.
+- `human` (0.5) — no automation evidence. A stealth plugin that hides
+  `navigator.webdriver` and rewrites its UA is caught instead by two
+  contradictions: a core-count mismatch (reports 4, measures 8) and a
+  renderer/OS mismatch (Windows UA, macOS GPU strings).
+- `unknown` — no User-Agent available (e.g. non-browser runtime).
+
+```typescript
+import { getSystemInfo } from 'fingerprint-oss';
+
+const { agentAssessment } = await getSystemInfo();
+if (agentAssessment?.verdict === 'automation' && agentAssessment.confidence >= 0.8) {
+  // require a challenge before accepting the request
+}
+```
+
+The generated JSON Schema for `SystemInfo` ships with the package as
+`dist/systeminfo.schema.json` (importable via
+`fingerprint-oss/dist/systeminfo.schema.json`).
 
 ### Hash
 

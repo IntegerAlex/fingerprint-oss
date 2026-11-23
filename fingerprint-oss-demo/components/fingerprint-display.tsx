@@ -19,6 +19,8 @@ import {
   History,
   Copy,
   ChevronDown,
+  Bot,
+  Wrench,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
@@ -153,6 +155,17 @@ export default function FingerprintDisplay({
   const ip = geolocation?.ip || geolocation?.ipv4 || "Unknown"; // Backward compatibility
   const ipv4 = geolocation?.ipv4 || null;
   const ipv6 = geolocation?.ipv6 || null;
+
+  const agentAssessment = systemInfo?.agentAssessment;
+  const collectorWarnings = systemInfo?.warnings;
+  const verdictStyles: Record<string, string> = {
+    human: "bg-green-500/10 text-green-400 border border-green-500/20",
+    automation: "bg-red-500/10 text-red-400 border border-red-500/20",
+    agent: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
+    assistant: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
+    crawler: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+    unknown: "bg-muted text-muted-foreground border border-border",
+  };
 
   const vpnStatus = geolocation?.vpnStatus?.status || false;
   const vpnProbability = geolocation?.vpnStatus?.probability || 0;
@@ -577,6 +590,89 @@ export default function FingerprintDisplay({
           </div>
         </Card>
       </section>
+
+      {/* Agent Assessment (fingerprint-oss 0.11.0) */}
+      {agentAssessment && (
+        <Card className="p-6 border-border/50 hover:border-primary/20 transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <Bot className="h-6 w-6 text-primary mr-3" />
+              <h3 className="text-xl font-semibold text-foreground">
+                Agent Assessment
+              </h3>
+            </div>
+            {agentAssessment.declaredBy && (
+              <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-medium py-1 px-3">
+                self-declared via {agentAssessment.declaredBy}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Verdict</p>
+              <span
+                className={`inline-flex items-center rounded-full text-sm font-medium py-1 px-3 ${
+                  verdictStyles[agentAssessment.verdict] ?? verdictStyles.unknown
+                }`}
+              >
+                {agentAssessment.verdict}
+              </span>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Confidence</p>
+              <div className="flex items-center gap-3">
+                <Progress
+                  value={(agentAssessment.confidence || 0) * 100}
+                  className="h-2 flex-1"
+                />
+                <span className="text-sm text-foreground">
+                  {Math.round((agentAssessment.confidence || 0) * 100)}%
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                0.5 means &quot;no evidence&quot; — not proof of a human
+              </p>
+            </div>
+          </div>
+          {agentAssessment.signals?.length > 0 && (
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Evidence</p>
+              <div className="flex flex-wrap gap-2">
+                {agentAssessment.signals.map((signal: string) => (
+                  <code
+                    key={signal}
+                    className="text-xs bg-muted text-muted-foreground rounded px-2 py-1"
+                  >
+                    {signal}
+                  </code>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Collector warnings */}
+      {collectorWarnings?.length > 0 && (
+        <Card className="p-6 border-yellow-500/20 bg-yellow-500/5 mt-6">
+          <div className="flex items-center mb-4">
+            <Wrench className="h-5 w-5 text-yellow-400 mr-3" />
+            <h3 className="text-lg font-semibold text-foreground">
+              Collector Warnings
+            </h3>
+          </div>
+          <ul className="space-y-2">
+            {collectorWarnings.map((warning: any, index: number) => (
+              <li key={index} className="text-sm text-muted-foreground">
+                <code className="text-xs bg-muted rounded px-1.5 py-0.5 mr-2">
+                  {warning.code}
+                </code>
+                {warning.message}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {/* Confidence Assessment Section */}
       <section className="animate-in slide-in-from-bottom-4 duration-700 delay-300">
