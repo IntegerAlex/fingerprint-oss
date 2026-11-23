@@ -69,7 +69,7 @@ export interface SystemInfo {
         confidence: number;
     };
     /**
-     * Fused agent/automation verdict (added in 0.12.0). `bot` is kept as-is for
+     * Fused agent/automation verdict. `bot` is kept as-is for
      * backward compatibility; new code should read this instead.
      */
     agentAssessment?: AgentAssessment;
@@ -216,7 +216,7 @@ export interface EnhancedFingerprintInfo {
     /** Per-signal entropy estimates (bits). */
     entropy?: Record<string, number>;
     /**
-     * Low-cost signals added in 0.12.0. Deliberately kept out of the hash:
+     * Low-cost signals. Deliberately kept out of the hash:
      * they are context, not identity. Any field can be null when the browser
      * refuses the underlying API.
      */

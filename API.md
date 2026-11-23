@@ -153,7 +153,7 @@ systemInfo: {
     signals: string[];    // Bot detection signals
     confidence: number;   // Bot detection confidence
   },
-  // Added in 0.12.0. `bot` above is unchanged; prefer this for new code.
+  // Added in 0.11.0. `bot` above is unchanged; prefer this for new code.
   agentAssessment?: {
     verdict: 'human' | 'crawler' | 'agent' | 'assistant' | 'automation' | 'unknown';
     confidence: number;   // 0-1; 0.5 means "no evidence", not certainty
@@ -164,7 +164,7 @@ systemInfo: {
   },
   confidenceScore: number; // Overall system confidence score
 
-  // Added in 0.12.0
+  // Added in 0.11.0
   outputVersion?: string; // Schema version; see dist/systeminfo.schema.json
   warnings?: FingerprintWarning[]; // Present only when a collector failed
 }
