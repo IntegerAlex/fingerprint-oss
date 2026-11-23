@@ -189,17 +189,6 @@ export default function Roadmap() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col md:flex-row items-center gap-4">
-                <Link href="https://macroscope.com" target="_blank" className="flex-shrink-0">
-                  <Image src="/macroscope.svg" alt="Macroscope" width={140} height={48} className="h-12 w-auto hover:opacity-90 transition-opacity" />
-                </Link>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">Macroscope</h3>
-                  <p className="text-sm text-muted-foreground">
-                    AI code review in PR. Macroscope finds and fixes critical bugs so you don't have to.
-                  </p>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -286,10 +275,10 @@ export default function Roadmap() {
           <CardContent className="p-6 text-center">
             <Shield className="h-10 w-10 text-primary mx-auto mb-2" />
             <p className="text-lg font-medium text-foreground">
-              Fingerprint OSS serves 1M+ hits a month across production sites
+              Fingerprint OSS is used across production sites and shipped from npm and CDN
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Backed by Cloudflare OSS, Macroscope, Netlify, and Neon. Free & open source under LGPL-3.0.
+              Backed by Cloudflare OSS, Netlify, and Neon. Free & open source under LGPL-3.0.
             </p>
           </CardContent>
         </Card>

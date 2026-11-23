@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Runtime and dev dependencies (bowser and hash-wasm are the only runtime ones).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+      security:
+        applies-to: security-updates
+
+  # Keep the workflows' actions current; stale actions are a supply-chain risk.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-11-23
+
+One release: packaging + de-vendoring + hardening, and agent/automation detection for the agentic era. Nothing was published as 0.12.0.
+
+### Fixed
+- **`require()` and `import()` now both work** — the CJS bundle was published as `dist/index.cjs.js` inside a `"type": "module"` package with no `exports` map, so Node parsed it as ESM: `require('fingerprint-oss')` returned an empty namespace and `import('fingerprint-oss')` threw `exports is not defined in ES module scope`. Only bundlers worked. Builds are now `dist/index.mjs` / `dist/index.cjs` / `dist/index.min.js` (UMD), with an `exports` map and per-condition types (`.d.ts` / `.d.cts`)
+- **ReDoS in browser detection** — moved to Bowser v2.15.1, which fixes a polynomial denial-of-service in the Firefox-on-iPad rule ([GHSA-f9xq-72p3-q9fv](https://github.com/bowser-js/bowser/security/advisories/GHSA-f9xq-72p3-q9fv)) plus the Linespider, SlackBot and generic fallback patterns. A crafted User-Agent could block the event loop for seconds per parse
+- **One blocked API no longer kills the fingerprint** — collector failures now fall back per field and append a warning, instead of rejecting `getSystemInfo()`
+- **`detectBot()` no longer throws** when a privacy extension freezes `navigator.hardwareConcurrency`
+- **Collection no longer pins every CPU core for ~1.2s** — `estimateCores()` spawned `min(cores × 2, 16)` Web Workers (16 on a 16-thread machine) each running 30M trig iterations, on every `getSystemInfo()` call, and the result was then clamped by a faulty condition (`performance.timing.navigationStart` is truthy in Chromium, so every browser was capped at 8). It now measures effective parallelism with two short batches — one worker, then eight — computes `cores ≈ workers × single / parallel`, caches the promise for the life of the page, and re-measures once if a contended sample lands below 2 while the reported count is higher
+  - Measured on a 16-thread machine: **16 workers / 1.2s → 9 workers / ~150ms**, repeat collections **0 workers**, and the demo's dev load dropped from **32 workers / 2389ms to 9 workers / 1096ms** (React StrictMode now shares the cached promise instead of running the benchmark twice)
+  - `navigator.hardwareConcurrency` is still not trusted — Brave and privacy browsers misreport it — but it is only the fallback now
+- **Speech-voice probe timeout 800ms → 400ms** — only affects profiles with no voices installed (headless/CI), where it was dead time on the collection path; the signal is optional and never hashed
+
+### Added (agent & automation detection)
+- **`agentAssessment`** — a fused verdict on `SystemInfo` (`human` / `crawler` / `agent` / `assistant` / `automation` / `unknown`), backed by maintained open-source projects instead of a hand-rolled taxonomy:
+  - [BotD](https://github.com/fingerprintjs/BotD) (MIT) supplies browser-automation evidence: headless Chromium/Firefox, Selenium, Playwright, PhantomJS, Nightmare, Electron, WebDriver. It is initialised with `monitoring: false`, so its installation-statistics request stays disabled and the library remains 100% client-side
+  - [isbot](https://github.com/omrilotan/isbot) (Unlicense) supplies declared crawler/bot classification from the User-Agent, including AI crawler-style agents such as Claude Code
+  - A short curated token list covers AI *browser* agents and assistants (ChatGPT, Gemini, Copilot, Perplexity, Operator, Comet) that isbot cannot see because they present as ordinary browsers
+- **Verdicts are evidence, not truth** — `automation` at 0.8 confidence, or 0.9 with `automation:spoofed-declaration` when a crawler UA appears inside an automated browser (crawlers do not execute JavaScript). Headless/agent-declared UAs stay at 0.8. Declared `crawler`/`agent`/`assistant` verdicts stay at 0.5–0.6 and are marked `declaredBy: 'user-agent'`. A clean visitor is `human` at 0.5: absence of evidence, not proof
+- **Evasion handling** — `fuseAutomationEvidence()` covers what BotD cannot see once a stealth plugin hides `navigator.webdriver` and rewrites the UA. Three traces survive: headless signals from `enhanced.spoofing`, a core-count contradiction (stealth reports `hardwareConcurrency: 4` while the benchmark measures 8), and a renderer/UA contradiction (stealth rewrites the UA to Windows while its WebGL evasion still reports macOS strings `Intel Inc.` / `Intel Iris OpenGL Engine`). A headless signal plus either contradiction, or two headless signals, escalates to `automation` at 0.7 confidence; the evidence is always recorded
+- **Automation matrix** — `test/automation` runs `getSystemInfo()` inside Puppeteer, Playwright, Selenium **and a stealth-evasion driver** (`puppeteer-extra-plugin-stealth`) against the same Chromium, asserting the verdict, the evidence signal, id stability and the legacy `bot` field. One CI job per driver
+- **Exported** `assessAgent()`, `classifyAgent()`, `fuseAutomationEvidence()`, `declaredAiKind()`
+
+### Added (signals & configuration)
+- **`enhanced.optional`** — CSS preferences (forced colors, contrast, inverted colors, monochrome, reduced motion/transparency, HDR), screen frame, `AudioContext.baseLatency`, Intl date/time formatting, hashed speech-voice list, Permissions API states, and Client Hints `platform`/`architecture`/`bitness`/`mobile` with `uaArchitectureMismatch` (macOS exempt, because Apple Silicon legitimately reports an Intel UA). Non-enumerable and outside the hash, so stability is unaffected
+- **Tamper detection** — non-native API replacements, own properties and patched getters on `navigator`/`screen`, Client Hints/UA OS disagreement, and a renderer/OS contradiction, each with an explicit weight
+- **`SystemInfo.warnings`** — present only when a collector failed, with a `COLLECTOR_FAILED` code
+- **`geoEndpoint`** — custom https geolocation endpoint on `UserInfoConfig`/`FingerprintConfig`; plain-http or malformed values are rejected with a `CONFIG_INVALID` warning and the default endpoint is used
+- **`outputVersion` + `dist/systeminfo.schema.json`** — generated from the TypeScript types at build time and importable as `fingerprint-oss/dist/systeminfo.schema.json`
+- **`unpkg` / `jsdelivr` fields** pointing at the UMD bundle
+- **Named `userInfo` export**, which the docs already documented for CommonJS users
+
+### Added (project trust surfaces)
+- **`STABILITY.md`** and a stability/entropy harness (`scripts/entropy.mjs`, Cypress sampling spec) reporting per-component entropy and repeatability; CI posts the table to the job summary
+- **`SECURITY.md`** with supported versions, private reporting and response targets, plus `.well-known/security.txt`
+- **`llms.txt`** — a primary-source index for agents and LLM tooling
+- **OpenSSF Scorecard** workflow (weekly) and README badge
+- **Release workflow**: build → typecheck → package validation → size budget → e2e → CycloneDX SBOM (`pnpm sbom`) → `npm publish --provenance` → GitHub release with the SBOM attached
+
+### Changed
+- **Bowser is a dependency again, not a fork** — the vendored copy (3,365 lines, 39% of `src/`) existed to get Client Hints support that upstream now ships. `src/bowser/` is gone; the one remaining behaviour difference (Android TVs reported as tablets) is corrected where it is consumed
+- **`getSystemInfo()` collects in parallel** — the async collectors used to be awaited one after another; they now start together, so a collection costs the slowest signal rather than the sum
+- **Browser naming prefers features over the User-Agent** — Brave is detected via `navigator.brave`, Firefox via Gecko-only globals, Edge/Opera/Samsung via Client Hints brands, with Bowser's UA parsing as the fallback and the version source. `getBrowserInfo()` reports `detectedBy`
+- **New browser names** — Ladybird (with the `LibWeb` engine), HeyTap Browser and Vivo Browser are reported under their own names instead of `Chrome`; Motorola Edge is no longer reported as Microsoft Edge; Vivaldi resolves its version from Client Hints first
+- Bundle grows 37.8 KB → 44.9 KB gzip; the CI size budget is raised to 52 KB to leave headroom
+- README licence badge corrected to LGPL-3.0 (it said LGPL-2.1); the unverifiable "1M+ hits a month" claim replaced with an honest statement about distribution; Macroscope branding removed after the sponsorship ended
+- `API.md` documents `warnings`, `outputVersion`, `agentAssessment`, the schema, evasion evidence and `geoEndpoint`; `ROADMAP.md` marks what shipped; a dead 0-byte `test_hash_stability.js` was removed
+
+### Compatibility
+- **Additive only.** `bot` keeps its exact shape, `generateId()` is untouched, and every new field is optional and excluded from the hash, so the stability contract measured in [STABILITY.md](./STABILITY.md) holds
+- BotD failures degrade to the declared layer and never reject `getSystemInfo()`
+- Consumer-visible: dist filenames changed (see below) and browser names are feature-first
+
+### Infrastructure
+- CI runs `tsc --noEmit`, `publint` + `attw` (package resolution and types), a gzip size budget, `pnpm audit --prod`, the automation matrix, and CodeQL with `security-extended`
+- Dependabot covers npm and GitHub Actions; third-party notices cover Bowser, hash-wasm, BotD and isbot
+
 ## [0.10.1] - 2026-08-12
 
 ### Changed

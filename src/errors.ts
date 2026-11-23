@@ -10,6 +10,7 @@ export type FingerprintErrorCode =
     | 'GEO_HTTP_ERROR'
     | 'GEO_INVALID_RESPONSE'
     | 'GEO_FETCH_FAILED'
+    | 'COLLECTOR_FAILED'
     | 'UNKNOWN_ERROR';
 
 export interface FingerprintWarning {

@@ -1,0 +1,40 @@
+name: CodeQL
+
+# NOTE: this is the repository's only CodeQL analysis. GitHub's "default setup"
+# must stay disabled for this repository (Settings -> Code security), because
+# CodeQL refuses to ingest SARIF from an advanced configuration while default
+# setup is enabled.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Weekly, so new query packs catch old code.
+    - cron: '27 4 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze JavaScript/TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          # security-extended adds the ReDoS-style queries: this library parses
+          # attacker-controlled User-Agent strings, so polynomial backtracking
+          # is a real risk (see the Bowser 2.15.0 advisory).
+          queries: security-extended
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:javascript-typescript'

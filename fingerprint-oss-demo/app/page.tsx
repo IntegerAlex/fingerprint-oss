@@ -238,10 +238,10 @@ export default function Home() {
           <div className="text-center mb-12">
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
               <div className="inline-flex items-center rounded-lg bg-secondary text-sm font-medium py-1 px-3">
-                Backed by Cloudflare OSS, Macroscope, and Netlify Open Source
+                Backed by Cloudflare OSS and Netlify Open Source
               </div>
               <span className="inline-flex items-center rounded-lg border border-primary/30 bg-primary/10 text-primary text-sm font-medium py-1 px-3">
-                v0.10.1
+                v0.11.0
               </span>
             </div>
             <h1 className="text-5xl font-bold text-primary mb-4">

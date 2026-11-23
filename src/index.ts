@@ -33,7 +33,8 @@ import {
     getAudioFingerprint,
     getWebGLInfo,
     getFontPreferences,
-    estimateCores
+    estimateCores,
+    estimateParallelism
 } from './helper';
 import { 
     initializeConfig, 
@@ -54,6 +55,9 @@ import {
     detectSpoofing,
     collectEnhancedFingerprint,
     computeEntropyScores,
+    collectOptionalSignals,
+    architectureMismatch,
+    rendererOsMismatch,
     FP_VERSION,
 } from './enhanced';
 
@@ -167,7 +171,8 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
         enablePerformanceLogging: config.enablePerformanceLogging,
         transparency: config.transparency,
         message: config.message,
-        geoTimeout: config.geoTimeout
+        geoTimeout: config.geoTimeout,
+        geoEndpoint: config.geoEndpoint
     }, warnings);
     
     const currentConfig = getConfig();
@@ -196,6 +201,7 @@ async function userInfo(config: UserInfoConfig & { telemetry?: TelemetryConfig }
                 getSystemInfo(),
                 fetchGeolocationInfo({
                     timeoutMs: currentConfig.geoTimeout ?? DEFAULT_GEO_TIMEOUT_MS,
+                    endpoint: currentConfig.geoEndpoint,
                     onWarning: addWarning
                 })
             ]);
@@ -338,7 +344,16 @@ const fingerprintOSS = Object.assign(userInfo, {
     detectSpoofing,
     collectEnhancedFingerprint,
     computeEntropyScores,
+    collectOptionalSignals,
+    architectureMismatch,
+    rendererOsMismatch,
     FP_VERSION,
+
+    // Agent / automation assessment
+    assessAgent,
+    classifyAgent,
+    declaredAiKind,
+    fuseAutomationEvidence,
 });
 
 export default fingerprintOSS;
@@ -346,6 +361,10 @@ export default fingerprintOSS;
 // Named exports to match docs and allow tree-shaking
 export { Telemetry, withTelemetry };
 export type { TelemetryConfig };
+
+// `userInfo` is the default export; expose it by name too so
+// `const { userInfo } = require('fingerprint-oss')` works as documented.
+export { userInfo };
 
 // Export configuration functions and types
 export { 
@@ -373,6 +392,13 @@ export {
     detectBot
 } from './systemInfo';
 
+export { getBrowserInfo, getBrowserName } from './browserDetection';
+export { assessAgent, classifyAgent, declaredAiKind, fuseAutomationEvidence } from './agentAssessment';
+export type { ClassifyAgentInput, AutomationEvidenceInput } from './agentAssessment';
+export type { AgentAssessment, AgentVerdict } from './types';
+export { probeBrowser, BROWSER_FAMILY_NAMES } from './browserProbe';
+export type { BrowserProbe, BrowserFamily, EngineFamily } from './browserProbe';
+
 export { fetchGeolocationInfo } from './geo-ip';
 export { generateJSON } from './json';
 export { generateId, generateIdWithDebug, compareInputs } from './hash';
@@ -396,7 +422,8 @@ export {
     getAudioFingerprint,
     getWebGLInfo,
     getFontPreferences,
-    estimateCores
+    estimateCores,
+    estimateParallelism
 } from './helper';
 
 export {
@@ -417,8 +444,12 @@ export {
     detectSpoofing,
     collectEnhancedFingerprint,
     computeEntropyScores,
+    collectOptionalSignals,
+    architectureMismatch,
+    rendererOsMismatch,
     FP_VERSION,
 } from './enhanced';
+import { assessAgent, classifyAgent, declaredAiKind, fuseAutomationEvidence } from './agentAssessment';
 export type {
     AudioEnhanced,
     CanvasEnhanced,

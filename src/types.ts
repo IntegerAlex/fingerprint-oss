@@ -8,6 +8,7 @@
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
 import type { DeviceTypeInfo } from './deviceType.js';
+import type { FingerprintWarning } from './errors.js';
 
 // Add WebKit FileSystem types
 declare global {
@@ -57,6 +58,9 @@ export interface BraveInfo {
     brands: string[];
 }
 
+/** Version of the SystemInfo shape. Bumped when a field changes shape. */
+export const OUTPUT_VERSION = '1';
+
 export interface SystemInfo {	
     incognito: { isPrivate: boolean; browserName: string }; 
     bot: {
@@ -64,6 +68,11 @@ export interface SystemInfo {
         signals: string[];
         confidence: number;
     };
+    /**
+     * Fused agent/automation verdict. `bot` is kept as-is for
+     * backward compatibility; new code should read this instead.
+     */
+    agentAssessment?: AgentAssessment;
     browser: { name?: string; version?: string };
     userAgent: string;
     platform: string;
@@ -95,6 +104,17 @@ export interface SystemInfo {
     fontPreferences: FontPreferencesInfo; // Updated name
     deviceType: DeviceTypeInfo;
     confidenceScore: number;
+    /**
+     * Schema version of this object; see dist/systeminfo.schema.json.
+     * Optional in the type so hand-built SystemInfo objects keep compiling,
+     * but always populated by getSystemInfo().
+     */
+    outputVersion?: string;
+    /**
+     * Present only when a collector failed and its fallback was used, e.g. a
+     * blocked WebGL context. Absent on a fully successful collection.
+     */
+    warnings?: FingerprintWarning[];
     /** Enhanced fingerprint signals (optional, added in v1.0.0). */
     enhanced?: EnhancedFingerprintInfo;
 }
@@ -163,6 +183,22 @@ export interface SpoofingInfo {
 }
 
 /**
+ * Verdicts produced by `assessAgent()`. `human` means "no automation evidence",
+ * not proof; `declaredBy` is only set when the User-Agent claimed the identity.
+ */
+export type AgentVerdict = 'human' | 'crawler' | 'agent' | 'assistant' | 'automation' | 'unknown';
+
+export interface AgentAssessment {
+    verdict: AgentVerdict;
+    /** 0..1. Declared-only verdicts stay below 0.7; automation evidence scores higher. */
+    confidence: number;
+    /** Present when the User-Agent declared the identity (unverified). */
+    declaredBy?: 'user-agent';
+    /** Named evidence, e.g. `automation:botd:headless_chrome`, `declared:user-agent:...`. */
+    signals: string[];
+}
+
+/**
  * Top-level container for all enhanced fingerprint signals.
  * Added as an optional field on SystemInfo to maintain backward compatibility.
  */
@@ -179,6 +215,66 @@ export interface EnhancedFingerprintInfo {
     fpVersion: string;
     /** Per-signal entropy estimates (bits). */
     entropy?: Record<string, number>;
+    /**
+     * Low-cost signals. Deliberately kept out of the hash:
+     * they are context, not identity. Any field can be null when the browser
+     * refuses the underlying API.
+     */
+    optional?: OptionalSignalsInfo;
+}
+
+/**
+ * CSS media-query preferences. Stable per device and OS theme, and a frequent
+ * target for anti-fingerprinting extensions, which makes disagreement between
+ * these values and the rest of the fingerprint informative.
+ */
+export interface DisplayPreferences {
+    /** `active` | `none` */
+    forcedColors: string | null;
+    /** `more` | `less` | `custom` | `no-preference` */
+    prefersContrast: string | null;
+    /** `inverted` | `none` */
+    invertedColors: string | null;
+    /** `hw-monochrome` value, typically `0` or the grayscale bit depth */
+    monochrome: string | null;
+    /** `reduce` | `no-preference` */
+    reducedMotion: string | null;
+    /** `reduce` | `no-preference` */
+    reducedTransparency: string | null;
+    /** `high` | `standard` (video-dynamic-range) */
+    hdr: string | null;
+}
+
+/** Everything below is optional context; null means "the browser refused". */
+export interface OptionalSignalsInfo {
+    display: DisplayPreferences;
+    /** Window position offset: differs across multi-monitor setups. */
+    screenFrame: { availLeft: number; availTop: number } | null;
+    /** AudioContext.baseLatency in seconds — implementation-specific. */
+    audioBaseLatency: number | null;
+    /** ICU data varies by OS build; the formatted sample exposes it. */
+    dateTimeLocale: {
+        locale: string;
+        calendar: string;
+        numberingSystem: string;
+        formatted: string;
+    } | null;
+    /** Installed speech voices, hashed (names only, never the raw list). */
+    speechVoices: { count: number; voicesHash: string } | null;
+    /** Permissions API statuses; inconsistent answers indicate tampering. */
+    permissions: Record<string, string> | null;
+    /**
+     * User-Agent Client Hints high-entropy values (Chromium only). The
+     * architecture/bitness pair is hard to spoof consistently with the UA, so
+     * `uaArchitectureMismatch` doubles as a tamper signal.
+     */
+    clientHints: {
+        platform: string | null;
+        architecture: string | null;
+        bitness: string | null;
+        mobile: boolean | null;
+        uaArchitectureMismatch: boolean | null;
+    } | null;
 }
 
 export interface WebGLInfo {
@@ -257,6 +353,8 @@ export interface UserInfoConfig {
 
     // Runtime controls
     geoTimeout?: number;
+    /** Custom https endpoint for geolocation lookups */
+    geoEndpoint?: string;
 }
 
 export interface ResolvedUserInfoConfig {
@@ -268,4 +366,5 @@ export interface ResolvedUserInfoConfig {
     transparency: boolean;
     message?: string;
     geoTimeout: number;
+    geoEndpoint?: string;
 }

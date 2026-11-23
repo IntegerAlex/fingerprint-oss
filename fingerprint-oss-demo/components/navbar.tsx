@@ -22,9 +22,6 @@ export default function Navbar() {
             <Link href="https://cloudflare.com" target="_blank" className="ml-2">
               <Image src="/cloudflare.png" alt="Cloudflare Logo" width={120} height={40} className="h-8 w-auto" />
             </Link>
-            <Link href="https://macroscope.com" target="_blank" className="ml-2">
-              <Image src="/macroscope.svg" alt="Macroscope Logo" width={120} height={40} className="h-8 w-auto" />
-            </Link>
             <Link href="https://netlify.com" target="_blank" className="ml-2">
               <Image src="/netlify-logo.png" alt="Netlify Logo" width={100} height={40} className="h-8 w-auto" />
             </Link>

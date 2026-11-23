@@ -8,7 +8,7 @@
  * For a full copy of the LGPL and ethical contribution guidelines, please refer to the `COPYRIGHT.md` and `NOTICE.md` files.
  */
 
-import Bowser from './bowser/bowser.js';
+import Bowser from 'bowser';
 import { StructuredLogger } from './config.js';
 
 /**
@@ -150,7 +150,13 @@ function collectBowserSignals(
 ): void {
     try {
         const parsed = Bowser.parse(navigator.userAgent);
-        const platformType = parsed.platform?.type;
+        // Bowser runs its Android-tablet rule before its Smart TV / NetCast rules,
+        // so Android-based TVs come back as `tablet`. Correct it here until the
+        // ordering is fixed upstream (bowser-js/bowser).
+        const platformType = parsed.platform?.type === 'tablet'
+            && /smart-?tv|smarttv|netcast/i.test(navigator.userAgent)
+                ? 'tv'
+                : parsed.platform?.type;
         if (platformType) {
             methods.push('bowser');
             signals.push({ name: 'bowser.platformType', value: platformType, weight: 0.25, detected: true });

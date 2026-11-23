@@ -2,7 +2,7 @@
 
 Planned releases and features for versions 0.9.5 through 1.0. Timeline and scope are subject to change based on community feedback and capacity.
 
-**Current status:** v0.9.6, v0.10.0, and v0.10.1 have shipped. v0.9.6 (Configuration & Extensibility) is complete; v0.10.0/v0.10.1 were maintenance releases (Bowser/detectIncognito upgrades, pnpm migration, telemetry deprecation, and security fixes). The next feature release is v0.9.7 (Advanced Features & Hardening), ahead of 1.0.
+**Current status:** v0.11.0 is the feature release that closes out most of this roadmap: the dual-package fix, the Bowser de-vendoring, parallel collection, agent/automation assessment (BotD + isbot) with evasion handling, the core-benchmark rewrite, Client Hints architecture signals, `geoEndpoint`, `outputVersion` with a generated JSON Schema, the stability harness, CI hardening and the security/release trust surfaces. What remains for 1.0 is the public-API audit and the plugin/hook work below.
 
 ---
 
@@ -14,7 +14,7 @@ Planned releases and features for versions 0.9.5 through 1.0. Timeline and scope
 
 - **Config validation** — Validate and sanitize `userInfo` config options; warn or error on invalid values
 - **Output shape guards** — Ensure all optional fields have consistent fallbacks; no `undefined` in serialized output where a default is expected
-- **Schema exports** — Export TypeScript/Zod schemas for output validation in consuming applications
+- **Schema exports** — Export TypeScript/Zod schemas for output validation in consuming applications _(shipped in 0.11.0: `dist/systeminfo.schema.json`, importable as `fingerprint-oss/dist/systeminfo.schema.json`)_
 
 ### Error Handling & Resilience
 
@@ -24,7 +24,7 @@ Planned releases and features for versions 0.9.5 through 1.0. Timeline and scope
 
 ### Developer Experience
 
-- **npm `exports` field** — Proper package exports for ESM, CJS, and types
+- **npm `exports` field** — Proper package exports for ESM, CJS, and types _(shipped in 0.11.0, including `.d.cts` for CommonJS consumers)_
 - **UMD global name** — Document and stabilize UMD bundle usage
 - **Integration tests** — Broader Cypress coverage for hash stability and cross-browser behavior
 
@@ -36,7 +36,7 @@ Planned releases and features for versions 0.9.5 through 1.0. Timeline and scope
 
 ### Configuration
 
-- **Custom geo endpoint** — `geoEndpoint` option to point to self-hosted or alternate geolocation proxy
+- **Custom geo endpoint** — `geoEndpoint` option to point to self-hosted or alternate geolocation proxy _(shipped in 0.11.0; https-only, with a config warning on invalid values)_
 - **Feature flags** — Opt-in/opt-out for modules (e.g. `disableCanvas`, `disableWebGL`, `disableDeviceType`) for privacy/performance trade-offs
 - **Server-side config** — Support `userAgent` and `clientIp` in config for server-side fingerprinting
 
@@ -50,7 +50,7 @@ Planned releases and features for versions 0.9.5 through 1.0. Timeline and scope
 
 - **Lazy module loading** — Defer loading heavy modules (e.g. Bowser, hash-wasm) until needed
 - **Concurrent collection limits** — Configurable parallelism to avoid browser throttling
-- **Bundle size reporting** — Add build script to report ESM/CJS/UMD sizes to CI
+- **Bundle size reporting** — Add build script to report ESM/CJS/UMD sizes to CI _(shipped in 0.11.0: `scripts/check-size.mjs` fails over a gzip budget)_
 
 ---
 
@@ -73,7 +73,7 @@ Planned releases and features for versions 0.9.5 through 1.0. Timeline and scope
 
 ### API & Output
 
-- **Stable output version** — Add `outputVersion` field for future schema evolution
+- **Stable output version** — Add `outputVersion` field for future schema evolution _(shipped in 0.11.0)_
 - **Deprecation notices** — Clear deprecation path for legacy fields (e.g. `ip` alone) with migration docs
 - **Documentation generation** — Auto-generate API docs from JSDoc/TypeScript for each release
 

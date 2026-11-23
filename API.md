@@ -153,9 +153,86 @@ systemInfo: {
     signals: string[];    // Bot detection signals
     confidence: number;   // Bot detection confidence
   },
+  // Added in 0.11.0. `bot` above is unchanged; prefer this for new code.
+  agentAssessment?: {
+    verdict: 'human' | 'crawler' | 'agent' | 'assistant' | 'automation' | 'unknown';
+    confidence: number;   // 0-1; 0.5 means "no evidence", not certainty
+    declaredBy?: 'user-agent'; // Set when the UA claimed the identity (unverified)
+    signals: string[];    // e.g. 'automation:botd:headless_chrome',
+                          //      'declared:user-agent:ai-assistant',
+                          //      'automation:spoofed-declaration'
+  },
   confidenceScore: number; // Overall system confidence score
+
+  // Added in 0.11.0
+  outputVersion?: string; // Schema version; see dist/systeminfo.schema.json
+  warnings?: FingerprintWarning[]; // Present only when a collector failed
 }
 ```
+
+The generated JSON Schema for this object ships with the package as
+`dist/systeminfo.schema.json` (importable via `fingerprint-oss/dist/systeminfo.schema.json`).
+`hash`, `geolocation`, and `confidenceAssessments` are composed around
+`systemInfo` by `generateJSON()` and are not part of that schema.
+
+### Agent assessment
+
+`agentAssessment` fuses two maintained open-source sources with a short
+curated token list:
+
+| Source | What it contributes | License |
+|---|---|---|
+| [BotD](https://github.com/fingerprintjs/BotD) | Browser-automation evidence (headless, Selenium, Playwright, Electron, WebDriver) | MIT |
+| [isbot](https://github.com/omrilotan/isbot) | Declared crawler/bot identity from the User-Agent | Unlicense |
+| Curated AI tokens | Browser agents/assistants that isbot cannot see (ChatGPT, Gemini, Copilot, Perplexity, Operator, Comet…) | — |
+
+How to read the verdict:
+
+- `automation` — the browser is automated. Confidence 0.8; **0.9 when the UA
+  declared a crawler identity** (`automation:spoofed-declaration`), because a
+  crawler does not execute JavaScript in an automated browser. A UA that already
+  admits automation (headless, webdriver) or declares an AI agent stays at 0.8.
+- `agent` / `assistant` / `crawler` — **self-declared** by the UA, unverified.
+  Judge accordingly; a crawler is not necessarily hostile.
+- `human` — no automation evidence and no declaration. This is *absence of
+  evidence*, reported at 0.5. A user-driven browser agent with a clean UA is
+  indistinguishable client-side.
+- `unknown` — no User-Agent available (e.g. non-browser runtime).
+
+BotD is initialised with `monitoring: false`, so the library remains 100%
+client-side. The field is optional, is not part of the hash, and never throws.
+
+### Evasion evidence
+
+BotD cannot see a client that hides `navigator.webdriver` and rewrites its UA.
+`getSystemInfo()` therefore fuses two further traces into the verdict via
+`fuseAutomationEvidence()`:
+
+- headless signals from `enhanced.spoofing` (for example a taskbar-less 800×600
+  "desktop")
+- a core-count contradiction: `navigator.hardwareConcurrency` disagreeing with
+  the measured throughput by 2× or more
+- a renderer/OS contradiction: `webGL.renderer` reporting macOS-only strings
+  (`Intel Inc.`, `Intel Iris OpenGL Engine`) while the UA claims Windows/Linux
+
+Either alone is weak, so automation is reported only when both are present or
+two headless signals fire. The evidence is always listed in `signals`, even when
+the verdict stays `human`.
+
+```javascript
+const { agentAssessment } = await getSystemInfo();
+if (agentAssessment?.verdict === 'automation' && agentAssessment.confidence >= 0.8) {
+  // require a challenge before accepting the request
+}
+```
+
+### Configuration
+
+| Option | Type | Default | Notes |
+|---|---|---|---|
+| `geoEndpoint` | `string` | built-in proxy | Must be `https`; invalid values emit a `CONFIG_INVALID` warning and fall back |
+| `geoTimeout` | `number` | 4500 | Milliseconds, minimum 250 |
+
 
 ### Hash
 

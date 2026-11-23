@@ -36,6 +36,8 @@ import type {
     WebGL2Enhanced,
     SpoofingInfo,
     EnhancedFingerprintInfo,
+    DisplayPreferences,
+    OptionalSignalsInfo,
 } from './types';
 
 // ─── fp_version ─────────────────────────────────────────────────────────────
@@ -440,6 +442,28 @@ export async function getEnhancedWebGL2Info(): Promise<WebGL2Enhanced | null> {
  * is computed; signals most diagnostic of headless environments are weighted
  * higher than weak indicators.
  */
+/**
+ * A GPU that does not match the OS the UA claims.
+ *
+ * The classic case is a stealth plugin: it rewrites the UA to Windows while its
+ * WebGL evasion still reports the macOS strings (`Intel Inc.` /
+ * `Intel Iris OpenGL Engine`). Legitimate browsers agree with themselves, so a
+ * contradiction is tamper evidence rather than a fingerprinting quirk.
+ */
+export function rendererOsMismatch(ua: string, vendor: string, renderer: string): boolean {
+    if (!renderer) return false;
+
+    const uaSaysMac = /mac\s?os|macintosh/i.test(ua);
+    // macOS-only WebGL strings: the ANGLE/Direct3D layer does not exist there.
+    const looksMac = /OpenGL Engine|Apple (M|GPU)/i.test(renderer) || /^Apple/i.test(vendor);
+    // Windows/Linux ANGLE or Direct3D strings.
+    const looksWindowsOrLinux = /ANGLE \(|Direct3D|D3D11|Mesa|llvmpipe|SwiftShader/i.test(renderer);
+
+    if (!uaSaysMac && looksMac) return true;
+    if (uaSaysMac && looksWindowsOrLinux) return true;
+    return false;
+}
+
 export function detectSpoofing(): SpoofingInfo {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
         return { likelyHeadless: false, signals: [], score: 0 };
@@ -476,8 +500,12 @@ export function detectSpoofing(): SpoofingInfo {
                 const dbg = (gl as WebGLRenderingContext).getExtension('WEBGL_debug_renderer_info');
                 if (dbg) {
                     const renderer: string = (gl as WebGLRenderingContext).getParameter(dbg.UNMASKED_RENDERER_WEBGL) ?? '';
+                    const vendor: string = (gl as WebGLRenderingContext).getParameter(dbg.UNMASKED_VENDOR_WEBGL) ?? '';
                     if (/SwiftShader|llvmpipe|softpipe/i.test(renderer)) {
                         signals.push('headless:software-renderer');
+                    }
+                    if (rendererOsMismatch(ua, vendor, renderer)) {
+                        signals.push('tamper:renderer-os-mismatch');
                     }
                 }
             }
@@ -541,6 +569,91 @@ export function detectSpoofing(): SpoofingInfo {
         signals.push('antifp:no-mimetypes-in-chrome');
     }
 
+    // ── Prototype and API tampering ───────────────────────────────────────────
+    //
+    // Anti-fingerprinting extensions and automation frameworks rewrite the
+    // browser APIs we read. A rewritten function stops reporting "[native code]"
+    // and a patched accessor usually turns into an own property of the instance.
+    // These are tamper signals, not headless signals.
+
+    const nativePattern = /\{\s*\[native code\]\s*\}/;
+    const isNative = (value: unknown): boolean => {
+        if (typeof value !== 'function') return false;
+        try {
+            return nativePattern.test(Function.prototype.toString.call(value));
+        } catch {
+            return false;
+        }
+    };
+
+    const API_CHECKS: Array<[string, () => unknown]> = [
+        ['canvas.getContext', () => (globalThis as any).HTMLCanvasElement?.prototype?.getContext],
+        ['canvas.toDataURL', () => (globalThis as any).HTMLCanvasElement?.prototype?.toDataURL],
+        ['webgl.getParameter', () => (globalThis as any).WebGLRenderingContext?.prototype?.getParameter],
+        ['audio.getChannelData', () => (globalThis as any).AudioBuffer?.prototype?.getChannelData],
+        ['permissions.query', () => (navigator as any).permissions?.query],
+    ];
+
+    for (const [name, read] of API_CHECKS) {
+        try {
+            const fn = read();
+            if (typeof fn === 'function' && !isNative(fn)) {
+                signals.push(`tamper:non-native:${name}`);
+            }
+        } catch { /* property itself blocked */ }
+    }
+
+    const GETTER_CHECKS: Array<['Navigator' | 'Screen', string]> = [
+        ['Navigator', 'userAgent'],
+        ['Navigator', 'platform'],
+        ['Navigator', 'hardwareConcurrency'],
+        ['Screen', 'width'],
+        ['Screen', 'colorDepth'],
+    ];
+
+    for (const [owner, prop] of GETTER_CHECKS) {
+        try {
+            const target = owner === 'Navigator' ? navigator : (typeof screen !== 'undefined' ? screen : null);
+            if (!target) continue;
+
+            // In a clean browser these live on the prototype, never on the instance.
+            if (Object.prototype.hasOwnProperty.call(target, prop)) {
+                signals.push(`tamper:own-property:${prop}`);
+            }
+
+            const proto = (globalThis as any)[owner]?.prototype;
+            const descriptor = proto ? Object.getOwnPropertyDescriptor(proto, prop) : undefined;
+            if (descriptor?.get && !isNative(descriptor.get)) {
+                signals.push(`tamper:patched-getter:${prop}`);
+            }
+        } catch { /* descriptor access blocked */ }
+    }
+
+    // Client Hints must agree with the UA about the OS family; disagreement
+    // means one of the two was rewritten.
+    try {
+        const chPlatform = (navigator as any).userAgentData?.platform as string | undefined;
+        if (chPlatform) {
+            const uaFamilies: Array<[RegExp, string]> = [
+                [/windows nt/i, 'Windows'],
+                [/cros /i, 'Chrome OS'],
+                [/android/i, 'Android'],
+                [/iphone|ipad|ipod/i, 'iOS'],
+                [/mac os x|macintosh/i, 'macOS'],
+                [/linux/i, 'Linux'],
+            ];
+            const uaFamily = uaFamilies.find(([pattern]) => pattern.test(ua))?.[1];
+            const known = uaFamily !== undefined && chPlatform !== 'Unknown';
+            const agrees = uaFamily === chPlatform
+                // Chrome OS reports "Chrome OS" in CH and "CrOS" in the UA; iOS is
+                // folded into "iOS" upstream but Chrome on iOS reports iOS too.
+                || (uaFamily === 'Chrome OS' && /cros/i.test(ua));
+            if (known && !agrees) {
+                signals.push('tamper:os-mismatch');
+            }
+        }
+    } catch { /* Client Hints blocked */ }
+
     // ── Score computation ─────────────────────────────────────────────────────
 
     const WEIGHTS: Record<string, number> = {
@@ -555,6 +668,23 @@ export function detectSpoofing(): SpoofingInfo {
         'antifp:missing-languages': 0.15,
         'antifp:no-plugins-in-chrome': 0.20,
         'antifp:no-mimetypes-in-chrome': 0.20,
+        'tamper:non-native:canvas.getContext': 0.25,
+        'tamper:non-native:canvas.toDataURL': 0.25,
+        'tamper:non-native:webgl.getParameter': 0.25,
+        'tamper:non-native:audio.getChannelData': 0.25,
+        'tamper:non-native:permissions.query': 0.15,
+        'tamper:own-property:userAgent': 0.20,
+        'tamper:own-property:platform': 0.15,
+        'tamper:own-property:hardwareConcurrency': 0.15,
+        'tamper:own-property:width': 0.15,
+        'tamper:own-property:colorDepth': 0.15,
+        'tamper:patched-getter:userAgent': 0.20,
+        'tamper:patched-getter:platform': 0.15,
+        'tamper:patched-getter:hardwareConcurrency': 0.15,
+        'tamper:patched-getter:width': 0.15,
+        'tamper:patched-getter:colorDepth': 0.15,
+        'tamper:os-mismatch': 0.25,
+        'tamper:renderer-os-mismatch': 0.25,
     };
 
     let score = 0;
@@ -564,7 +694,9 @@ export function detectSpoofing(): SpoofingInfo {
     score = Math.min(1.0, score);
 
     return {
-        likelyHeadless: score >= 0.3,
+        // Tampering is suspicious but is not evidence of a headless browser, so
+        // require at least one headless signal before claiming that.
+        likelyHeadless: score >= 0.3 && signals.some(signal => signal.startsWith('headless:')),
         signals,
         score,
     };
@@ -605,6 +737,255 @@ export function computeEntropyScores(
     return scores;
 }
 
+// ─── Optional low-cost signals ───────────────────────────────────────────────
+
+/**
+ * Wraps `matchMedia` so a browser that blocks it (or an SSR build) yields
+ * `null` rather than throwing.
+ */
+function mediaMatches(query: string): boolean | null {
+    try {
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+            return null;
+        }
+        return window.matchMedia(query).matches;
+    } catch {
+        return null;
+    }
+}
+
+function mediaPick(query: string, whenTrue: string, whenFalse: string): string | null {
+    const matches = mediaMatches(query);
+    if (matches === null) return null;
+    return matches ? whenTrue : whenFalse;
+}
+
+function collectDisplayPreferences(): DisplayPreferences {
+    const contrast = ['more', 'less', 'custom'].find(
+        value => mediaMatches(`(prefers-contrast: ${value})`) === true,
+    );
+
+    return {
+        forcedColors: mediaPick('(forced-colors: active)', 'active', 'none'),
+        prefersContrast: contrast
+            ?? (mediaMatches('(prefers-contrast: no-preference)') === null ? null : 'no-preference'),
+        invertedColors: mediaPick('(inverted-colors: inverted)', 'inverted', 'none'),
+        monochrome: mediaPick('(min-monochrome: 1)', '1+', '0'),
+        reducedMotion: mediaPick('(prefers-reduced-motion: reduce)', 'reduce', 'no-preference'),
+        reducedTransparency: mediaPick('(prefers-reduced-transparency: reduce)', 'reduce', 'no-preference'),
+        hdr: mediaPick('(video-dynamic-range: high)', 'high', 'standard'),
+    };
+}
+
+function collectScreenFrame(): { availLeft: number; availTop: number } | null {
+    try {
+        if (typeof window === 'undefined' || !window.screen) return null;
+        // availLeft/availTop exist in browsers but not in the ES2020 DOM lib.
+        const screen = window.screen as Screen & { availLeft?: number; availTop?: number };
+        return { availLeft: screen.availLeft ?? 0, availTop: screen.availTop ?? 0 };
+    } catch {
+        return null;
+    }
+}
+
+async function collectAudioBaseLatency(): Promise<number | null> {
+    try {
+        const Ctor = (window as any)?.AudioContext ?? (window as any)?.webkitAudioContext;
+        if (!Ctor) return null;
+        const context = new Ctor();
+        const latency = typeof context.baseLatency === 'number' ? context.baseLatency : null;
+        void context.close?.();
+        return latency;
+    } catch {
+        return null;
+    }
+}
+
+function collectDateTimeLocale(): OptionalSignalsInfo['dateTimeLocale'] {
+    try {
+        const resolved = new Intl.DateTimeFormat().resolvedOptions();
+        return {
+            locale: resolved.locale,
+            calendar: resolved.calendar ?? '',
+            numberingSystem: resolved.numberingSystem ?? '',
+            formatted: new Intl.DateTimeFormat(undefined, {
+                dateStyle: 'full',
+                timeStyle: 'long',
+                timeZone: 'UTC',
+            }).format(new Date(0)),
+        };
+    } catch {
+        return null;
+    }
+}
+
+/** FNV-1a, 32-bit. Non-cryptographic: this is a lookup key, not a secret. */
+function fnv1a(input: string): string {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < input.length; i++) {
+        hash ^= input.charCodeAt(i);
+        hash = Math.imul(hash, 0x01000193);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Chrome populates voices asynchronously after a `voiceschanged` event. In a
+ * browser with voices installed this resolves immediately; the timeout only
+ * matters for headless/CI profiles, where it is otherwise dead time on the
+ * collection path (the signal is optional and never hashed).
+ */
+const VOICE_LOAD_TIMEOUT_MS = 400;
+
+async function collectSpeechVoices(): Promise<OptionalSignalsInfo['speechVoices']> {
+    try {
+        const synth = (window as any)?.speechSynthesis;
+        if (!synth || typeof synth.getVoices !== 'function') return null;
+
+        const read = (): SpeechSynthesisVoice[] => {
+            try {
+                return synth.getVoices() ?? [];
+            } catch {
+                return [];
+            }
+        };
+
+        let voices = read();
+        if (voices.length === 0) {
+            voices = await new Promise<SpeechSynthesisVoice[]>(resolve => {
+                const done = (value: SpeechSynthesisVoice[]) => {
+                    clearTimeout(timer);
+                    try { synth.removeEventListener('voiceschanged', onChange); } catch { /* older browsers */ }
+                    resolve(value);
+                };
+                const onChange = () => done(read());
+                const timer = setTimeout(() => done(read()), VOICE_LOAD_TIMEOUT_MS);
+                try {
+                    synth.addEventListener('voiceschanged', onChange);
+                } catch {
+                    done(read());
+                }
+            });
+        }
+
+        if (voices.length === 0) return null;
+
+        // Only the names, languages and locality — never the raw list.
+        const signature = voices
+            .map(voice => `${voice.name}|${voice.lang}|${voice.localService ? 1 : 0}`)
+            .sort()
+            .join(';');
+
+        return { count: voices.length, voicesHash: fnv1a(signature) };
+    } catch {
+        return null;
+    }
+}
+
+const PERMISSION_NAMES = [
+    'geolocation',
+    'notifications',
+    'camera',
+    'microphone',
+    'clipboard-read',
+    'persistent-storage',
+] as const;
+
+async function collectPermissionStates(): Promise<OptionalSignalsInfo['permissions']> {
+    try {
+        if (typeof navigator === 'undefined' || !navigator.permissions?.query) return null;
+
+        const entries = await Promise.all(PERMISSION_NAMES.map(async name => {
+            try {
+                const status = await navigator.permissions.query({ name: name as PermissionName });
+                return [name, status.state] as const;
+            } catch {
+                return null; // unsupported name in this browser
+            }
+        }));
+
+        const states: Record<string, string> = {};
+        for (const entry of entries) {
+            if (entry) states[entry[0]] = entry[1];
+        }
+        return Object.keys(states).length > 0 ? states : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Client Hints architecture/bitness, plus a consistency verdict against the UA.
+ *
+ * macOS is deliberately exempt: Apple Silicon browsers report `Intel Mac OS X`
+ * in the UA while Client Hints say `arm`, which is normal. Windows and Linux
+ * have no such excuse.
+ */
+export function architectureMismatch(
+    ua: string,
+    architecture: string | null,
+    platform: string | null,
+): boolean | null {
+    if (!architecture) return null;
+    const isMac = /mac\s?os|macintosh/i.test(ua) || platform === 'macOS';
+    if (isMac) return null;
+
+    const uaSaysX86 = /x86_64|win64|x64|amd64/i.test(ua);
+    const uaSaysArm = /\barm(?:v\d+)?\b|aarch64/i.test(ua);
+
+    if (architecture === 'arm' && uaSaysX86) return true;
+    if (architecture === 'x86' && uaSaysArm) return true;
+    return false;
+}
+
+async function collectClientHints(): Promise<OptionalSignalsInfo['clientHints']> {
+    try {
+        const uaData = (navigator as any)?.userAgentData;
+        if (!uaData) return null;
+
+        const high = typeof uaData.getHighEntropyValues === 'function'
+            ? await uaData.getHighEntropyValues(['architecture', 'bitness', 'platform', 'model'])
+            : {};
+
+        const architecture = high.architecture ?? null;
+        const platform = high.platform ?? uaData.platform ?? null;
+
+        return {
+            platform,
+            architecture,
+            bitness: high.bitness ?? null,
+            mobile: typeof uaData.mobile === 'boolean' ? uaData.mobile : null,
+            uaArchitectureMismatch: architectureMismatch(navigator.userAgent, architecture, platform),
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Collects the low-cost signals that neither FingerprintJS nor ThumbmarkJS
+ * ships in the baseline. Everything is defensive: a refused API becomes
+ * `null`, never an exception, and the aggregate never rejects.
+ */
+export async function collectOptionalSignals(): Promise<OptionalSignalsInfo> {
+    const [audioBaseLatency, speechVoices, permissions, clientHints] = await Promise.all([
+        collectAudioBaseLatency(),
+        collectSpeechVoices(),
+        collectPermissionStates(),
+        collectClientHints(),
+    ]);
+
+    return {
+        display: collectDisplayPreferences(),
+        screenFrame: collectScreenFrame(),
+        audioBaseLatency,
+        dateTimeLocale: collectDateTimeLocale(),
+        speechVoices,
+        permissions,
+        clientHints,
+    };
+}
+
 // ─── Aggregate collector ─────────────────────────────────────────────────────
 
 /**
@@ -614,11 +995,12 @@ export function computeEntropyScores(
  * This is the primary entry point called from `getSystemInfo`.
  */
 export async function collectEnhancedFingerprint(): Promise<EnhancedFingerprintInfo> {
-    // Collect audio, canvas, and WebGL2 in parallel for performance.
-    const [audioV2, canvasV2, webgl2] = await Promise.all([
+    // Collect audio, canvas, WebGL2 and the optional bundle in parallel.
+    const [audioV2, canvasV2, webgl2, optional] = await Promise.all([
         getEnhancedAudioFingerprint(),
         getEnhancedCanvasFingerprint(),
         getEnhancedWebGL2Info(),
+        collectOptionalSignals(),
     ]);
 
     // Spoofing detection is synchronous — no async API calls needed.
@@ -629,6 +1011,7 @@ export async function collectEnhancedFingerprint(): Promise<EnhancedFingerprintI
         canvasV2,
         webgl2,
         spoofing,
+        optional,
         fpVersion: FP_VERSION,
     };
 
