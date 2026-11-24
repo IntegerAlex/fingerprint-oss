@@ -39,7 +39,7 @@ A: `systemInfo.agentAssessment` fuses three sources: BotD (browser-automation ev
 **Q: Can it detect CLI coding agents like OpenCode, Claude Code or Codex?**  
 A: Not from the page. Those tools fetch with their own HTTP client and never execute page JavaScript, so the bundle that runs `assessAgent()` never loads. Call `assessRequest({ userAgent, headers })` from your Worker, proxy or Node handler instead: it reads the request as it arrives and matches self-declared user agents (`OpenCode-User/1.0`, `claude-code/<version>`, `Cursor/`, `ExaUser` and a dozen more) plus `Accept` content negotiation, since no browser asks for `text/markdown` first. It returns the same verdicts as `agentAssessment`, with `product`, `kind` and `runsOn`.
 
-Attribution stops at the fetcher, not at the product. Cursor's fetch runs on Exa and arrives as `ExaUser`, Codex shells out to `curl`, and Codex's own web search never touches your origin at all. In those cases `product` is `null` — the honest result, not a missing entry.
+Attribution stops at the fetcher, not at the product. Cursor's fetch runs on Exa and arrives as `ExaUser`, Codex shells out to `curl`, and Codex's own web search never touches your origin at all. In those cases `product` is `null` — the honest result, not a missing entry. See [Request-layer agent assessment](./api/reference.md#request-layer-agent-assessment) for the response fields.
 
 **Q: How does telemetry export work?**  
 A: It doesn't any more. The `telemetry` option and the `Telemetry` / `withTelemetry` exports are no-ops since 0.10.1 and will be removed in a future major release. Calls are accepted for backward compatibility and do nothing; no traces leave the browser.

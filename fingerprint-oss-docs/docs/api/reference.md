@@ -169,7 +169,11 @@ systemInfo: {
 ### Agent Assessment
 
 `agentAssessment` fuses maintained open-source detectors with this library's
-consistency checks:
+consistency checks. It runs in the page, so it can only see clients that
+execute JavaScript; for CLI agents, see [Request-Layer Agent
+Assessment](#request-layer-agent-assessment) below.
+
+Sources:
 
 | Layer | Source | License |
 |---|---|---|
@@ -203,6 +207,87 @@ if (agentAssessment?.verdict === 'automation' && agentAssessment.confidence >= 0
 The generated JSON Schema for `SystemInfo` ships with the package as
 `dist/systeminfo.schema.json` (importable via
 `fingerprint-oss/dist/systeminfo.schema.json`).
+
+### Request-Layer Agent Assessment
+
+A CLI agent never runs the page. It fetches with its own HTTP client, receives
+bytes, and stops, so the bundle that produces `agentAssessment` never loads.
+OpenCode, Claude Code, Cursor, Codex and Gemini CLI all work this way.
+
+`assessRequest()` reads the request instead. Call it in a Worker, a proxy or a
+Node handler, before any HTML is served:
+
+```typescript
+import { assessRequest } from 'fingerprint-oss';
+
+export default {
+  async fetch(request: Request) {
+    const assessment = assessRequest({
+      userAgent: request.headers.get('user-agent'),
+      headers: request.headers,
+    });
+
+    if (assessment.verdict === 'agent' && assessment.confidence >= 0.8) {
+      // serve the agent-friendly representation, or gate on it
+    }
+  },
+};
+```
+
+```typescript
+assessRequest(input: {
+  userAgent?: string | null;
+  /** Plain object or a Headers instance. */
+  headers?: Record<string, string | string[] | undefined> | Headers | null;
+}): RequestAssessment
+
+interface RequestAssessment {
+  verdict: 'human' | 'crawler' | 'agent' | 'assistant' | 'automation' | 'unknown';
+  confidence: number;
+  product: string | null;   // 'OpenCode', 'Claude Code', 'Exa', ... or null
+  kind: 'coding' | 'assistant' | 'browser' | 'http-client' | null;
+  runsOn: 'user' | 'operator' | null;
+  declaredBy?: 'user-agent';
+  signals: string[];
+}
+```
+
+Two checks, most specific first:
+
+| Check | What it covers | Confidence |
+|---|---|---|
+| Self-declared user agent | `OpenCode-User/1.0` (and its bare `opencode` Cloudflare fallback), `claude-code/<version>` inside `Claude-User (...)`, `Cursor/`, `qodercli/`, `Augment-WebFetch/`, `ZCode-WebFetch/`, `Google-Jetski-Antigravity`, `GoogleAgent-URLContext`, `GitHubCopilot*`, `ExaUser`, `Claude-User`, `ChatGPT-User`, `Perplexity-User`, `KiroServer/` | 0.75; 0.9 when the `Accept` header agrees |
+| `Accept` negotiation | any client that ranks `text/markdown` or `text/x-markdown` above `text/html`. Claude Code ties both at q=1 and relies on header order, so position breaks the tie. No browser does this. | 0.75, with `product: null` |
+
+Generic HTTP clients (`curl`, `axios`, `got`, `Go-http-client`,
+`python-requests`, `node`, `Bun`, `Wget`, `reqwest`, `okhttp`, `colly`, …)
+return `crawler` with `kind: 'http-client'` and no product.
+
+How to read a request verdict:
+
+- `agent` / `assistant` (0.75–0.9) — the request named a product, or asked for
+  markdown. 0.9 means both. Still a claim, not proof: a user agent is
+  trivially forged.
+- `crawler` (0.5–0.6) — a generic HTTP client, or a UA isbot already knows.
+  This says "not a browser", not "hostile".
+- `human` (0.5, or 0.4 with `request:headers:no-browser-markers`) — no
+  declaration and no markdown preference. A browser-shaped UA whose headers
+  carry no `Sec-Fetch-*`, `Sec-CH-UA` or `Accept-Language` lowers confidence
+  rather than flipping the verdict, because proxies strip those headers.
+- `unknown` — no user agent and no headers.
+
+What it cannot tell you:
+
+- **Proxied fetches.** Cursor's web fetch runs on Exa and arrives as
+  `ExaUser`, so the answer is `assistant` / `Exa` — whoever made the request,
+  not the product the user typed into.
+- **Operator-side search.** Codex's web search goes to OpenAI's API and may
+  never reach your origin. When Codex does fetch directly, it shells out to
+  `curl`, so the origin sees curl.
+- **Spoofing.** Nothing here verifies a declaration. `product` is what the
+  request claims.
+
+`product: null` is a result, not a gap in the dataset.
 
 ### Hash
 
