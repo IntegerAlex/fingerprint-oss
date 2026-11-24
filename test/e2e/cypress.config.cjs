@@ -8,6 +8,11 @@ module.exports = {
     // userInfo() awaits Promise.all([getSystemInfo(), fetchGeolocationInfo()])
     // which exceeds the 4000ms default and aborts as "promise never resolved".
     defaultCommandTimeout: 30000,
-    requestTimeout: 30000
+    requestTimeout: 30000,
+    // Electron's screenshot-on-failure hangs until the command timeout in this
+    // headless setup ("Screenshots: 0"), and the timeout error replaces the
+    // assertion that actually failed. A plain assertion failure is more useful
+    // than an opaque 30s hang.
+    screenshotOnRunFailure: false
   }
 };
