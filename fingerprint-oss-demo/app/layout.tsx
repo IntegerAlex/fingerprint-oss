@@ -92,17 +92,16 @@ export const metadata: Metadata = {
     "canvas fingerprinting",
     "WebGL fingerprinting",
     "hardware fingerprinting",
-    "GOSS",
-    "Global Open Source Softwares",
+    "Akshat Kotpalliwar",
     "Cloudflare Workers",
     "Next.js",
     "TypeScript",
   ],
   authors: [
-    { name: "Global Open Source Softwares (GOSS)", url: "https://globalopensourcesoftwares.in" }
+    { name: "Akshat Kotpalliwar", url: "https://akshatkotpalliwar.in" }
   ],
-  creator: "Global Open Source Softwares (GOSS)",
-  publisher: "Global Open Source Softwares (GOSS)",
+  creator: "Akshat Kotpalliwar",
+  publisher: "Akshat Kotpalliwar",
   generator: "Next.js",
   applicationName: "Fingerprint OSS Demo",
   referrer: "origin-when-cross-origin",
@@ -165,7 +164,7 @@ export default function RootLayout({
               "url": "https://fingerprint-oss.gossorg.in",
               "author": {
                 "@type": "Organization",
-                "name": "Global Open Source Softwares (GOSS)",
+                "name": "Akshat Kotpalliwar",
                 "url": "https://globalopensourcesoftwares.in"
               },
               "applicationCategory": "DeveloperApplication",
