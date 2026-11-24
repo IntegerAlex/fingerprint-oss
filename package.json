@@ -30,13 +30,14 @@
     "check:size": "node scripts/check-size.mjs",
     "audit": "npm audit",
     "docs": "typedoc",
-    "test": "cd test && npm run test:unit",
-    "test:all": "cd test && npm run test:all",
+    "test": "npm run test:server && cd test && npm run test:unit",
+    "test:all": "npm run test:server && cd test && npm run test:all",
     "test:unit": "cd test && npm run test:unit",
     "test:e2e": "cd test && npm run test:e2e",
     "test:automation": "cd test/automation && node run.mjs",
     "prepublishOnly": "npm run build",
-    "sbom": "pnpm sbom --sbom-format cyclonedx --prod"
+    "sbom": "pnpm sbom --sbom-format cyclonedx --prod",
+    "test:server": "npm run build && cd test/server && node --test"
   },
   "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",
   "files": [

@@ -67,6 +67,13 @@ export function getUAPlatformMismatch(ua: string, platform: string): number {
 }
 
 // Modified browser consistency check using existing system info
+/**
+ * Signed consistency score in [-0.3, 0].
+ *
+ * 0 means nothing contradicted; each inconsistency subtracts 0.1, floored at
+ * -0.3. Callers subtract this from a confidence score, so it is not a 0..1
+ * consistency percentage.
+ */
 export function checkBrowserConsistency(systemInfo: any): number {
     let inconsistencies = 0;
     
