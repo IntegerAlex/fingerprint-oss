@@ -37,7 +37,7 @@
     "test:automation": "cd test/automation && node run.mjs",
     "prepublishOnly": "npm run build",
     "sbom": "pnpm sbom --sbom-format cyclonedx --prod",
-    "test:server": "npm run build && node --test test/server/"
+    "test:server": "npm run build && cd test/server && node --test"
   },
   "author": "Akshat Kotpalliwar (alias IntegerAlex on GitHub)",
   "files": [
