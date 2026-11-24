@@ -9,6 +9,27 @@ import Link from "next/link";
 /** Release history – factually accurate per CHANGELOG.md */
 const RELEASE_HISTORY = [
   {
+    version: "0.12.0",
+    date: "2026-11-24",
+    items: [
+      "assessRequest(): agent detection for Workers, proxies and Node handlers, where CLI agents are actually visible",
+      "Recognises 15 self-declared clients (OpenCode, Claude Code, Cursor, Exa, Gemini, Copilot...) plus markdown-first Accept negotiation",
+      "Generic HTTP clients (curl, axios, got) report as crawler, not as a product: attribution follows the fetcher",
+      "Removed fingerprint-oss-otl (unreferenced, 22 vulnerabilities, 1 critical)",
+    ],
+  },
+  {
+    version: "0.11.0",
+    date: "2026-11-23",
+    items: [
+      "require() and import() both work: dist/index.mjs, dist/index.cjs and a UMD bundle behind an exports map",
+      "ReDoS fixed by moving to Bowser 2.15.1; a blocked API no longer kills the fingerprint (per-field fallbacks + warnings)",
+      "estimateCores rewrite: 16 workers / 1.2s -> 9 workers / ~150ms, cached across collections",
+      "agentAssessment: BotD + isbot + evasion handling for spoofed core counts and renderer/OS mismatches",
+      "Generated JSON Schema (dist/systeminfo.schema.json) and outputVersion",
+    ],
+  },
+  {
     version: "0.10.1",
     date: "2026-08-12",
     items: [
@@ -136,8 +157,7 @@ const RELEASE_HISTORY = [
 ];
 
 const FUTURE_ROADMAP = [
-  { version: "0.9.7", theme: "Advanced & Hardening", focus: ["Connection type", "CSP-friendly", "SRI hashes", "Pre-1.0 audit"] },
-  { version: "1.0.0", theme: "Stable Public API", focus: ["Finalize breaking changes", "API stability guarantees", "Compliance docs", "Benchmarks"] },
+  { version: "1.0.0", theme: "Stable Public API", focus: ["Public-API audit", "Plugin/hook system", "API stability guarantees", "Benchmarks"] },
 ];
 
 /**
@@ -212,7 +232,7 @@ export default function Roadmap() {
             <Card key={r.version} className="border-border/50 hover:border-primary/20 transition-colors">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Badge variant={r.version.startsWith("0.9") ? "default" : "secondary"}>v{r.version}</Badge>
+                  <Badge variant={r === RELEASE_HISTORY[0] ? "default" : "secondary"}>v{r.version}</Badge>
                   <span className="text-muted-foreground font-normal text-sm">{r.date}</span>
                 </CardTitle>
               </CardHeader>
@@ -235,7 +255,7 @@ export default function Roadmap() {
       <section>
         <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
           <Target className="h-6 w-6 text-primary" />
-          Upcoming: 0.10.1 → 1.0.0
+          Upcoming: 1.0.0
         </h2>
         <div className="space-y-4">
           {FUTURE_ROADMAP.map((release) => (
@@ -278,7 +298,7 @@ export default function Roadmap() {
               Fingerprint OSS is used across production sites and shipped from npm and CDN
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Backed by Cloudflare OSS, Netlify, and Neon. Free & open source under LGPL-3.0.
+              Backed by Cloudflare OSS and Netlify. Free & open source under LGPL-3.0.
             </p>
           </CardContent>
         </Card>
