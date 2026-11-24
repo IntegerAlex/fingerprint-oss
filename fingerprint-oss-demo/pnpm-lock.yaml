@@ -25,8 +25,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       fingerprint-oss:
-        specifier: ^0.11.0
-        version: 0.11.0
+        specifier: ^0.12.0
+        version: 0.12.0
       lucide-react:
         specifier: ^1.77.0
         version: 1.77.0(@types/react@19.3.0)(react@19.3.1)
@@ -1682,8 +1682,8 @@ packages:
     resolution: {integrity: sha512-S8KoZgRZN+a5rNwqTxlZZePjT/4cnm0ROV70LedRHZ0p8u9fRID0hJUZQpkKLzro8LfmC8sx23bY6tVNxv8pQA==}
     engines: {node: '>= 18.0.0'}
 
-  fingerprint-oss@0.11.0:
-    resolution: {integrity: sha512-6+mua41zzILduRibb7fNmC6U8n90ujVQN9g6/PJYUM74vkk9rzkGT/Fg+MMn8cQ2Vz46pZ9jxtRS7lmkgyKWQw==}
+  fingerprint-oss@0.12.0:
+    resolution: {integrity: sha512-3avscdALjg7UNKfVMgYHePayUrRWycgSMcdHjYYmzHPRdRhjs3cSAIhho+NEWgMtd9F/1OieMDJXqQPYYYEOBg==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
 
   form-data-encoder@1.7.2:
@@ -4116,7 +4116,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  fingerprint-oss@0.11.0:
+  fingerprint-oss@0.12.0:
     dependencies:
       '@fingerprintjs/botd': 2.0.0
       bowser: 2.15.1
