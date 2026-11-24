@@ -160,29 +160,24 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "Fingerprint OSS",
-              "description": "Free and open-source browser fingerprinting library for identifying unique visitors with device detection, geolocation, and VPN detection capabilities.",
+              "description": "Free and open-source browser fingerprinting library for identifying unique visitors, with device detection, geolocation, VPN detection, and AI agent detection at the request layer.",
               "url": "https://fingerprint-oss.gossorg.in",
               "author": {
-                "@type": "Organization",
+                "@type": "Person",
                 "name": "Akshat Kotpalliwar",
-                "url": "https://globalopensourcesoftwares.in"
+                "url": "https://akshatkotpalliwar.in"
               },
               "applicationCategory": "DeveloperApplication",
               "operatingSystem": "Any",
               "programmingLanguage": "JavaScript",
               "runtimePlatform": "Web Browser",
-              "license": "https://opensource.org/licenses/MIT",
-              "codeRepository": "https://github.com/goss-org/fingerprint-oss",
+              "license": "https://www.gnu.org/licenses/lgpl-3.0.html",
+              "codeRepository": "https://github.com/IntegerAlex/fingerprint-oss",
               "downloadUrl": "https://www.npmjs.com/package/fingerprint-oss",
               "offers": {
                 "@type": "Offer",
                 "price": "0",
                 "priceCurrency": "USD"
-              },
-              "aggregateRating": {
-                "@type": "AggregateRating",
-                "ratingValue": "4.8",
-                "reviewCount": "150"
               },
               "featureList": [
                 "Browser Fingerprinting",
@@ -192,7 +187,9 @@ export default function RootLayout({
                 "Hardware Fingerprinting",
                 "Canvas Fingerprinting",
                 "WebGL Detection",
-                "Privacy-Focused Analytics"
+                "Privacy-Focused Analytics",
+                "AI Agent Detection",
+                "CLI Agent Detection (request layer)"
               ]
             })
           }}

@@ -249,12 +249,7 @@ export default function FingerprintDisplay({
                   ? `${deviceType} (${Math.round(deviceTypeConfidence * 100)}%)` 
                   : deviceType} 
                 icon={Monitor} 
-                description="Multi-signal detection: client hints, screen, touch, UA patterns (v0.9.6)"
-                titleBadge={
-                  <span className="inline-flex items-center rounded-full bg-primary/20 text-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-                    New
-                  </span>
-                }
+                description="Multi-signal detection: client hints, screen, touch, UA patterns"
               />
               <InfoCard 
                 title="Browser" 
