@@ -5,3 +5,9 @@ allowBuilds:
   workerd: false
 minimumReleaseAgeExclude:
   - fingerprint-oss@0.10.0 || 0.10.1 || 0.11.0
+
+# Dev-tooling advisories from @opennextjs/cloudflare (glob traversal,
+# minimatch ReDoS). Both patched lines are majors; the deploy build is the test.
+overrides:
+  glob: ^14.0.6
+  minimatch: ^11.0.9

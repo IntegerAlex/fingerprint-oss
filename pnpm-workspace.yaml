@@ -1,0 +1,7 @@
+# pnpm 12 reads settings (including overrides) from this file, not from
+# package.json. These two are dev-tooling advisories:
+#   glob        via typescript-json-schema (schema generation)
+#   minimatch   via typedoc and glob
+overrides:
+  glob: ^14.0.6
+  minimatch: ^11.0.9
