@@ -104,20 +104,35 @@ const config = {
 const data = await userInfo(config);
 ```
 
-## Telemetry (OpenTelemetry)
+## Telemetry (deprecated)
 
-To enable telemetry, pass the telemetry config. The default OTLP HTTP endpoint is:
+Telemetry is a no-op since 0.10.1 and will be removed in a future major release. The `telemetry` option and the `Telemetry` / `withTelemetry` exports are still accepted so existing code keeps working, but nothing is collected or sent.
 
-- `domain/v1/traces` (no auth required)
+If you need observability, instrument `userInfo()` at your own call site.
+
+## Agent and automation assessment
+
+`getSystemInfo()` returns an `agentAssessment` alongside the fingerprint:
 
 ```javascript
-Telemetry.initialize({
-  enabled: true,
-  serviceName: 'your-app',
-  serviceVersion: '0.9.2',
-  sampleRate: 0.1
-});
+import { getSystemInfo } from 'fingerprint-oss';
+
+const { agentAssessment } = await getSystemInfo();
+// {
+//   verdict: 'human' | 'crawler' | 'agent' | 'assistant' | 'automation' | 'unknown',
+//   confidence: 0.9,
+//   declaredBy: 'user-agent',
+//   signals: ['automation:botd:headless_chrome', 'automation:spoofed-declaration']
+// }
 ```
+
+How to read it:
+
+- `automation` (0.8) — automated browser. 0.9 when a *crawler* UA appears inside an automated browser (`automation:spoofed-declaration`), because crawlers do not execute JavaScript.
+- `crawler` / `agent` / `assistant` (0.5–0.6) — self-declared by the User-Agent, unverified.
+- `human` (0.5) — no evidence of automation or a declaration. Not proof of a human: a user-driven browser agent with a clean UA looks identical client-side.
+
+The field is optional, excluded from the hash, and a BotD failure degrades to the declared layer instead of failing the call.
 
 ## React Integration
 

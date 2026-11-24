@@ -14,10 +14,10 @@ Fingerprint-oss employs multiple techniques to create a unique device fingerprin
 **Purpose**: Accurately identifies the browser and version using industry-standard parsing.
 
 **How it works**:
-1. Uses the Bowser library for comprehensive browser detection
-2. Parses user-agent strings with high accuracy (98% for common browsers)
-3. Supports 100+ browsers including Chrome, Firefox, Safari, Edge, Opera, Brave, and specialized browsers
-4. Provides normalized browser names and version strings
+1. Feature probes and Client Hints decide first: Brave via `navigator.brave`, Firefox via Gecko-only globals, Edge/Opera/Samsung via `userAgentData.brands`
+2. Bowser 2.15.1 parses the User-Agent as the fallback and supplies the version string
+3. `getBrowserInfo()` reports `detectedBy`, so you can see which source named the browser
+4. A UA rewrite is reconciled rather than trusted: a Gecko engine behind a Chrome UA is reported as Firefox
 
 **Example Output**:
 ```javascript
@@ -133,6 +133,61 @@ const mathFingerprint = {
 - Analyzes network characteristics
 
 **Reliability**: Medium - Can identify known VPNs but may have false positives.
+
+## Agent and Automation Detection
+
+Classic fingerprinting answers "which device is this?". In the agentic web it also
+has to answer "is this a person at all?" — more than half of internet traffic is
+now non-human, while only a small share of AI traffic declares itself.
+
+`agentAssessment` fuses three layers into one verdict:
+
+| Layer | Source | Answers |
+|---|---|---|
+| Automation | BotD (MIT) | Is the browser actually automated? Headless, Selenium, Playwright, PhantomJS, Nightmare, Electron, WebDriver |
+| Declaration | isbot (Unlicense) | Does the User-Agent claim to be a crawler or bot? |
+| Declaration | Curated tokens | AI browser agents isbot cannot see: ChatGPT, Gemini, Copilot, Perplexity, Operator, Comet |
+| Consistency | This library | Prototype tamper, Client Hints/UA disagreements, renderer/OS contradictions |
+
+### Evidence, not truth
+
+- `automation` at 0.8 is automation evidence regardless of what the UA says.
+- `automation` at 0.9 with `automation:spoofed-declaration` is a crawler UA inside
+  an automated browser — crawlers do not execute JavaScript.
+- `crawler` / `agent` / `assistant` are self-declared and marked
+  `declaredBy: 'user-agent'`; a crawler is not automatically hostile.
+- `human` at 0.5 is the absence of evidence. There is no client-side tell for a
+  user-driven browser agent with a clean UA, and the library says so rather than
+  guessing.
+
+### Evasion
+
+A stealth plugin can hide `navigator.webdriver`, fake plugins and the `chrome`
+object, and rewrite UA and Client Hints to a Windows desktop. BotD then reports
+nothing, so two contradictions are fused in:
+
+1. **Core-count mismatch** — the reported `hardwareConcurrency` disagrees with
+   measured throughput by 2× or more (stealth reports 4, the benchmark measures 8).
+2. **Renderer/OS mismatch** — the UA says Windows while WebGL reports macOS-only
+   strings (`Intel Inc.`, `Intel Iris OpenGL Engine`).
+
+Either contradiction plus a headless signal escalates to `automation` at 0.7.
+Single weak signals (a fullscreen kiosk, a phone with throttled cores) are
+recorded in `signals` but never flip the verdict.
+
+### Treating the verdict
+
+```javascript
+const { agentAssessment } = await getSystemInfo();
+if (agentAssessment?.verdict === 'automation' && agentAssessment.confidence >= 0.8) {
+  // require a challenge before accepting the request
+}
+```
+
+Never block on `crawler` alone: search engines and AI crawlers legitimately
+declare themselves, and blocking them removes you from their answers. The
+`signals` array tells you *which* evidence fired, so policy can distinguish a
+declared crawler from a spoofed one.
 
 ## Confidence Scoring
 
