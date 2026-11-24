@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-11-24
+
+Request-layer agent detection, plus a repository-wide dependency cleanup.
+
+### Added
+- **`assessRequest({ userAgent, headers })`** — agent assessment for Workers, proxies and Node handlers. Long-lived coding agents (OpenCode, Claude Code, Cursor, Gemini CLI) fetch with their own HTTP client and never execute page JavaScript, so `agentAssessment` cannot see them; this reads the request instead. It recognises 15 self-declared clients plus markdown-first `Accept` negotiation, and reports `product`, `kind` and `runsOn` alongside the shared verdict. Generic clients (`curl`, `axios`, `got`, …) report `crawler` with no product, because the origin can see the client, not the agent that spawned it
+
+### Changed
+- `checkBrowserConsistency` documents its signed range (`-0.3..0`). No behaviour change
+
+### Removed
+- `fingerprint-oss-otl` — unreferenced, 22 vulnerabilities (1 critical). Telemetry has been a no-op in the library since 0.10.1
+
+### Fixed
+- `npm test` runs the `node:test` suite on Node 22 and 24, and the browser-consistency spec asserts the signed range instead of a zero floor that only held while the CI viewport fit inside the reported screen
+
 ## [0.11.0] - 2026-11-23
 
 One release: packaging + de-vendoring + hardening, and agent/automation detection for the agentic era. Nothing was published as 0.12.0.

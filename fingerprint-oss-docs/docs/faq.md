@@ -31,7 +31,7 @@ A: The library collects comprehensive information including :
 A: Yes, the library includes GDPR compliance support through transparency configuration options. You can enable transparency mode and custom messaging for data collection notifications.
 
 **Q: What's the current version?**  
-A: 0.11.0. It ships the dual-package fix (`require` and `import` both work), moves browser detection to Bowser 2.15.1 as a normal dependency, collects signals in parallel, and adds `agentAssessment` with evasion handling. See the [CHANGELOG](https://github.com/IntegerAlex/fingerprint-oss/blob/main/CHANGELOG.md).
+A: 0.12.0. It adds `assessRequest()` for request-layer agent detection, which is where coding agents like OpenCode and Claude Code actually show up. 0.11.0 shipped the dual-package fix (`require` and `import` both work), moves browser detection to Bowser 2.15.1 as a normal dependency, collects signals in parallel, and adds `agentAssessment` with evasion handling. See the [CHANGELOG](https://github.com/IntegerAlex/fingerprint-oss/blob/main/CHANGELOG.md).
 
 **Q: Does it detect AI agents and automation?**  
 A: `systemInfo.agentAssessment` fuses three sources: BotD (browser-automation evidence), isbot (a User-Agent that declares itself a crawler or agent), and a curated list for AI browser agents such as ChatGPT, Gemini, Copilot, Perplexity, Operator and Comet. Verdicts are `human`, `crawler`, `agent`, `assistant`, `automation` or `unknown`, with named evidence in `signals`. Declared verdicts are self-reported and capped at 0.5–0.6 confidence; `human` at 0.5 means "no evidence", not proof. See the [API reference](./api/reference.md#agent-assessment).
