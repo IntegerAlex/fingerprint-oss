@@ -22,7 +22,10 @@ describe('confidence utilities', () => {
       return fp.getSystemInfo().then((info) => {
         const consistency = fp.checkBrowserConsistency(info);
         expect(consistency).to.be.a('number');
-        expect(consistency).to.be.at.least(0);
+        // Signed score: 0 means consistent, each inconsistency subtracts 0.1
+        // down to -0.3. A headless CI viewport can be larger than the reported
+        // screen, so 0 is not a valid floor.
+        expect(consistency).to.be.within(-0.3, 0.3);
       });
     });
   });
