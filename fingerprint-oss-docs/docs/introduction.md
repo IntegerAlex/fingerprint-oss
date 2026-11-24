@@ -27,12 +27,13 @@ Fingerprint OSS is a comprehensive JavaScript library for device fingerprinting 
 
 ## Core Capabilities
 
-- **System Information**: Enhanced browser detection (98% accuracy), OS, and hardware detection
+- **System Information**: Browser, OS, and hardware detection (feature-first naming, with Bowser as the UA fallback and version source)
 - **Advanced Fingerprinting**: Canvas, WebGL, Audio, and Math constants
 - **Privacy Detection**: Incognito mode, AdBlockers, and VPN detection
 - **Network Analysis**: Geolocation and network characteristics
 - **Confidence Scoring**: Reliability assessment of collected data
-- **Browser Detection**: Industry-standard parser supporting 100+ browsers with high accuracy
+- **Agent & automation assessment**: `agentAssessment` fuses BotD, isbot and consistency checks into a verdict with named evidence — including evasion handling for stealth plugins
+- **Browser Detection**: Bowser 2.15.1 plus Client Hints and feature probes, so Brave and Chromium variants are not misreported as Chrome
 
 ## Quick Start
 

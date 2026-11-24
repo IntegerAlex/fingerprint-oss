@@ -1,41 +1,39 @@
 ---
-title: Telemetry (OpenTelemetry)
-description: How to enable telemetry in fingerprint-oss and where data is sent
+title: Telemetry (deprecated)
+description: Telemetry is a no-op since 0.10.1 and will be removed in a future major release
 ---
 
-# Telemetry (OpenTelemetry)
+# Telemetry (deprecated)
 
-Fingerprint-OSS provides optional telemetry to help you monitor usage and errors. Telemetry is disabled by default.
+Telemetry is **disabled and inert**. Since 0.10.1 the `telemetry` option and the
+`Telemetry` / `withTelemetry` exports are no-ops: calls are accepted so existing
+code keeps working, but nothing is collected, exported or sent.
 
-## Enabling Telemetry
+## What changed
 
-```ts
-import { Telemetry } from 'fingerprint-oss';
+| Version | Behaviour |
+|---|---|
+| ≤ 0.10.0 | optional OpenTelemetry export over OTLP/HTTP |
+| ≥ 0.10.1 | no-op; the OpenTelemetry dependencies were removed |
+| next major | exports removed |
 
-Telemetry.initialize({
-  enabled: true,
-  serviceName: 'your-app',
-  serviceVersion: '0.9.1',
-  sampleRate: 0.1
-});
+## Migrating
+
+If your code passes a telemetry config, delete it:
+
+```diff
+- const data = await userInfo({
+-   telemetry: { enabled: true, serviceName: 'your-app', sampleRate: 0.1 },
+- });
++ const data = await userInfo();
 ```
 
-## Endpoint
+If you relied on the traces, instrument your own call site with your
+OpenTelemetry SDK — fingerprint-oss emits nothing.
 
-By default, traces are exported over OTLP/HTTP to:
+## Why
 
-- `domain/v1/traces`
-
-No authorization is required. You can override the endpoint by passing `endpoint` in your telemetry config if you self-host a collector.
-
-## What’s collected
-
-- Span names for major operations
-- Errors (without PII)
-- Timing and basic attributes for performance insights
-
-## Privacy
-
-- Off by default
-- No PII is included
-- Configurable sampling via `sampleRate`
+The library is client-side only and is positioned as privacy-conscious; shipping
+an opt-in exporter that most integrators never enabled added dependencies and
+code for no measurable benefit. Removing it also removed its transitive
+dependency surface.
